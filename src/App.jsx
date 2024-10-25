@@ -4,8 +4,6 @@ import { auth } from './config/firebase';
 import Header from './components/Header';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
-import PrivacyPolicy from './components/PrivacyPolicy';
-import DataDeletion from './components/DataDeletion';
 import './App.css';
 
 function App() {
@@ -22,25 +20,25 @@ function App() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   return (
     <Router>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <div className="min-h-screen bg-background">
         <Header user={user} />
-        <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+        <div className="pt-10">
           <Routes>
-            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
-            <Route path="/dashboard/*" element={user ? <Dashboard user={user} /> : <Navigate to="/" />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/data-deletion" element={<DataDeletion />} />
+            <Route
+              path="/"
+              element={user ? <Navigate to="/dashboard" /> : <Auth />}
+            />
+            <Route
+              path="/dashboard/*"
+              element={user ? <Dashboard user={user} /> : <Navigate to="/" />}
+            />
           </Routes>
-        </main>
+        </div>
       </div>
     </Router>
   );

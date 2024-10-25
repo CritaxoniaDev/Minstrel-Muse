@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { auth, db, facebookProvider } from '../../config/firebase';
+import { auth, db } from '../../config/firebase';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Facebook } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Auth = () => {
@@ -81,26 +80,6 @@ const Auth = () => {
         try {
             const result = await signInWithPopup(auth, provider);
             // Store Google user data in Firestore
-            await setDoc(doc(db, "users", result.user.uid), {
-                name: result.user.displayName,
-                email: result.user.email,
-                photoURL: result.user.photoURL,
-                createdAt: new Date().toISOString(),
-                favorites: [],
-                playlists: []
-            }, { merge: true });
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const signInWithFacebook = async () => {
-        setIsLoading(true);
-        setError('');
-        try {
-            const result = await signInWithPopup(auth, facebookProvider);
             await setDoc(doc(db, "users", result.user.uid), {
                 name: result.user.displayName,
                 email: result.user.email,
@@ -201,21 +180,6 @@ const Auth = () => {
                                         </span>
                                     </div>
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={signInWithFacebook}
-                                    disabled={isLoading}
-                                    className="w-full relative overflow-hidden group"
-                                >
-                                    <div className="absolute inset-0 w-3 bg-gradient-to-r from-blue-600 to-blue-800 transition-all duration-[250ms] ease-out group-hover:w-full"></div>
-                                    <div className="relative flex items-center justify-center gap-2">
-                                        <Facebook className="w-5 h-5 text-blue-600 group-hover:text-white transition-colors duration-200" />
-                                        <span className="group-hover:text-white transition-colors duration-200">
-                                            {isLoading ? 'Please wait...' : 'Continue with Facebook'}
-                                        </span>
-                                    </div>
-                                </Button>
-
                                 <div className="relative">
                                     <div className="absolute inset-0 flex items-center">
                                         <div className="w-full border-t"></div>

@@ -21,7 +21,7 @@ const Header = ({ user }) => {
             <div className="container mx-auto px-4">
                 <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <h1 
+                        <h1
                             onClick={() => navigate('/')}
                             className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
                         >
@@ -58,8 +58,8 @@ const Header = ({ user }) => {
                                         {user.displayName || user.email.split('@')[0]}
                                     </span>
                                 </div>
-                                <Button 
-                                    variant="destructive" 
+                                <Button
+                                    variant="destructive"
                                     onClick={handleSignOut}
                                     className="flex items-center gap-2"
                                 >
@@ -68,21 +68,22 @@ const Header = ({ user }) => {
                                 </Button>
                             </div>
                         </nav>
-                    ) : null}
-                </div>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 text-sm">
-                    <Link 
-                        to="/privacy" 
-                        className="text-muted-foreground hover:text-purple-600 transition-colors"
-                    >
-                        Privacy Policy
-                    </Link>
-                    <Link 
-                        to="/data-deletion" 
-                        className="text-muted-foreground hover:text-purple-600 transition-colors"
-                    >
-                        Data Deletion
-                    </Link>
+                    ) : (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 text-sm">
+                            <Link
+                                to="/privacy"
+                                className="text-muted-foreground hover:text-purple-600 transition-colors"
+                            >
+                                Privacy Policy
+                            </Link>
+                            <Link
+                                to="/data-deletion"
+                                className="text-muted-foreground hover:text-purple-600 transition-colors"
+                            >
+                                Data Deletion
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
         </header>
