@@ -4,7 +4,7 @@ import { auth } from './config/firebase';
 import Header from './components/Header';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
-import './App.css';
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -20,25 +20,24 @@ function App() {
   }, []);
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
   }
 
   return (
     <Router>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
         <Header user={user} />
-        <div className="pt-10">
+        <main className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
           <Routes>
-            <Route
-              path="/"
-              element={user ? <Navigate to="/dashboard" /> : <Auth />}
-            />
-            <Route
-              path="/dashboard/*"
-              element={user ? <Dashboard user={user} /> : <Navigate to="/" />}
-            />
+            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
+            <Route path="/dashboard/*" element={user ? <Dashboard user={user} /> : <Navigate to="/" />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
           </Routes>
-        </div>
+        </main>
       </div>
     </Router>
   );
