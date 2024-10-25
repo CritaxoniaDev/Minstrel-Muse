@@ -85,6 +85,7 @@ const Auth = () => {
                 name: result.user.displayName,
                 email: result.user.email,
                 photoURL: result.user.photoURL,
+                isApproved: false, // Add this line
                 createdAt: new Date().toISOString(),
                 favorites: [],
                 playlists: []

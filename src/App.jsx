@@ -8,14 +8,14 @@ import Dashboard from './components/App/Dashboard';
 import PendingApproval from './components/Auth/PendingApproval';
 import './App.css';
 
-function App() {  
+function App() {
   const [user, setUser] = useState(null);
   const [isApproved, setIsApproved] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user);
-      
+
       if (user) {
         // Check user approval status
         const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -31,7 +31,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-background">
-        <Header user={user} />
+        <Header user={user} isApproved={isApproved} />
         <div className="pt-10">
           <Routes>
             <Route
