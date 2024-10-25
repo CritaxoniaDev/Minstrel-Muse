@@ -6,6 +6,7 @@ import Header from './components/Header';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
 import PendingApproval from './components/Auth/PendingApproval';
+import Profile from './components/Profile/Profile';
 import './App.css';
 
 function App() {
@@ -15,9 +16,8 @@ function App() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user);
-
+      
       if (user) {
-        // Check user approval status
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           setIsApproved(userDoc.data().isApproved || false);
@@ -59,6 +59,14 @@ function App() {
                   <Navigate to="/" />
                 )
               }
+            />
+            <Route
+              path="/dashboard/profile"
+              element={user ? <Profile /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/dashboard/profile/:userId"
+              element={user ? <Profile /> : <Navigate to="/" />}
             />
           </Routes>
         </div>

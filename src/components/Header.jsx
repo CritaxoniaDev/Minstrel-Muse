@@ -1,5 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { auth } from '../config/firebase';
+import { auth, db } from '../config/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Home, Compass, Library, LogOut } from 'lucide-react';
@@ -9,6 +10,12 @@ const Header = ({ user, isApproved }) => {
 
     const handleSignOut = async () => {
         try {
+            // Update isApproved to false before signing out
+            if (user) {
+                await updateDoc(doc(db, "users", user.uid), {
+                    isApproved: false
+                });
+            }
             await auth.signOut();
             navigate('/');
         } catch (error) {
@@ -49,7 +56,10 @@ const Header = ({ user, isApproved }) => {
                             )}
 
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-50 to-blue-50">
+                                <div
+                                    onClick={() => navigate('/dashboard/profile')}
+                                    className="flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-50 to-blue-50 cursor-pointer hover:bg-gradient-to-r hover:from-purple-100 hover:to-blue-100 transition-colors"
+                                >
                                     <Avatar className="h-8 w-8 border-2 border-purple-200">
                                         <AvatarImage src={user.photoURL} />
                                         <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">

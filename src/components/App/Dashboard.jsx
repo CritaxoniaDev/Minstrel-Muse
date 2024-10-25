@@ -1,11 +1,15 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../config/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { 
-    Play, 
-    SkipForward, 
-    SkipBack, 
+import {
+    Play,
+    SkipForward,
+    SkipBack,
     Volume2,
     Music2,
     Users,
@@ -14,8 +18,22 @@ import {
 } from "lucide-react";
 
 const Dashboard = ({ user }) => {
+    const [users, setUsers] = useState([]);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const usersCollection = await getDocs(collection(db, "users"));
+            setUsers(usersCollection.docs.map(doc => ({
+                ...doc.data(),
+                uid: doc.id
+            })));
+        };
+        fetchUsers();
+    }, []);
+
     return (
-        <div className="grid lg:grid-cols-6 gap-4 p-6">
+        <div className="grid lg:grid-cols-6 gap-4 p-6 pb-32">
             {/* Stats Cards Row */}
             <div className="col-span-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
@@ -87,6 +105,43 @@ const Dashboard = ({ user }) => {
                                     <Button variant="ghost" size="icon">
                                         <Play className="h-4 w-4" />
                                     </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="col-span-6 lg:col-span-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Active Users</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {users.map((user, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors cursor-pointer"
+                                    onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
+                                >
+                                    <div className="flex items-center space-x-4">
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage src={user.photoURL} />
+                                            <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
+                                                {user.email[0].toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="text-sm font-medium">{user.name || 'Anonymous'}</p>
+                                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <span className={`px-2 py-1 rounded-full text-xs ${user.isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                            {user.isApproved ? 'Approved' : 'Pending'}
+                                        </span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
