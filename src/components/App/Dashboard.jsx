@@ -6,9 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import axios from 'axios';
+import YouTube from 'react-youtube';
 import {
     Play,
     SkipForward,
+    Pause,
     SkipBack,
     Volume2,
     Music2,
@@ -17,9 +20,49 @@ import {
     Heart
 } from "lucide-react";
 
+const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+
 const Dashboard = ({ user }) => {
     const [users, setUsers] = useState([]);
+    const [recentlyPlayed, setRecentlyPlayed] = useState([]);
+    const [currentTrack, setCurrentTrack] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
     const navigate = useNavigate();
+    // Inside the Dashboard component, add these new states
+    const [player, setPlayer] = useState(null);
+    const [volume, setVolume] = useState(75);
+
+    // Add these player control functions
+    const onPlayerReady = (event) => {
+        setPlayer(event.target);
+    };
+
+
+    const fetchYoutubeVideos = async () => {
+        try {
+            const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+                params: {
+                    part: 'snippet',
+                    maxResults: 5,
+                    key: YOUTUBE_API_KEY,
+                    type: 'video',
+                    q: 'music trending'
+                }
+            });
+
+            const videos = response.data.items.map(item => ({
+                id: item.id.videoId,
+                title: item.snippet.title,
+                thumbnail: item.snippet.thumbnails.default.url,
+                channelTitle: item.snippet.channelTitle,
+                duration: '3:45'
+            }));
+
+            setRecentlyPlayed(videos);
+        } catch (error) {
+            console.error('Error fetching YouTube videos:', error);
+        }
+    };
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -29,8 +72,58 @@ const Dashboard = ({ user }) => {
                 uid: doc.id
             })));
         };
+
         fetchUsers();
+        fetchYoutubeVideos();
     }, []);
+
+    const handlePlayPause = (video) => {
+        if (currentTrack?.id === video.id) {
+            if (isPlaying) {
+                player?.pauseVideo();
+            } else {
+                player?.playVideo();
+            }
+            setIsPlaying(!isPlaying);
+        } else {
+            setCurrentTrack(video);
+            setIsPlaying(true);
+        }
+    };
+
+    const handleVolumeChange = (newValue) => {
+        setVolume(newValue);
+        if (player) {
+            player.setVolume(newValue);
+        }
+    };
+
+    const handleSkipBack = () => {
+        if (recentlyPlayed.length > 0) {
+            const currentIndex = recentlyPlayed.findIndex(video => video.id === currentTrack?.id);
+            const previousIndex = (currentIndex - 1 + recentlyPlayed.length) % recentlyPlayed.length;
+            const previousTrack = recentlyPlayed[previousIndex];
+            setCurrentTrack(previousTrack);
+            setIsPlaying(true);
+        }
+    };
+
+    const handleSkipForward = () => {
+        if (recentlyPlayed.length > 0) {
+            const currentIndex = recentlyPlayed.findIndex(video => video.id === currentTrack?.id);
+            const nextIndex = (currentIndex + 1) % recentlyPlayed.length;
+            const nextTrack = recentlyPlayed[nextIndex];
+            setCurrentTrack(nextTrack);
+            setIsPlaying(true);
+        }
+    };
+
+    useEffect(() => {
+        if (player && currentTrack) {
+            player.loadVideoById(currentTrack.id);
+            player.setVolume(volume);
+        }
+    }, [currentTrack]);
 
     return (
         <div className="grid lg:grid-cols-6 gap-4 p-6 pb-32">
@@ -42,7 +135,7 @@ const Dashboard = ({ user }) => {
                         <Music2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">1,324</div>
+                        <div className="text-2xl font-bold">{recentlyPlayed.length || 0}</div>
                         <p className="text-xs text-muted-foreground">+20 from last week</p>
                     </CardContent>
                 </Card>
@@ -53,7 +146,7 @@ const Dashboard = ({ user }) => {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">245</div>
+                        <div className="text-2xl font-bold">{users.length}</div>
                         <p className="text-xs text-muted-foreground">+18 new followers</p>
                     </CardContent>
                 </Card>
@@ -89,21 +182,36 @@ const Dashboard = ({ user }) => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {[1, 2, 3, 4, 5].map((item) => (
-                                <div key={item} className="flex items-center justify-between">
+                            {recentlyPlayed.map((video) => (
+                                <div
+                                    key={video.id}
+                                    className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors"
+                                >
                                     <div className="flex items-center space-x-4">
-                                        <img
-                                            src={`https://picsum.photos/seed/${item}/40/40`}
-                                            alt="Album art"
-                                            className="rounded-md w-10 h-10"
-                                        />
+                                        <div className="relative">
+                                            <img
+                                                src={video.thumbnail}
+                                                alt={video.title}
+                                                className="rounded-md w-12 h-12 object-cover"
+                                            />
+                                            <span className="absolute bottom-1 right-1 bg-black/75 text-white text-xs px-1 rounded">
+                                                {video.duration}
+                                            </span>
+                                        </div>
                                         <div>
-                                            <p className="text-sm font-medium">Song Title {item}</p>
-                                            <p className="text-xs text-muted-foreground">Artist Name</p>
+                                            <p className="text-sm font-medium line-clamp-1">{video.title}</p>
+                                            <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon">
-                                        <Play className="h-4 w-4" />
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handlePlayPause(video)}
+                                    >
+                                        {currentTrack?.id === video.id && isPlaying ?
+                                            <Pause className="h-4 w-4" /> :
+                                            <Play className="h-4 w-4" />
+                                        }
                                     </Button>
                                 </div>
                             ))}
@@ -112,6 +220,7 @@ const Dashboard = ({ user }) => {
                 </Card>
             </div>
 
+            {/* Active Users Section */}
             <div className="col-span-6 lg:col-span-4">
                 <Card>
                     <CardHeader>
@@ -175,34 +284,56 @@ const Dashboard = ({ user }) => {
                 </Card>
             </div>
 
-            {/* Now Playing Section */}
+            {/* Add YouTube Player */}
+            <YouTube
+                videoId={currentTrack?.id}
+                opts={{
+                    height: '0',
+                    width: '0',
+                    playerVars: {
+                        autoplay: 1,
+                        controls: 0,
+                    },
+                }}
+                onReady={onPlayerReady}
+                className="hidden"
+            />
+
+            {/* Enhanced Now Playing Section */}
             <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
                 <div className="flex items-center justify-between max-w-7xl mx-auto">
                     <div className="flex items-center space-x-4">
                         <img
-                            src="https://picsum.photos/seed/current/48/48"
-                            alt="Current song"
+                            src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
+                            alt={currentTrack?.title || "Current song"}
                             className="rounded-md w-12 h-12"
                         />
                         <div>
-                            <p className="text-sm font-medium">Current Song</p>
-                            <p className="text-xs text-muted-foreground">Current Artist</p>
+                            <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
+                            <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
                         </div>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={handleSkipBack}>
                             <SkipBack className="h-4 w-4" />
                         </Button>
-                        <Button size="icon">
-                            <Play className="h-4 w-4" />
+                        <Button
+                            size="icon"
+                            onClick={() => currentTrack && handlePlayPause(currentTrack)}
+                        >
+                            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={handleSkipForward}>
                             <SkipForward className="h-4 w-4" />
                         </Button>
                     </div>
                     <div className="flex items-center space-x-2">
                         <Volume2 className="h-4 w-4" />
-                        <Progress value={75} className="w-24 h-2" />
+                        <Progress
+                            value={volume}
+                            className="w-24 h-2 cursor-pointer"
+                            onValueChange={handleVolumeChange}
+                        />
                     </div>
                 </div>
             </div>
