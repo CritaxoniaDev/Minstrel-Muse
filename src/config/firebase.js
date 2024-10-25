@@ -20,11 +20,13 @@ export const facebookProvider = new FacebookAuthProvider();
 export const analytics = getAnalytics(app);
 export const db = getFirestore(app);
 
-// Configure Providers
+// Configure Google Provider
 googleProvider.setCustomParameters({
     prompt: 'select_account'
 });
 
+// Configure Facebook Provider
 facebookProvider.setCustomParameters({
     'display': 'popup'
 });
+facebookProvider.addScope('public_profile');
