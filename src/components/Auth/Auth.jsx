@@ -51,6 +51,7 @@ const Auth = () => {
                 email: formData.email,
                 createdAt: new Date().toISOString(),
                 photoURL: userCredential.user.photoURL || null,
+                isApproved: false, // Add this line
                 favorites: [],
                 playlists: []
             });

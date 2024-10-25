@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Home, Compass, Library, LogOut } from 'lucide-react';
 
-const Header = ({ user }) => {
+const Header = ({ user, isApproved }) => {
     const navigate = useNavigate();
 
     const handleSignOut = async () => {
@@ -31,21 +31,23 @@ const Header = ({ user }) => {
 
                     {user ? (
                         <nav className="flex items-center gap-6">
-                            <div className="hidden md:flex items-center gap-1">
-                                <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard')}>
-                                    <Home className="h-4 w-4" />
-                                    <span>Home</span>
-                                </Button>
-                                <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard/discover')}>
-                                    <Compass className="h-4 w-4" />
-                                    <span>Discover</span>
-                                </Button>
-                                <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard/library')}>
-                                    <Library className="h-4 w-4" />
-                                    <span>Library</span>
-                                </Button>
-                            </div>
-                            
+                            {isApproved && (
+                                <div className="hidden md:flex items-center gap-1">
+                                    <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard')}>
+                                        <Home className="h-4 w-4" />
+                                        <span>Home</span>
+                                    </Button>
+                                    <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard/discover')}>
+                                        <Compass className="h-4 w-4" />
+                                        <span>Discover</span>
+                                    </Button>
+                                    <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard/library')}>
+                                        <Library className="h-4 w-4" />
+                                        <span>Library</span>
+                                    </Button>
+                                </div>
+                            )}
+
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-50 to-blue-50">
                                     <Avatar className="h-8 w-8 border-2 border-purple-200">

@@ -1,27 +1,32 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { auth } from './config/firebase';
+import { auth, db } from './config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import Header from './components/Header';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
+import PendingApproval from './components/Auth/PendingApproval';
 import './App.css';
 
-function App() {
+function App() {  
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [isApproved, setIsApproved] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user);
-      setLoading(false);
+      
+      if (user) {
+        // Check user approval status
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setIsApproved(userDoc.data().isApproved || false);
+        }
+      }
     });
 
     return () => unsubscribe();
   }, []);
-
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
 
   return (
     <Router>
@@ -31,11 +36,29 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={user ? <Navigate to="/dashboard" /> : <Auth />}
+              element={user ? (
+                isApproved ? (
+                  <Navigate to="/dashboard" />
+                ) : (
+                  <PendingApproval />
+                )
+              ) : (
+                <Auth />
+              )}
             />
             <Route
               path="/dashboard/*"
-              element={user ? <Dashboard user={user} /> : <Navigate to="/" />}
+              element={
+                user ? (
+                  isApproved ? (
+                    <Dashboard user={user} />
+                  ) : (
+                    <Navigate to="/" />
+                  )
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
             />
           </Routes>
         </div>
