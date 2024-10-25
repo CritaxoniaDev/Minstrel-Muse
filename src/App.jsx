@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import DataDeletion from './components/DataDeletion';
 import './App.css';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
             <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
             <Route path="/dashboard/*" element={user ? <Dashboard user={user} /> : <Navigate to="/" />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/data-deletion" element={<DataDeletion />} />
           </Routes>
         </main>
       </div>

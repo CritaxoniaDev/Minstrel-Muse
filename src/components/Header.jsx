@@ -77,6 +77,12 @@ const Header = ({ user }) => {
                     >
                         Privacy Policy
                     </Link>
+                    <Link 
+                        to="/data-deletion" 
+                        className="text-muted-foreground hover:text-purple-600 transition-colors"
+                    >
+                        Data Deletion
+                    </Link>
                 </div>
             </div>
         </header>
