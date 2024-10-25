@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
