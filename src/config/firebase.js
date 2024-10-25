@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 
@@ -16,10 +16,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+export const facebookProvider = new FacebookAuthProvider();
 export const analytics = getAnalytics(app);
 export const db = getFirestore(app);
 
-// Configure Google Provider
+// Configure Providers
 googleProvider.setCustomParameters({
     prompt: 'select_account'
+});
+
+facebookProvider.setCustomParameters({
+    'display': 'popup'
 });
