@@ -24,6 +24,63 @@ function App() {
   const [player, setPlayer] = useState(null);
   const [volume, setVolume] = useState(75);
   const [queue, setQueue] = useState([]);
+  // State declarations with stable initial values
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [timeUpdateInterval, setTimeUpdateInterval] = useState(null);
+
+  // Clear interval when changing tracks
+  useEffect(() => {
+    if (timeUpdateInterval) {
+      clearInterval(timeUpdateInterval);
+    }
+
+    if (player && currentTrack) {
+      player.loadVideoById(currentTrack.id);
+      player.setVolume(volume);
+      setCurrentTime(0);
+      setDuration(0);
+    }
+  }, [currentTrack]);
+
+  // Enhanced player state handler with stable updates
+  const handlePlayerStateChange = (event) => {
+    if (event.data === 1) { // Playing
+      setDuration(Math.floor(event.target.getDuration()));
+
+      const interval = setInterval(() => {
+        const time = Math.floor(event.target.getCurrentTime());
+        setCurrentTime(prev => {
+          if (Math.abs(prev - time) >= 1) {
+            return time;
+          }
+          return prev;
+        });
+
+        if (time >= duration - 1) {
+          handleSkipForward();
+        }
+      }, 250);
+
+      setTimeUpdateInterval(interval);
+      return () => clearInterval(interval);
+    }
+  };
+
+  // Stable time formatting with fixed decimal places
+  const formatTime = (seconds) => {
+    if (!seconds) return "0:00";
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   const handleAddToQueue = (video) => {
     setQueue(prevQueue => [...prevQueue, video]);
@@ -180,23 +237,27 @@ function App() {
                 },
               }}
               onReady={onPlayerReady}
+              onStateChange={handlePlayerStateChange}
               className="hidden"
             />
 
             <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
-              <div className="flex items-center justify-between max-w-7xl mx-auto">
-                <div className="flex items-center space-x-4">
+              <div className="flex max-w-7xl mx-auto items-center">
+                <div className="flex items-center space-x-4 w-1/4">
                   <img
                     src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
                     alt={currentTrack?.title || "Current song"}
                     className="rounded-md w-12 h-12"
                   />
-                  <div>
-                    <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
+                  <div className="overflow-hidden">
+                    <div className={`${isPlaying ? 'animate-marquee' : ''} whitespace-nowrap mb-1`}>
+                      <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
+                    </div>
                     <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-4">
+
+                <div className="flex items-center space-x-2 mb-2">
                   <Button variant="ghost" size="icon" onClick={handleSkipBack}>
                     <SkipBack className="h-4 w-4" />
                   </Button>
@@ -210,7 +271,33 @@ function App() {
                     <SkipForward className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="flex items-center space-x-2">
+
+                <div className="flex flex-col items-center w-1/2 px-4">
+                  <div className="w-full flex items-center space-x-2 text-xs text-muted-foreground">
+                    <span>{formatTime(currentTime)}</span>
+                    <div className="relative flex-1 h-1 bg-secondary rounded-full overflow-hidden group">
+                      <div
+                        className="absolute h-full bg-primary rounded-full transition-all"
+                        style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                      />
+                      <input
+                        type="range"
+                        min={0}
+                        max={duration || 100}
+                        value={currentTime || 0}
+                        onChange={(e) => {
+                          const time = parseFloat(e.target.value);
+                          setCurrentTime(time);
+                          player?.seekTo(time);
+                        }}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                    </div>
+                    <span>{formatTime(duration)}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end space-x-2 w-1/4">
                   <Volume2 className="h-4 w-4" />
                   <Slider
                     value={[volume]}
@@ -219,6 +306,49 @@ function App() {
                     className="w-24"
                     onValueChange={(value) => handleVolumeChange(value[0])}
                   />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" className="hover:bg-accent">
+                        <ListMusic className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0" align="end">
+                      <div className="p-4 border-b">
+                        <h4 className="font-semibold">Queue</h4>
+                        <p className="text-xs text-muted-foreground">Up next in your queue</p>
+                      </div>
+                      <div className="max-h-96 overflow-auto">
+                        {queue.map((video, index) => (
+                          <div
+                            key={video.id}
+                            className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
+                          >
+                            <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
+                            <img
+                              src={video.thumbnail}
+                              alt={video.title}
+                              className="w-10 h-10 rounded object-cover"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{video.title}</p>
+                              <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handlePlayPause(video)}
+                            >
+                              {currentTrack?.id === video.id && isPlaying ? (
+                                <Pause className="h-4 w-4" />
+                              ) : (
+                                <Play className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>

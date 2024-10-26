@@ -4,7 +4,7 @@ import { Play, Pause, Plus } from "lucide-react";
 
 const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQueue }) => {
     return (
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-6 pb-24">
             <Card>
                 <CardHeader>
                     <CardTitle>Search Results</CardTitle>
