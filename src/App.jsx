@@ -161,64 +161,69 @@ function App() {
           </Routes>
         </div>
 
-        <YouTube
-          videoId={currentTrack?.id}
-          opts={{
-            height: '0',
-            width: '0',
-            playerVars: {
-              autoplay: 1,
-              controls: 0,
-              enablejsapi: 1,
-              origin: window.location.origin,
-              playsinline: 1,
-              rel: 0,
-              modestbranding: 1
-            },
-          }}
-          onReady={onPlayerReady}
-          className="hidden"
-        />
+        {/* Only show player and controls if user is authenticated and approved */}
+        {user && isApproved && (
+          <>
+            <YouTube
+              videoId={currentTrack?.id}
+              opts={{
+                height: '0',
+                width: '0',
+                playerVars: {
+                  autoplay: 1,
+                  controls: 0,
+                  enablejsapi: 1,
+                  origin: window.location.origin,
+                  playsinline: 1,
+                  rel: 0,
+                  modestbranding: 1
+                },
+              }}
+              onReady={onPlayerReady}
+              className="hidden"
+            />
 
-        <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center space-x-4">
-              <img
-                src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
-                alt={currentTrack?.title || "Current song"}
-                className="rounded-md w-12 h-12"
-              />
-              <div>
-                <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
-                <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
+            <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
+              <div className="flex items-center justify-between max-w-7xl mx-auto">
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
+                    alt={currentTrack?.title || "Current song"}
+                    className="rounded-md w-12 h-12"
+                  />
+                  <div>
+                    <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
+                    <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <Button variant="ghost" size="icon" onClick={handleSkipBack}>
+                    <SkipBack className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    onClick={() => currentTrack && handlePlayPause(currentTrack)}
+                  >
+                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={handleSkipForward}>
+                    <SkipForward className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Volume2 className="h-4 w-4" />
+                  <Slider
+                    value={[volume]}
+                    max={100}
+                    step={1}
+                    className="w-24"
+                    onValueChange={(value) => handleVolumeChange(value[0])}
+                  />
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon" onClick={handleSkipBack}>
-                <SkipBack className="h-4 w-4" />
-              </Button>
-              <Button
-                size="icon"
-                onClick={() => currentTrack && handlePlayPause(currentTrack)}
-              >
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleSkipForward}>
-                <SkipForward className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Volume2 className="h-4 w-4" />
-              <Slider
-                value={[volume]}
-                max={100}
-                step={1}
-                className="w-24"
-                onValueChange={(value) => handleVolumeChange(value[0])}
-              />
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </Router>
   );
