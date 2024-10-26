@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Slider } from "@/components/ui/slider";
 import axios from 'axios';
 import YouTube from 'react-youtube';
 import {
@@ -17,26 +19,26 @@ import {
     Music2,
     Users,
     Clock,
-    Heart
+    Heart,
+    ListMusic
 } from "lucide-react";
 
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-const Dashboard = ({ user }) => {
+const Dashboard = ({
+    user,
+    currentTrack,
+    isPlaying,
+    onPlayPause,
+    onSkipBack,
+    onSkipForward,
+    volume,
+    onVolumeChange,
+    queue
+}) => {
     const [users, setUsers] = useState([]);
     const [recentlyPlayed, setRecentlyPlayed] = useState([]);
-    const [currentTrack, setCurrentTrack] = useState(null);
-    const [isPlaying, setIsPlaying] = useState(false);
     const navigate = useNavigate();
-    // Inside the Dashboard component, add these new states
-    const [player, setPlayer] = useState(null);
-    const [volume, setVolume] = useState(75);
-
-    // Add these player control functions
-    const onPlayerReady = (event) => {
-        setPlayer(event.target);
-    };
-
 
     const fetchYoutubeVideos = async () => {
         try {
@@ -76,54 +78,6 @@ const Dashboard = ({ user }) => {
         fetchUsers();
         fetchYoutubeVideos();
     }, []);
-
-    const handlePlayPause = (video) => {
-        if (currentTrack?.id === video.id) {
-            if (isPlaying) {
-                player?.pauseVideo();
-            } else {
-                player?.playVideo();
-            }
-            setIsPlaying(!isPlaying);
-        } else {
-            setCurrentTrack(video);
-            setIsPlaying(true);
-        }
-    };
-
-    const handleVolumeChange = (newValue) => {
-        setVolume(newValue);
-        if (player) {
-            player.setVolume(newValue);
-        }
-    };
-
-    const handleSkipBack = () => {
-        if (recentlyPlayed.length > 0) {
-            const currentIndex = recentlyPlayed.findIndex(video => video.id === currentTrack?.id);
-            const previousIndex = (currentIndex - 1 + recentlyPlayed.length) % recentlyPlayed.length;
-            const previousTrack = recentlyPlayed[previousIndex];
-            setCurrentTrack(previousTrack);
-            setIsPlaying(true);
-        }
-    };
-
-    const handleSkipForward = () => {
-        if (recentlyPlayed.length > 0) {
-            const currentIndex = recentlyPlayed.findIndex(video => video.id === currentTrack?.id);
-            const nextIndex = (currentIndex + 1) % recentlyPlayed.length;
-            const nextTrack = recentlyPlayed[nextIndex];
-            setCurrentTrack(nextTrack);
-            setIsPlaying(true);
-        }
-    };
-
-    useEffect(() => {
-        if (player && currentTrack) {
-            player.loadVideoById(currentTrack.id);
-            player.setVolume(volume);
-        }
-    }, [currentTrack]);
 
     return (
         <div className="grid lg:grid-cols-6 gap-4 p-6 pb-32">
@@ -206,7 +160,7 @@ const Dashboard = ({ user }) => {
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        onClick={() => handlePlayPause(video)}
+                                        onClick={() => onPlayPause(video)}
                                     >
                                         {currentTrack?.id === video.id && isPlaying ?
                                             <Pause className="h-4 w-4" /> :
@@ -284,21 +238,6 @@ const Dashboard = ({ user }) => {
                 </Card>
             </div>
 
-            {/* Add YouTube Player */}
-            <YouTube
-                videoId={currentTrack?.id}
-                opts={{
-                    height: '0',
-                    width: '0',
-                    playerVars: {
-                        autoplay: 1,
-                        controls: 0,
-                    },
-                }}
-                onReady={onPlayerReady}
-                className="hidden"
-            />
-
             {/* Enhanced Now Playing Section */}
             <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
                 <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -314,25 +253,70 @@ const Dashboard = ({ user }) => {
                         </div>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" size="icon" onClick={handleSkipBack}>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="hover:bg-accent">
+                                    <ListMusic className="h-4 w-4" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-0" align="end">
+                                <div className="p-4 border-b">
+                                    <h4 className="font-semibold">Queue</h4>
+                                    <p className="text-xs text-muted-foreground">Up next in your queue</p>
+                                </div>
+                                <div className="max-h-96 overflow-auto">
+                                    {queue.map((video, index) => (
+                                        <div
+                                            key={video.id}
+                                            className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
+                                        >
+                                            <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
+                                            <img
+                                                src={video.thumbnail}
+                                                alt={video.title}
+                                                className="w-10 h-10 rounded object-cover"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate">{video.title}</p>
+                                                <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => onPlayPause(video)}
+                                            >
+                                                {currentTrack?.id === video.id && isPlaying ? (
+                                                    <Pause className="h-4 w-4" />
+                                                ) : (
+                                                    <Play className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                        <Button variant="ghost" size="icon" onClick={onSkipBack}>
                             <SkipBack className="h-4 w-4" />
                         </Button>
                         <Button
                             size="icon"
-                            onClick={() => currentTrack && handlePlayPause(currentTrack)}
+                            onClick={() => currentTrack && onPlayPause(currentTrack)}
                         >
                             {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={handleSkipForward}>
+                        <Button variant="ghost" size="icon" onClick={onSkipForward}>
                             <SkipForward className="h-4 w-4" />
                         </Button>
                     </div>
                     <div className="flex items-center space-x-2">
                         <Volume2 className="h-4 w-4" />
-                        <Progress
-                            value={volume}
-                            className="w-24 h-2 cursor-pointer"
-                            onValueChange={handleVolumeChange}
+                        <Slider
+                            value={[volume]}
+                            max={100}
+                            step={1}
+                            className="w-24"
+                            onValueChange={(value) => onVolumeChange(value[0])}
                         />
                     </div>
                 </div>

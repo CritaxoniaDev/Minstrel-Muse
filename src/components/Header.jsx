@@ -1,16 +1,51 @@
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../config/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Home, Compass, Library, LogOut } from 'lucide-react';
+import { Input } from "./ui/input";
+import { Home, Compass, Library, LogOut, Search } from 'lucide-react';
+import axios from 'axios';
 
-const Header = ({ user, isApproved }) => {
+const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+
+const Header = ({ user, isApproved, onSearchResults }) => {
     const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearch = async (e) => {
+        e.preventDefault();
+        if (!searchQuery.trim()) return;
+
+        try {
+            const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+                params: {
+                    part: 'snippet',
+                    maxResults: 10,
+                    key: YOUTUBE_API_KEY,
+                    type: 'video',
+                    q: searchQuery
+                }
+            });
+
+            const videos = response.data.items.map(item => ({
+                id: item.id.videoId,
+                title: item.snippet.title,
+                thumbnail: item.snippet.thumbnails.default.url,
+                channelTitle: item.snippet.channelTitle,
+                duration: '3:45'
+            }));
+
+            onSearchResults(videos);
+            navigate('/dashboard/search');
+        } catch (error) {
+            console.error('Error searching videos:', error);
+        }
+    };
 
     const handleSignOut = async () => {
         try {
-            // Update isApproved to false before signing out
             if (user) {
                 await updateDoc(doc(db, "users", user.uid), {
                     isApproved: false
@@ -27,13 +62,31 @@ const Header = ({ user, isApproved }) => {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto px-4">
                 <div className="flex h-16 items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-6">
                         <h1
                             onClick={() => navigate('/')}
                             className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
                         >
                             YouPiFy
                         </h1>
+                        
+                        {user && isApproved && (
+                            <form onSubmit={handleSearch} className="flex items-center gap-2">
+                                <div className="relative">
+                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        type="search"
+                                        placeholder="Search music..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-[300px] pl-8 bg-muted/50 focus:bg-background transition-colors"
+                                    />
+                                </div>
+                                <Button type="submit" variant="ghost" size="icon">
+                                    <Search className="h-4 w-4" />
+                                </Button>
+                            </form>
+                        )}
                     </div>
 
                     {user ? (
