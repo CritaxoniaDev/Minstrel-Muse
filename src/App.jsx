@@ -8,7 +8,7 @@ import Dashboard from './components/App/Dashboard';
 import PendingApproval from './components/Auth/PendingApproval';
 import Profile from './components/Profile/Profile';
 import SearchResults from './components/SearchResults';
-import { Play, Pause, SkipBack, SkipForward, Volume2, ListMusic } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, ListMusic, X } from 'lucide-react';
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import YouTube from 'react-youtube';
@@ -34,6 +34,16 @@ function App() {
   const { toast } = useToast();
   const [hasShownPlaceholder, setHasShownPlaceholder] = useState(false);
   const [hasPlayedEndSound, setHasPlayedEndSound] = useState(false);
+
+  // Add this handler function
+  const handleRemoveFromQueue = (indexToRemove) => {
+    setQueue(prevQueue => prevQueue.filter((_, index) => index !== indexToRemove));
+    toast({
+      title: "Removed from Queue",
+      description: "Track removed from queue",
+      duration: 3000,
+    });
+  };
 
   // Clear interval when changing tracks
   useEffect(() => {
@@ -391,17 +401,27 @@ function App() {
                               <p className="text-sm font-medium truncate">{video.title}</p>
                               <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handlePlayPause(video)}
-                            >
-                              {currentTrack?.id === video.id && isPlaying ? (
-                                <Pause className="h-4 w-4" />
-                              ) : (
-                                <Play className="h-4 w-4" />
-                              )}
-                            </Button>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handlePlayPause(video)}
+                              >
+                                {currentTrack?.id === video.id && isPlaying ? (
+                                  <Pause className="h-4 w-4" />
+                                ) : (
+                                  <Play className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveFromQueue(index)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>

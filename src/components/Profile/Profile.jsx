@@ -48,7 +48,7 @@ const Profile = () => {
     if (!userData) return <div></div>;
 
     return (
-        <div className="container mx-auto p-6 max-w-4xl">
+        <div className="container mx-auto p-6 max-w-4xl pb-40">
             <Button 
                 variant="ghost" 
                 className="mb-4" 
