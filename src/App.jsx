@@ -176,7 +176,7 @@ function App() {
   useEffect(() => {
     if (!currentTrack && !hasShownPlaceholder) {
       toast({
-        title: "Welcome to YouPiFy",
+        title: "Welcome to MinstrelMuse!",
         description: "Select a track to start playing",
         duration: 3000,
       });
