@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast";
 import endSound from '/sounds/end-sound.wav';
+import Library from './components/Library';
+import PlaylistDetail from './components/PlaylistDetail';
 import './App.css';
 
 function App() {
@@ -283,6 +285,17 @@ function App() {
                 />
               }
             />
+            <Route
+              path="/dashboard/library"
+              element={
+                <Library
+                  user={user}
+                  onPlayPause={handlePlayPause}
+                  onAddToQueue={handleAddToQueue}
+                />
+              }
+            />
+            <Route path="/dashboard/library/:id" element={<PlaylistDetail user={user} />} />
           </Routes>
         </div>
 
