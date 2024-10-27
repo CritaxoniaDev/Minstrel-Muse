@@ -13,6 +13,9 @@ import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import YouTube from 'react-youtube';
 import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/hooks/use-toast";
+import endSound from '/sounds/end-sound.wav';
 import './App.css';
 
 function App() {
@@ -28,6 +31,9 @@ function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [timeUpdateInterval, setTimeUpdateInterval] = useState(null);
+  const { toast } = useToast();
+  const [hasShownPlaceholder, setHasShownPlaceholder] = useState(false);
+  const [hasPlayedEndSound, setHasPlayedEndSound] = useState(false);
 
   // Clear interval when changing tracks
   useEffect(() => {
@@ -47,9 +53,12 @@ function App() {
   const handlePlayerStateChange = (event) => {
     if (event.data === 1) { // Playing
       setDuration(Math.floor(event.target.getDuration()));
+      setHasPlayedEndSound(false); // Reset the flag when a new track starts playing
 
       const interval = setInterval(() => {
         const time = Math.floor(event.target.getCurrentTime());
+        const totalDuration = Math.floor(event.target.getDuration());
+
         setCurrentTime(prev => {
           if (Math.abs(prev - time) >= 1) {
             return time;
@@ -57,8 +66,10 @@ function App() {
           return prev;
         });
 
-        if (time >= duration - 1) {
+        // Only trigger handleSkipForward if we're at the very end
+        if (time >= totalDuration && !hasPlayedEndSound) {
           handleSkipForward();
+          clearInterval(interval);
         }
       }, 250);
 
@@ -83,7 +94,22 @@ function App() {
   };
 
   const handleAddToQueue = (video) => {
-    setQueue(prevQueue => [...prevQueue, video]);
+    if (!currentTrack) {
+      setCurrentTrack(video);
+      setIsPlaying(true);
+      toast({
+        title: "Now Playing",
+        description: `${video.title}`,
+        duration: 3000,
+      });
+    } else {
+      setQueue(prevQueue => [...prevQueue, video]);
+      toast({
+        title: "Added to Queue",
+        description: `${video.title} has been added to your queue`,
+        duration: 3000,
+      });
+    }
   };
 
   const handlePlayPause = (video) => {
@@ -124,8 +150,39 @@ function App() {
       setCurrentTrack(nextTrack);
       setQueue(queue.slice(1));
       setIsPlaying(true);
+      setHasPlayedEndSound(false);
+      toast({
+        title: "Now Playing",
+        description: `${nextTrack.title}`,
+        duration: 3000,
+      });
+    } else {
+      if (!hasPlayedEndSound) {
+        const audio = new Audio(endSound);
+        audio.play();
+        setHasPlayedEndSound(true);
+        setCurrentTrack(null);
+        setIsPlaying(false);
+        toast({
+          title: "Playback Ended",
+          description: "No more tracks in queue",
+          duration: 3000,
+        });
+      }
     }
   };
+
+  // Add this useEffect to handle the one-time notification
+  useEffect(() => {
+    if (!currentTrack && !hasShownPlaceholder) {
+      toast({
+        title: "Welcome to YouPiFy",
+        description: "Select a track to start playing",
+        duration: 3000,
+      });
+      setHasShownPlaceholder(true);
+    }
+  }, []);
 
   const onPlayerReady = (event) => {
     setPlayer(event.target);
@@ -155,6 +212,7 @@ function App() {
 
   return (
     <Router>
+      <Toaster />
       <div className="min-h-screen bg-background">
         <Header user={user} isApproved={isApproved} onSearchResults={setSearchResults} />
         <div className="pt-10">
@@ -247,7 +305,7 @@ function App() {
                   <img
                     src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
                     alt={currentTrack?.title || "Current song"}
-                    className="rounded-md w-12 h-12"
+                    className="rounded-md w-12 h-12 object-cover"
                   />
                   <div className="overflow-hidden">
                     <div className={`${isPlaying ? 'animate-marquee' : ''} whitespace-nowrap mb-1`}>

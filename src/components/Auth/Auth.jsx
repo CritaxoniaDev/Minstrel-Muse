@@ -115,7 +115,7 @@ const Auth = () => {
                     </div>
                     <div className="space-y-4">
                         <h3 className="text-2xl font-bold">Transform Your Music Experience</h3>
-                        <p className="text-sm opacity-90">Join thousands of users who trust YouPiFy for their music needs.</p>
+                        <p className="text-sm opacity-90">Join thousands of users who trust MinstrelMuse for their music needs.</p>
                         <div className="flex gap-3">
                             <div className="flex flex-col">
                                 <span className="text-3xl font-bold">10K+</span>
