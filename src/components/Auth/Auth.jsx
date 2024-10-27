@@ -111,7 +111,7 @@ const Auth = () => {
                 </div>
                 <div className="relative p-8 flex flex-col h-full justify-between text-white">
                     <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold">YouPiFy</span>
+                        <span className="text-xl font-bold">MinstrelMuse</span>
                     </div>
                     <div className="space-y-4">
                         <h3 className="text-2xl font-bold">Transform Your Music Experience</h3>

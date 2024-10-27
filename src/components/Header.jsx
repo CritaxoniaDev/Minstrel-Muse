@@ -67,7 +67,7 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                             onClick={() => navigate('/')}
                             className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
                         >
-                            YouPiFy
+                            MinstrelMuse
                         </h1>
                         
                         {user && isApproved && (
