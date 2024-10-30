@@ -230,12 +230,12 @@ function App() {
           autoPlay
           loop
           muted
-          className="video-background"  
+          className="video-background"
         >
           <source src="/videos/bg-video.mp4" type="video/mp4" />
         </video>
       )}
-      <div className="min-h-screen backdrop">
+      <div className="min-h-screen">
         <Header user={user} isApproved={isApproved} onSearchResults={setSearchResults} />
         <div className="pt-10">
           <Routes>
@@ -327,7 +327,10 @@ function App() {
                   modestbranding: 1
                 },
               }}
-              onReady={onPlayerReady}
+              onReady={(event) => {
+                setPlayer(event.target);
+                event.target.setVolume(volume);
+              }}
               onStateChange={handlePlayerStateChange}
               className="hidden"
             />

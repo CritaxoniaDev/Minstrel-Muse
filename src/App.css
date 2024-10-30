@@ -100,10 +100,6 @@ html {
   height: 100%;
   z-index: -1;
   object-fit: cover;
-}
-
-.backdrop {
-  backdrop-filter: blur(0px);
-  background-color: rgba(255, 255, 255, 0.5);
+  opacity: 0.5;
 }
 

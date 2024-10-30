@@ -6,20 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
 import axios from 'axios';
 import {
     Play,
-    SkipForward,
     Pause,
-    SkipBack,
-    Volume2,
     Music2,
     Users,
     Clock,
-    Heart,
-    ListMusic
+    Heart
 } from "lucide-react";
 
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
@@ -29,11 +23,6 @@ const Dashboard = ({
     currentTrack,
     isPlaying,
     onPlayPause,
-    onSkipBack,
-    onSkipForward,
-    volume,
-    onVolumeChange,
-    queue
 }) => {
     const [users, setUsers] = useState([]);
     const [recentlyPlayed, setRecentlyPlayed] = useState([]);
@@ -235,90 +224,6 @@ const Dashboard = ({
                         </div>
                     </CardContent>
                 </Card>
-            </div>
-
-            {/* Enhanced Now Playing Section */}
-            <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
-                <div className="flex items-center justify-between max-w-7xl mx-auto">
-                    <div className="flex items-center space-x-4">
-                        <img
-                            src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
-                            alt={currentTrack?.title || "Current song"}
-                            className="rounded-md w-12 h-12"
-                        />
-                        <div>
-                            <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
-                            <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" className="hover:bg-accent">
-                                    <ListMusic className="h-4 w-4" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-80 p-0" align="end">
-                                <div className="p-4 border-b">
-                                    <h4 className="font-semibold">Queue</h4>
-                                    <p className="text-xs text-muted-foreground">Up next in your queue</p>
-                                </div>
-                                <div className="max-h-96 overflow-auto">
-                                    {queue.map((video, index) => (
-                                        <div
-                                            key={video.id}
-                                            className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
-                                        >
-                                            <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
-                                            <img
-                                                src={video.thumbnail}
-                                                alt={video.title}
-                                                className="w-10 h-10 rounded object-cover"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium truncate">{video.title}</p>
-                                                <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => onPlayPause(video)}
-                                            >
-                                                {currentTrack?.id === video.id && isPlaying ? (
-                                                    <Pause className="h-4 w-4" />
-                                                ) : (
-                                                    <Play className="h-4 w-4" />
-                                                )}
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                        <Button variant="ghost" size="icon" onClick={onSkipBack}>
-                            <SkipBack className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            size="icon"
-                            onClick={() => currentTrack && onPlayPause(currentTrack)}
-                        >
-                            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={onSkipForward}>
-                            <SkipForward className="h-4 w-4" />
-                        </Button>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Volume2 className="h-4 w-4" />
-                        <Slider
-                            value={[volume]}
-                            max={100}
-                            step={1}
-                            className="w-24"
-                            onValueChange={(value) => onVolumeChange(value[0])}
-                        />
-                    </div>
-                </div>
             </div>
         </div>
     );

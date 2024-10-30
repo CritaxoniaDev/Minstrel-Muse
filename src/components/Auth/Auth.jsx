@@ -7,7 +7,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup
 } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,17 +65,21 @@ const Auth = () => {
                 photoURL = await getDownloadURL(uploadResult.ref);
             }
 
-            await setDoc(doc(db, "users", userCredential.user.uid), {
-                name: formData.name,
-                username: formData.username,
-                email: formData.email,
-                createdAt: new Date().toISOString(),
-                photoURL: photoURL,
-                role: "member",
-                isApproved: false,
-                favorites: [],
-                playlists: []
-            });
+            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+
+            if (!userDoc.exists()) {
+                await setDoc(doc(db, "users", userCredential.user.uid), {
+                    name: formData.name,
+                    username: formData.username,
+                    email: formData.email,
+                    createdAt: new Date().toISOString(),
+                    photoURL: photoURL,
+                    role: "member",
+                    isApproved: false,
+                    favorites: [],
+                    playlists: []
+                });
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -87,7 +91,19 @@ const Auth = () => {
         setIsLoading(true);
         setError('');
         try {
-            await signInWithEmailAndPassword(auth, formData.email, formData.password);
+            const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+
+            if (!userDoc.exists()) {
+                await setDoc(doc(db, "users", userCredential.user.uid), {
+                    email: formData.email,
+                    createdAt: new Date().toISOString(),
+                    role: "member",
+                    isApproved: false,
+                    favorites: [],
+                    playlists: []
+                });
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -101,17 +117,23 @@ const Auth = () => {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-            // Store Google user data in Firestore
-            await setDoc(doc(db, "users", result.user.uid), {
-                name: result.user.displayName,
-                email: result.user.email,
-                photoURL: result.user.photoURL,
-                role: "member", // Add this line
-                isApproved: false, // Add this line
-                createdAt: new Date().toISOString(),
-                favorites: [],
-                playlists: []
-            }, { merge: true });
+
+            // First check if user document exists
+            const userDoc = await getDoc(doc(db, "users", result.user.uid));
+
+            if (!userDoc.exists()) {
+                // Only create new document if user doesn't exist
+                await setDoc(doc(db, "users", result.user.uid), {
+                    name: result.user.displayName,
+                    email: result.user.email,
+                    photoURL: result.user.photoURL,
+                    role: "member",
+                    isApproved: false,
+                    createdAt: new Date().toISOString(),
+                    favorites: [],
+                    playlists: []
+                });
+            }
         } catch (err) {
             setError(err.message);
         } finally {
