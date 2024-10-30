@@ -225,7 +225,17 @@ function App() {
   return (
     <Router>
       <Toaster />
-      <div className="min-h-screen bg-background">
+      {!user && (
+        <video
+          autoPlay
+          loop
+          muted
+          className="video-background"  
+        >
+          <source src="/videos/bg-video.mp4" type="video/mp4" />
+        </video>
+      )}
+      <div className="min-h-screen backdrop">
         <Header user={user} isApproved={isApproved} onSearchResults={setSearchResults} />
         <div className="pt-10">
           <Routes>

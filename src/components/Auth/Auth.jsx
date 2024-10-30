@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, AtSign, Mail, Lock, Image, UserPlus, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Auth = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -174,8 +176,12 @@ const Auth = () => {
                             className="space-y-4 absolute top-0 left-0 w-full transition-opacity duration-300 ease-in-out"
                         >
                             <CardHeader className="space-y-1 px-0">
-                                <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>
-                                <CardDescription>Sign in to continue your music journey</CardDescription>
+                                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                    Welcome Back!
+                                </CardTitle>
+                                <CardDescription className="text-muted-foreground">
+                                    Sign in to continue your music journey
+                                </CardDescription>
                             </CardHeader>
 
                             <CardContent className="space-y-4 px-0">
@@ -198,13 +204,21 @@ const Auth = () => {
                                             className="w-5 h-5"
                                         />
                                         <span className="group-hover:text-white transition-colors duration-200">
-                                            {isLoading ? 'Please wait...' : 'Continue with Google'}
+                                            {isLoading ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                    <span>Please wait...</span>
+                                                </div>
+                                            ) : (
+                                                'Continue with Google'
+                                            )}
                                         </span>
                                     </div>
                                 </Button>
+
                                 <div className="relative">
                                     <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t"></div>
+                                        <div className="w-full border-t border-gray-200"></div>
                                     </div>
                                     <div className="relative flex justify-center text-xs uppercase">
                                         <span className="bg-background px-2 text-muted-foreground">
@@ -214,48 +228,74 @@ const Auth = () => {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <Input
-                                        type="email"
-                                        name="email"
-                                        placeholder="Email address"
-                                        value={formData.email}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                        className="transition-all duration-200 focus:ring-2 focus:ring-purple-600"
-                                    />
-                                    <Input
-                                        type="password"
-                                        name="password"
-                                        placeholder="Password"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                        className="transition-all duration-200 focus:ring-2 focus:ring-purple-600"
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            type="email"
+                                            name="email"
+                                            placeholder="Email address"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            disabled={isLoading}
+                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
+                                        />
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    </div>
+                                    <div className="relative">
+                                        <Input
+                                            type="password"
+                                            name="password"
+                                            placeholder="Password"
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            disabled={isLoading}
+                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
+                                        />
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    </div>
                                 </div>
                             </CardContent>
 
                             <CardFooter className="flex flex-col space-y-4 px-0">
                                 <Button
-                                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                                    className="w-full relative overflow-hidden group bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                                     onClick={signIn}
                                     disabled={isLoading}
                                 >
-                                    {isLoading ? 'Signing in...' : 'Sign In'}
+                                    <span className="relative flex items-center justify-center gap-2">
+                                        {isLoading ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                <span>Signing in...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Sign In</span>
+                                            </>
+                                        )}
+                                    </span>
                                 </Button>
+                                <p className="text-xs text-center text-muted-foreground">
+                                    Forgot your password?{' '}
+                                    <Link to="/reset-password" className="text-purple-600 hover:underline">
+                                        Reset it here
+                                    </Link>
+                                </p>
                             </CardFooter>
                         </TabsContent>
-
                         <TabsContent
                             value="register"
                             className="space-y-4 absolute top-0 left-0 w-full transition-opacity duration-300 ease-in-out"
                         >
                             <CardHeader className="space-y-1 px-0">
-                                <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
-                                <CardDescription>Enter your details to get started</CardDescription>
+                                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                    Create an Account
+                                </CardTitle>
+                                <CardDescription className="text-muted-foreground">
+                                    Join our community and start your musical journey today
+                                </CardDescription>
                             </CardHeader>
 
-                            <CardContent className="space-y-4 px-0">
+                            <CardContent className="space-y-6 px-0">
                                 {error && (
                                     <Alert variant="destructive">
                                         <AlertDescription>{error}</AlertDescription>
@@ -263,53 +303,81 @@ const Auth = () => {
                                 )}
 
                                 <div className="space-y-4">
-                                    <Input
-                                        type="text"
-                                        name="name"
-                                        placeholder="Full Name"
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                        className="transition-all duration-200 focus:ring-2 focus:ring-purple-600"
-                                    />
-                                    <Input
-                                        type="text"
-                                        name="username"
-                                        placeholder="Username"
-                                        value={formData.username}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                        className="transition-all duration-200 focus:ring-2 focus:ring-purple-600"
-                                    />
-                                    <Input
-                                        type="email"
-                                        name="email"
-                                        placeholder="Email address"
-                                        value={formData.email}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                        className="transition-all duration-200 focus:ring-2 focus:ring-purple-600"
-                                    />
-                                    <Input
-                                        type="password"
-                                        name="password"
-                                        placeholder="Password"
-                                        value={formData.password}
-                                        onChange={handleInputChange}
-                                        disabled={isLoading}
-                                        className="transition-all duration-200 focus:ring-2 focus:ring-purple-600"
-                                    />
-                                    <Input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleFileChange}
-                                        disabled={isLoading}
-                                        className="transition-all duration-200 focus:ring-2 focus:ring-purple-600"
-                                    />
-                                </div>
-                            </CardContent>
+                                    <div className="relative">
+                                        <Input
+                                            type="text"
+                                            name="name"
+                                            placeholder="Full Name"
+                                            value={formData.name}
+                                            onChange={handleInputChange}
+                                            disabled={isLoading}
+                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
+                                        />
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    </div>
 
-                            <CardFooter className="flex flex-col space-y-4 px-0">
+                                    <div className="relative">
+                                        <Input
+                                            type="text"
+                                            name="username"
+                                            placeholder="Choose a username"
+                                            value={formData.username}
+                                            onChange={handleInputChange}
+                                            disabled={isLoading}
+                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
+                                        />
+                                        <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    </div>
+
+                                    <div className="relative">
+                                        <Input
+                                            type="email"
+                                            name="email"
+                                            placeholder="Email address"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            disabled={isLoading}
+                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
+                                        />
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    </div>
+
+                                    <div className="relative">
+                                        <Input
+                                            type="password"
+                                            name="password"
+                                            placeholder="Create a strong password"
+                                            value={formData.password}
+                                            onChange={handleInputChange}
+                                            disabled={isLoading}
+                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
+                                        />
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
+                                        <div className="relative">
+                                            <Input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
+                                                disabled={isLoading}
+                                                className="hidden"
+                                                id="file-upload"
+                                            />
+                                            <label
+                                                htmlFor="file-upload"
+                                                className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-200 rounded-lg hover:border-purple-400 cursor-pointer transition-colors"
+                                            >
+                                                <Image className="h-5 w-5 text-gray-400" />
+                                                <span className="text-sm text-gray-600">
+                                                    {formData.photo ? formData.photo.name : 'Upload a profile picture'}
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                                 <Button
                                     className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
                                     onClick={signUp}
@@ -317,11 +385,11 @@ const Auth = () => {
                                 >
                                     {isLoading ? 'Creating account...' : 'Create Account'}
                                 </Button>
-                            </CardFooter>
+                            </CardContent>
                         </TabsContent>
                     </div>
                 </Tabs>
-                <div className="pt-6 mt-6 border-t border-gray-200">
+                <div className="pt-2 mt-6 border-t border-gray-200">
                     <div className="flex items-center justify-center space-x-2">
                         <img
                             src="/images/logo.png"
