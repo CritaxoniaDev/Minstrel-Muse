@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../config/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Input } from "./ui/input";
@@ -13,6 +13,19 @@ const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 const Header = ({ user, isApproved, onSearchResults }) => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
+    const [userProfile, setUserProfile] = useState(null);
+
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    setUserProfile(userDoc.data());
+                }
+            }
+        };
+        fetchUserProfile();
+    }, [user]);
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -69,7 +82,7 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                         >
                             MinstrelMuse
                         </h1>
-                        
+
                         {user && isApproved && (
                             <form onSubmit={handleSearch} className="flex items-center gap-2">
                                 <div className="relative">
@@ -114,13 +127,13 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                                     className="flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-50 to-blue-50 cursor-pointer hover:bg-gradient-to-r hover:from-purple-100 hover:to-blue-100 transition-colors"
                                 >
                                     <Avatar className="h-8 w-8 border-2 border-purple-200">
-                                        <AvatarImage src={user.photoURL} />
+                                        <AvatarImage src={userProfile?.photoURL || ''} alt={userProfile?.name || 'User'} />
                                         <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
-                                            {user.email[0].toUpperCase()}
+                                            {userProfile?.email?.[0]?.toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
                                     <span className="hidden md:block text-sm font-medium">
-                                        {user.displayName || user.email.split('@')[0]}
+                                        {user?.displayName || user?.email?.split('@')[0]}
                                     </span>
                                 </div>
                                 <Button

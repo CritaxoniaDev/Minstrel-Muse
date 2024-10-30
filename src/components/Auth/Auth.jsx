@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { auth, db } from '../../config/firebase';
+import { auth, db, storage } from '../../config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -20,7 +21,8 @@ const Auth = () => {
         email: '',
         password: '',
         name: '',
-        username: ''
+        username: '',
+        photo: null
     });
 
     const handleInputChange = (e) => {
@@ -28,6 +30,16 @@ const Auth = () => {
             ...prev,
             [e.target.name]: e.target.value
         }));
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData(prev => ({
+                ...prev,
+                photo: file
+            }));
+        }
     };
 
     const signUp = async () => {
@@ -44,14 +56,21 @@ const Auth = () => {
                 formData.password
             );
 
-            // Store additional user data in Firestore
+            let photoURL = null;
+            if (formData.photo) {
+                const storageRef = ref(storage, `users/${userCredential.user.uid}/profile`);
+                const uploadResult = await uploadBytes(storageRef, formData.photo);
+                photoURL = await getDownloadURL(uploadResult.ref);
+            }
+
             await setDoc(doc(db, "users", userCredential.user.uid), {
                 name: formData.name,
                 username: formData.username,
                 email: formData.email,
                 createdAt: new Date().toISOString(),
-                photoURL: userCredential.user.photoURL || null,
-                isApproved: false, // Add this line
+                photoURL: photoURL,
+                role: "member",
+                isApproved: false,
                 favorites: [],
                 playlists: []
             });
@@ -85,6 +104,7 @@ const Auth = () => {
                 name: result.user.displayName,
                 email: result.user.email,
                 photoURL: result.user.photoURL,
+                role: "member", // Add this line
                 isApproved: false, // Add this line
                 createdAt: new Date().toISOString(),
                 favorites: [],
@@ -276,6 +296,13 @@ const Auth = () => {
                                         placeholder="Password"
                                         value={formData.password}
                                         onChange={handleInputChange}
+                                        disabled={isLoading}
+                                        className="transition-all duration-200 focus:ring-2 focus:ring-purple-600"
+                                    />
+                                    <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
                                         disabled={isLoading}
                                         className="transition-all duration-200 focus:ring-2 focus:ring-purple-600"
                                     />
