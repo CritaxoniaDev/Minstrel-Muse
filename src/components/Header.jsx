@@ -60,22 +60,34 @@ const Header = ({ user, isApproved, onSearchResults }) => {
     const handleSignOut = async () => {
         try {
             if (user) {
-                await updateDoc(doc(db, "users", user.uid), {
-                    isApproved: false
-                });
+                // Get the user's data from Firestore
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                const userData = userDoc.data();
+    
+                // Only update isApproved to false if the user is not an admin
+                if (userData.role !== "admin") {
+                    await updateDoc(doc(db, "users", user.uid), {
+                        isApproved: false
+                    });
+                }
             }
             await auth.signOut();
             navigate('/');
         } catch (error) {
             console.error('Error signing out:', error);
         }
-    };
+    };    
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto px-4">
                 <div className="flex h-16 items-center justify-between">
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                        <img
+                            src="/images/minstrel-logo.png"
+                            alt="MinstrelMuse Logo"
+                            className="h-8 w-8 cursor-pointer"
+                        />
                         <h1
                             onClick={() => navigate('/')}
                             className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"

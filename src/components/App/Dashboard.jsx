@@ -9,7 +9,6 @@ import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import axios from 'axios';
-import YouTube from 'react-youtube';
 import {
     Play,
     SkipForward,

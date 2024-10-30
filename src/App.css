@@ -7,6 +7,26 @@ html {
   font-family: 'Inter', sans-serif;
 }
 
+/* Add this at the end of your App.css file */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--secondary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -86,3 +106,4 @@ html {
   backdrop-filter: blur(0px);
   background-color: rgba(255, 255, 255, 0.5);
 }
+
