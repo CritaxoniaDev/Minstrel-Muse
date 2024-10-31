@@ -15,8 +15,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, AtSign, Mail, Lock, Image, UserPlus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useMediaQuery } from 'react-responsive';
 
 const Auth = () => {
+    const isMobile = useMediaQuery({ maxWidth: 767 });
+    const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+    const isDesktop = useMediaQuery({ minWidth: 1024 });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
@@ -142,42 +146,46 @@ const Auth = () => {
     };
 
     return (
-        <Card className="w-full max-w-4xl mx-auto grid md:grid-cols-2 overflow-hidden shadow-xl">
+        <Card className={`mx-auto shadow-xl ${isMobile ? 'w-[95%] max-w-md' :
+            isTablet ? 'w-[90%] max-w-2xl' :
+                'w-full max-w-4xl grid md:grid-cols-2'
+            } overflow-hidden`}>
             {/* Left Side - Visual Section */}
-            <div className="relative hidden md:block">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600">
-                    <div className="absolute inset-0 bg-black/20" />
-                    <img
-                        src="/resources/background.webp"
-                        alt="Enterprise Background"
-                        className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
-                    />
-                </div>
-                <div className="relative p-8 flex flex-col h-full justify-between text-white">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold">MinstrelMuse</span>
+            {(isTablet || isDesktop) && (
+                <div className="relative hidden md:block">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600">
+                        <div className="absolute inset-0 bg-black/20" />
+                        <img
+                            src="/resources/background.webp"
+                            alt="Enterprise Background"
+                            className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+                        />
                     </div>
-                    <div className="space-y-4">
-                        <h3 className="text-2xl font-bold">Transform Your Music Experience</h3>
-                        <p className="text-sm opacity-90">Join thousands of users who trust MinstrelMuse for their music needs.</p>
-                        <div className="flex gap-3">
-                            <div className="flex flex-col">
-                                <span className="text-3xl font-bold">10K+</span>
-                                <span className="text-xs">Active Users</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-3xl font-bold">50M+</span>
-                                <span className="text-xs">Songs Played</span>
+                    <div className="relative p-8 flex flex-col h-full justify-between text-white">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xl font-bold">MinstrelMuse</span>
+                        </div>
+                        <div className="space-y-4">
+                            <h3 className="text-2xl font-bold">Transform Your Music Experience</h3>
+                            <p className="text-sm opacity-90">Join thousands of users who trust MinstrelMuse for their music needs.</p>
+                            <div className="flex gap-3">
+                                <div className="flex flex-col">
+                                    <span className="text-3xl font-bold">10K+</span>
+                                    <span className="text-xs">Active Users</span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-3xl font-bold">50M+</span>
+                                    <span className="text-xs">Songs Played</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
+            )}
             {/* Right Side - Auth Forms */}
-            <div className="p-8">
+            <div className={`${isMobile ? 'p-4' : 'p-8'}`}>
                 <Tabs defaultValue="login" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-2">
+                <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'text-sm' : ''}`}>
                         <TabsTrigger
                             value="login"
                             className="transition-all duration-300 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
@@ -192,7 +200,7 @@ const Auth = () => {
                         </TabsTrigger>
                     </TabsList>
 
-                    <div className="relative min-h-[450px]">
+                    <div className="relative min-h-[470px]">
                         <TabsContent
                             value="login"
                             className="space-y-4 absolute top-0 left-0 w-full transition-opacity duration-300 ease-in-out"

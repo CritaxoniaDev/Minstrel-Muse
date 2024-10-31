@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
 const Dashboard = ({
     user,
+    currentUser, // Add this prop
     currentTrack,
     isPlaying,
     onPlayPause,
@@ -27,6 +28,27 @@ const Dashboard = ({
     const [users, setUsers] = useState([]);
     const [recentlyPlayed, setRecentlyPlayed] = useState([]);
     const navigate = useNavigate();
+
+    const handleApprovalToggle = async (userId, currentStatus) => {
+        try {
+            const userRef = doc(db, "users", userId);
+            await updateDoc(userRef, {
+                isApproved: !currentStatus
+            });
+
+            setUsers(users.map(user =>
+                user.uid === userId
+                    ? { ...user, isApproved: !currentStatus }
+                    : user
+            ));
+        } catch (error) {
+            console.error('Error updating user approval status:', error);
+        }
+    };
+
+    useEffect(() => {
+        console.log('Current user role:', currentUser?.role);
+    }, [currentUser]);
 
     const fetchYoutubeVideos = async () => {
         try {
@@ -186,12 +208,33 @@ const Dashboard = ({
                                         <div>
                                             <p className="text-sm font-medium">{user.name || 'Anonymous'}</p>
                                             <p className="text-xs text-muted-foreground">{user.email}</p>
+                                            <p className="text-xs text-muted-foreground">Role: {user.role}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <span className={`px-2 py-1 rounded-full text-xs ${user.isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                            {user.isApproved ? 'Approved' : 'Pending'}
-                                        </span>
+                                        {user.role !== 'admin' && currentUser?.role === 'admin' ? (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleApprovalToggle(user.uid, user.isApproved);
+                                                }}
+                                                className={`px-2 py-1 rounded-full text-xs ${user.isApproved
+                                                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                        : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                                                    }`}
+                                            >
+                                                {user.isApproved ? 'Approved' : 'Pending'}
+                                            </Button>
+                                        ) : (
+                                            <span className={`px-2 py-1 rounded-full text-xs ${user.isApproved
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                {user.isApproved ? 'Approved' : 'Pending'}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -208,12 +251,12 @@ const Dashboard = ({
                     </CardHeader>
                     <CardContent className="flex flex-col items-center space-y-4">
                         <Avatar className="h-20 w-20">
-                            <AvatarImage src={user?.photoURL} />
-                            <AvatarFallback>{user?.email[0].toUpperCase()}</AvatarFallback>
+                            <AvatarImage src={currentUser?.photoURL} />
+                            <AvatarFallback>{currentUser?.email[0].toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="text-center">
-                            <h3 className="text-lg font-medium">{user?.displayName || 'User'}</h3>
-                            <p className="text-sm text-muted-foreground">{user?.email}</p>
+                            <h3 className="text-lg font-medium">{currentUser?.displayName || 'User'}</h3>
+                            <p className="text-sm text-muted-foreground">{currentUser?.email}</p>
                         </div>
                         <div className="w-full space-y-2">
                             <div className="flex justify-between text-sm">

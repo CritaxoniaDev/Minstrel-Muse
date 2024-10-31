@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useMediaQuery } from 'react-responsive';
 import { auth, db } from '../config/firebase';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Input } from "./ui/input";
-import { Home, Compass, Library, LogOut, Search } from 'lucide-react';
+import { Home, Compass, Library, LogOut, Search, Menu } from 'lucide-react';
 import axios from 'axios';
 
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
@@ -14,6 +15,11 @@ const Header = ({ user, isApproved, onSearchResults }) => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [userProfile, setUserProfile] = useState(null);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const isMobile = useMediaQuery({ maxWidth: 767 });
+    const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+    const isDesktop = useMediaQuery({ minWidth: 1024 });
 
     useEffect(() => {
         const fetchUserProfile = async () => {
@@ -52,6 +58,7 @@ const Header = ({ user, isApproved, onSearchResults }) => {
 
             onSearchResults(videos);
             navigate('/dashboard/search');
+            setIsMenuOpen(false);
         } catch (error) {
             console.error('Error searching videos:', error);
         }
@@ -60,11 +67,8 @@ const Header = ({ user, isApproved, onSearchResults }) => {
     const handleSignOut = async () => {
         try {
             if (user) {
-                // Get the user's data from Firestore
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 const userData = userDoc.data();
-    
-                // Only update isApproved to false if the user is not an admin
                 if (userData.role !== "admin") {
                     await updateDoc(doc(db, "users", user.uid), {
                         isApproved: false
@@ -82,41 +86,86 @@ const Header = ({ user, isApproved, onSearchResults }) => {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto px-4">
                 <div className="flex h-16 items-center justify-between">
+                    {/* Logo Section */}
                     <div className="flex items-center gap-2">
                         <img
                             src="/images/minstrel-logo.png"
                             alt="MinstrelMuse Logo"
-                            className="h-8 w-8 cursor-pointer"
+                            className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} cursor-pointer`}
                         />
                         <h1
                             onClick={() => navigate('/')}
-                            className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
+                            className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity`}
                         >
-                            MinstrelMuse
+                            {isMobile ? 'MinstrelMuse' : 'MinstrelMuse'}
                         </h1>
+                    </div>
 
-                        {user && isApproved && (
+                    {/* Search and Navigation */}
+                    {user && isApproved && (
+                        <>
+                            {isMobile ? (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                    className="md:hidden"
+                                >
+                                    <Menu className="h-6 w-6" />
+                                </Button>
+                            ) : (
+                                <form onSubmit={handleSearch} className="flex items-center gap-2">
+                                    <div className="relative">
+                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            type="search"
+                                            placeholder="Search music..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className={`${isTablet ? 'w-[200px]' : 'w-[300px]'} pl-8 bg-muted/50 focus:bg-background transition-colors`}
+                                        />
+                                    </div>
+                                    <Button type="submit" variant="ghost" size="icon">
+                                        <Search className="h-4 w-4" />
+                                    </Button>
+                                </form>
+                            )}
+                        </>
+                    )}
+
+                    {/* Mobile Menu */}
+                    {isMobile && isMenuOpen && (
+                        <div className="absolute top-16 left-0 right-0 bg-background border-b shadow-lg p-4 space-y-4">
                             <form onSubmit={handleSearch} className="flex items-center gap-2">
-                                <div className="relative">
-                                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        type="search"
-                                        placeholder="Search music..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-[300px] pl-8 bg-muted/50 focus:bg-background transition-colors"
-                                    />
-                                </div>
+                                <Input
+                                    type="search"
+                                    placeholder="Search music..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full"
+                                />
                                 <Button type="submit" variant="ghost" size="icon">
                                     <Search className="h-4 w-4" />
                                 </Button>
                             </form>
-                        )}
-                    </div>
+                            <div className="flex flex-col gap-2">
+                                <Button variant="ghost" className="justify-start" onClick={() => { navigate('/dashboard'); setIsMenuOpen(false); }}>
+                                    <Home className="h-4 w-4 mr-2" /> Home
+                                </Button>
+                                <Button variant="ghost" className="justify-start" onClick={() => { navigate('/dashboard/discover'); setIsMenuOpen(false); }}>
+                                    <Compass className="h-4 w-4 mr-2" /> Discover
+                                </Button>
+                                <Button variant="ghost" className="justify-start" onClick={() => { navigate('/dashboard/library'); setIsMenuOpen(false); }}>
+                                    <Library className="h-4 w-4 mr-2" /> Library
+                                </Button>
+                            </div>
+                        </div>
+                    )}
 
-                    {user ? (
-                        <nav className="flex items-center gap-6">
-                            {isApproved && (
+                    {/* User Navigation */}
+                    {user && (
+                        <nav className={`flex items-center ${isMobile ? 'gap-2' : 'gap-6'}`}>
+                            {isApproved && !isMobile && (
                                 <div className="hidden md:flex items-center gap-1">
                                     <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard')}>
                                         <Home className="h-4 w-4" />
@@ -133,20 +182,22 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
                                 <div
                                     onClick={() => navigate('/dashboard/profile')}
-                                    className="flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-50 to-blue-50 cursor-pointer hover:bg-gradient-to-r hover:from-purple-100 hover:to-blue-100 transition-colors"
+                                    className={`flex items-center gap-2 px-${isMobile ? '2' : '4'} py-2 rounded-full bg-gradient-to-r from-purple-50 to-blue-50 cursor-pointer hover:bg-gradient-to-r hover:from-purple-100 hover:to-blue-100 transition-colors`}
                                 >
-                                    <Avatar className="h-8 w-8 border-2 border-purple-200">
+                                    <Avatar className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} border-2 border-purple-200`}>
                                         <AvatarImage src={userProfile?.photoURL || ''} alt={userProfile?.name || 'User'} />
                                         <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
                                             {userProfile?.email?.[0]?.toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <span className="hidden md:block text-sm font-medium">
-                                        {user?.displayName || user?.email?.split('@')[0]}
-                                    </span>
+                                    {!isMobile && (
+                                        <span className="hidden md:block text-sm font-medium">
+                                            {user?.displayName || user?.email?.split('@')[0]}
+                                        </span>
+                                    )}
                                 </div>
                                 <Button
                                     variant="destructive"
@@ -154,25 +205,10 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                                     className="flex items-center gap-2"
                                 >
                                     <LogOut className="h-4 w-4" />
-                                    <span className="hidden md:block">Sign Out</span>
+                                    {!isMobile && <span className="hidden md:block">Sign Out</span>}
                                 </Button>
                             </div>
                         </nav>
-                    ) : (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 text-sm">
-                            <Link
-                                to="/privacy"
-                                className="text-muted-foreground hover:text-purple-600 transition-colors"
-                            >
-                                Privacy Policy
-                            </Link>
-                            <Link
-                                to="/data-deletion"
-                                className="text-muted-foreground hover:text-purple-600 transition-colors"
-                            >
-                                Data Deletion
-                            </Link>
-                        </div>
                     )}
                 </div>
             </div>

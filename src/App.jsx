@@ -214,7 +214,12 @@ function App() {
       if (user) {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
-          setIsApproved(userDoc.data().isApproved || false);
+          const userData = userDoc.data();
+          setUser(prevUser => ({
+            ...prevUser,
+            ...userData
+          }));
+          setIsApproved(userData.isApproved || false);
         }
       }
     });
@@ -266,6 +271,7 @@ function App() {
                       volume={volume}
                       onVolumeChange={handleVolumeChange}
                       queue={queue}
+                      currentUser={user} // Add this line
                     />
                   ) : (
                     <Navigate to="/" />

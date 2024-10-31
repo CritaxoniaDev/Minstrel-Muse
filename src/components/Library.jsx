@@ -376,43 +376,62 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {playlists.map((playlist) => (
-                    <Card
-                        key={playlist.id}
-                        className="group hover:shadow-lg transition-shadow cursor-pointer border-2 border-primary/20"
-                        onClick={() => handlePlaylistClick(playlist.id)}
-                    >
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Music2 className="w-5 h-5 text-primary" />
-                                <CardTitle className="text-lg">{playlist.name}</CardTitle>
-                            </div>
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
-                                    onClick={(e) => handlePlayPlaylist(e, playlist)}
-                                >
-                                    <Play className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="rounded-full hover:bg-destructive hover:text-destructive-foreground"
-                                    onClick={(e) => handleDeletePlaylist(playlist.id, e)}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
+                {playlists.length === 0 ? (
+                    <Card className="col-span-full p-6 text-center border-2 border-dashed border-primary/20">
+                        <div className="flex flex-col items-center gap-2">
+                            <Music2 className="w-12 h-12 text-muted-foreground" />
+                            <h3 className="text-lg font-medium">No Playlists Yet</h3>
                             <p className="text-sm text-muted-foreground">
-                                {playlist.tracks?.length || 0} tracks
+                                Create your first playlist to start organizing your music
                             </p>
-                        </CardContent>
+                            <Button
+                                onClick={() => setShowCreateForm(true)}
+                                className="mt-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Create Your First Playlist
+                            </Button>
+                        </div>
                     </Card>
-                ))}
+                ) : (
+                    playlists.map((playlist) => (
+                        <Card
+                            key={playlist.id}
+                            className="group hover:shadow-lg transition-shadow cursor-pointer border-2 border-primary/20"
+                            onClick={() => handlePlaylistClick(playlist.id)}
+                        >
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Music2 className="w-5 h-5 text-primary" />
+                                    <CardTitle className="text-lg">{playlist.name}</CardTitle>
+                                </div>
+                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                        onClick={(e) => handlePlayPlaylist(e, playlist)}
+                                    >
+                                        <Play className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="rounded-full hover:bg-destructive hover:text-destructive-foreground"
+                                        onClick={(e) => handleDeletePlaylist(playlist.id, e)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">
+                                    {playlist.tracks?.length || 0} tracks
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
             </div>
         </div>
     );
