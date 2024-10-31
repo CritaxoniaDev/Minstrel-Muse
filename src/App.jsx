@@ -18,9 +18,13 @@ import { useToast } from "@/hooks/use-toast";
 import endSound from '/sounds/end-sound.wav';
 import Library from './components/Library';
 import PlaylistDetail from './components/PlaylistDetail';
+import { useMediaQuery } from 'react-responsive';
 import './App.css';
 
 function App() {
+  const isMobile = useMediaQuery({ maxWidth: 767 });
+  const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+  const isDesktop = useMediaQuery({ minWidth: 1024 });
   const [user, setUser] = useState(null);
   const [isApproved, setIsApproved] = useState(false);
   const [searchResults, setSearchResults] = useState([]);

@@ -80,138 +80,171 @@ const Header = ({ user, isApproved, onSearchResults }) => {
         } catch (error) {
             console.error('Error signing out:', error);
         }
-    };    
+    };
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto px-4">
                 <div className="flex h-16 items-center justify-between">
-                    {/* Logo Section */}
-                    <div className="flex items-center gap-2">
-                        <img
-                            src="/images/minstrel-logo.png"
-                            alt="MinstrelMuse Logo"
-                            className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} cursor-pointer`}
-                        />
-                        <h1
-                            onClick={() => navigate('/')}
-                            className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity`}
-                        >
-                            {isMobile ? 'MinstrelMuse' : 'MinstrelMuse'}
-                        </h1>
-                    </div>
+                    {/* Logo and Search Section */}
+                    <div className="flex items-center gap-6">
+                        {/* Logo */}
+                        <div className="flex items-center gap-3 transition-all duration-300">
+                            <img
+                                src="/images/minstrel-logo.png"
+                                alt="MinstrelMuse Logo"
+                                className={`${isMobile ? 'h-7 w-7' :
+                                        isTablet ? 'h-8 w-8' :
+                                            'h-9 w-9'
+                                    } cursor-pointer transform hover:scale-105 transition-transform duration-300`}
+                            />
+                            <h1
+                                onClick={() => navigate('/')}
+                                className={`${isMobile ? 'text-lg' :
+                                        isTablet ? 'text-xl' :
+                                            'text-2xl'
+                                    } font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-all duration-300 bg-size-200 animate-gradient`}
+                            >
+                                {isMobile ? 'MinstrelMuse' : 'MinstrelMuse'}
+                            </h1>
+                        </div>
 
-                    {/* Search and Navigation */}
-                    {user && isApproved && (
-                        <>
-                            {isMobile ? (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                    className="md:hidden"
-                                >
-                                    <Menu className="h-6 w-6" />
-                                </Button>
-                            ) : (
-                                <form onSubmit={handleSearch} className="flex items-center gap-2">
-                                    <div className="relative">
-                                        <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        {/* Search Bar - Desktop and Tablet Only */}
+                        {user && isApproved && (isTablet || isDesktop) && (
+                            <div className="transition-all duration-300">
+                                <form onSubmit={handleSearch} className="flex items-center">
+                                    <div className="relative group">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-hover:text-purple-500 transition-colors duration-200" />
                                         <Input
                                             type="search"
                                             placeholder="Search music..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className={`${isTablet ? 'w-[200px]' : 'w-[300px]'} pl-8 bg-muted/50 focus:bg-background transition-colors`}
+                                            className={`${isTablet ? 'w-[180px]' :
+                                                    isDesktop ? 'w-[300px]' :
+                                                        'w-[200px]'
+                                                } pl-10 pr-4 py-2 rounded-full border-2 focus:border-purple-500 bg-background/50 hover:bg-background/80 transition-all duration-200`}
                                         />
                                     </div>
-                                    <Button type="submit" variant="ghost" size="icon">
-                                        <Search className="h-4 w-4" />
-                                    </Button>
                                 </form>
-                            )}
-                        </>
-                    )}
-
-                    {/* Mobile Menu */}
-                    {isMobile && isMenuOpen && (
-                        <div className="absolute top-16 left-0 right-0 bg-background border-b shadow-lg p-4 space-y-4">
-                            <form onSubmit={handleSearch} className="flex items-center gap-2">
-                                <Input
-                                    type="search"
-                                    placeholder="Search music..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full"
-                                />
-                                <Button type="submit" variant="ghost" size="icon">
-                                    <Search className="h-4 w-4" />
-                                </Button>
-                            </form>
-                            <div className="flex flex-col gap-2">
-                                <Button variant="ghost" className="justify-start" onClick={() => { navigate('/dashboard'); setIsMenuOpen(false); }}>
-                                    <Home className="h-4 w-4 mr-2" /> Home
-                                </Button>
-                                <Button variant="ghost" className="justify-start" onClick={() => { navigate('/dashboard/discover'); setIsMenuOpen(false); }}>
-                                    <Compass className="h-4 w-4 mr-2" /> Discover
-                                </Button>
-                                <Button variant="ghost" className="justify-start" onClick={() => { navigate('/dashboard/library'); setIsMenuOpen(false); }}>
-                                    <Library className="h-4 w-4 mr-2" /> Library
-                                </Button>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
 
-                    {/* User Navigation */}
-                    {user && (
-                        <nav className={`flex items-center ${isMobile ? 'gap-2' : 'gap-6'}`}>
-                            {isApproved && !isMobile && (
-                                <div className="hidden md:flex items-center gap-1">
-                                    <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard')}>
-                                        <Home className="h-4 w-4" />
-                                        <span>Home</span>
-                                    </Button>
-                                    <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard/discover')}>
-                                        <Compass className="h-4 w-4" />
-                                        <span>Discover</span>
-                                    </Button>
-                                    <Button variant="ghost" className="flex items-center gap-2" onClick={() => navigate('/dashboard/library')}>
-                                        <Library className="h-4 w-4" />
-                                        <span>Library</span>
-                                    </Button>
-                                </div>
+                    {/* Navigation and User Section */}
+                    {user && isApproved && (
+                        <div className="flex items-center gap-4">
+                            {/* Mobile Menu Button */}
+                            {isMobile && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                    className="relative p-2 hover:bg-purple-100 rounded-full transition-colors duration-200"
+                                >
+                                    <Menu className="h-5 w-5 text-purple-600" />
+                                </Button>
                             )}
 
-                            <div className="flex items-center gap-2">
+                            {/* Desktop and Tablet Navigation */}
+                            {(isTablet || isDesktop) && (
+                                <nav className="hidden md:flex items-center gap-2">
+                                    {['Home', 'Discover', 'Library'].map((item, index) => (
+                                        <Button
+                                            key={index}
+                                            variant="ghost"
+                                            onClick={() => navigate(`/dashboard${item === 'Home' ? '' : `/${item.toLowerCase()}`}`)}
+                                            className={`flex items-center gap-2 ${isTablet ? 'px-3 py-1.5' : 'px-4 py-2'
+                                                } hover:bg-purple-100 rounded-full transition-all duration-200`}
+                                        >
+                                            {item === 'Home' ? <Home className="h-4 w-4" /> :
+                                                item === 'Discover' ? <Compass className="h-4 w-4" /> :
+                                                    <Library className="h-4 w-4" />}
+                                            <span>{item}</span>
+                                        </Button>
+                                    ))}
+                                </nav>
+                            )}
+
+                            {/* User Profile Section */}
+                            <div className="flex items-center gap-3">
                                 <div
                                     onClick={() => navigate('/dashboard/profile')}
-                                    className={`flex items-center gap-2 px-${isMobile ? '2' : '4'} py-2 rounded-full bg-gradient-to-r from-purple-50 to-blue-50 cursor-pointer hover:bg-gradient-to-r hover:from-purple-100 hover:to-blue-100 transition-colors`}
+                                    className={`flex items-center gap-2 ${isMobile ? 'px-2 py-1.5' :
+                                            isTablet ? 'px-2.5 py-1.5' :
+                                                'px-3 py-2'
+                                        } rounded-full bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 cursor-pointer transition-all duration-300`}
                                 >
-                                    <Avatar className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} border-2 border-purple-200`}>
-                                        <AvatarImage src={userProfile?.photoURL || ''} alt={userProfile?.name || 'User'} />
+                                    <Avatar className={`${isMobile ? 'h-6 w-6' :
+                                            isTablet ? 'h-7 w-7' :
+                                                'h-8 w-8'
+                                        } border-2 border-purple-200 transition-transform hover:scale-105`}>
+                                        <AvatarImage src={userProfile?.photoURL || ''} />
                                         <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
                                             {userProfile?.email?.[0]?.toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
-                                    {!isMobile && (
-                                        <span className="hidden md:block text-sm font-medium">
-                                            {user?.displayName || user?.email?.split('@')[0]}
+                                    {(isTablet || isDesktop) && (
+                                        <span className="font-medium text-sm text-gray-700">
+                                            {user?.displayName?.split(' ')[0] || user?.email?.split('@')[0]}
                                         </span>
                                     )}
                                 </div>
+
                                 <Button
                                     variant="destructive"
                                     onClick={handleSignOut}
-                                    className="flex items-center gap-2"
+                                    className={`flex items-center gap-2 rounded-full hover:bg-red-600 transition-colors duration-200 ${isMobile ? 'px-2' :
+                                            isTablet ? 'px-3' :
+                                                'px-4'
+                                        }`}
                                 >
                                     <LogOut className="h-4 w-4" />
-                                    {!isMobile && <span className="hidden md:block">Sign Out</span>}
+                                    {(isTablet || isDesktop) && <span>Sign Out</span>}
                                 </Button>
                             </div>
-                        </nav>
+                        </div>
                     )}
                 </div>
             </div>
+
+            {/* Mobile Menu Dropdown */}
+            {isMobile && isMenuOpen && (
+                <div className="absolute top-16 left-0 right-0 bg-white border-b shadow-lg animate-slideDown">
+                    <div className="container mx-auto p-4 space-y-4">
+                        <form onSubmit={handleSearch} className="flex gap-2">
+                            <Input
+                                type="search"
+                                placeholder="Search music..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="flex-1 rounded-full"
+                            />
+                            <Button type="submit" variant="ghost" size="icon" className="rounded-full">
+                                <Search className="h-4 w-4" />
+                            </Button>
+                        </form>
+                        <nav className="flex flex-col gap-2">
+                            {['Home', 'Discover', 'Library'].map((item, index) => (
+                                <Button
+                                    key={index}
+                                    variant="ghost"
+                                    onClick={() => {
+                                        navigate(`/dashboard${item === 'Home' ? '' : `/${item.toLowerCase()}`}`);
+                                        setIsMenuOpen(false);
+                                    }}
+                                    className="justify-start gap-3 hover:bg-purple-50 transition-colors duration-200"
+                                >
+                                    {item === 'Home' ? <Home className="h-4 w-4" /> :
+                                        item === 'Discover' ? <Compass className="h-4 w-4" /> :
+                                            <Library className="h-4 w-4" />}
+                                    {item}
+                                </Button>
+                            ))}
+                        </nav>
+                    </div>
+                </div>
+            )}
         </header>
     );
 };

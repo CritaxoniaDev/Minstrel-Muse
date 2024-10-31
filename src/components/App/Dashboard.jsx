@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import axios from 'axios';
+import { useMediaQuery } from 'react-responsive';
 import {
     Play,
     Pause,
@@ -25,6 +26,10 @@ const Dashboard = ({
     isPlaying,
     onPlayPause,
 }) => {
+    // Add responsive breakpoints
+    const isMobile = useMediaQuery({ maxWidth: 767 });
+    const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+    const isDesktop = useMediaQuery({ minWidth: 1024 });
     const [users, setUsers] = useState([]);
     const [recentlyPlayed, setRecentlyPlayed] = useState([]);
     const navigate = useNavigate();
@@ -90,92 +95,137 @@ const Dashboard = ({
     }, []);
 
     return (
-        <div className="grid lg:grid-cols-6 gap-4 p-6 pb-32">
+        <div className={`grid gap-4 p-6 pb-32 ${isMobile ? 'grid-cols-1' :
+                isTablet ? 'grid-cols-2' :
+                    'lg:grid-cols-6'
+            }`}>
             {/* Stats Cards Row */}
-            <div className="col-span-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className={`${isMobile ? 'col-span-1' :
+                    isTablet ? 'col-span-2' :
+                        'col-span-6'
+                } grid gap-4 ${isMobile ? 'grid-cols-1' :
+                    isTablet ? 'grid-cols-2' :
+                        'lg:grid-cols-4'
+                }`}>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Songs</CardTitle>
+                        <CardTitle className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>
+                            Total Songs
+                        </CardTitle>
                         <Music2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{recentlyPlayed.length || 0}</div>
+                        <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
+                            {recentlyPlayed.length || 0}
+                        </div>
                         <p className="text-xs text-muted-foreground">+20 from last week</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Followers</CardTitle>
+                        <CardTitle className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>
+                            Followers
+                        </CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{users.length}</div>
+                        <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
+                            {users.length}
+                        </div>
                         <p className="text-xs text-muted-foreground">+18 new followers</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Listening Time</CardTitle>
+                        <CardTitle className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>
+                            Listening Time
+                        </CardTitle>
                         <Clock className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">432h</div>
+                        <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
+                            432h
+                        </div>
                         <p className="text-xs text-muted-foreground">+12h this week</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Liked Songs</CardTitle>
+                        <CardTitle className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>
+                            Liked Songs
+                        </CardTitle>
                         <Heart className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">432</div>
+                        <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
+                            432
+                        </div>
                         <p className="text-xs text-muted-foreground">+8 new likes</p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Recently Played Section */}
-            <div className="col-span-6 lg:col-span-4">
+            <div className={`${isMobile ? 'col-span-1' :
+                    isTablet ? 'col-span-2' :
+                        'col-span-6 lg:col-span-4'
+                }`}>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Recently Played</CardTitle>
+                        <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
+                            Recently Played
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
                             {recentlyPlayed.map((video) => (
                                 <div
                                     key={video.id}
-                                    className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors"
+                                    className={`flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors ${isMobile ? 'flex-col gap-2' : 'flex-row'
+                                        }`}
                                 >
-                                    <div className="flex items-center space-x-4">
+                                    <div className={`flex items-center ${isMobile ? 'w-full' : 'space-x-4'}`}>
                                         <div className="relative">
                                             <img
                                                 src={video.thumbnail}
                                                 alt={video.title}
-                                                className="rounded-md w-12 h-12 object-cover"
+                                                className={`rounded-md object-cover ${isMobile ? 'w-full h-32' : 'w-12 h-12'
+                                                    }`}
                                             />
                                             <span className="absolute bottom-1 right-1 bg-black/75 text-white text-xs px-1 rounded">
                                                 {video.duration}
                                             </span>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium line-clamp-1">{video.title}</p>
-                                            <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
+                                        <div className={isMobile ? 'mt-2 w-full text-center' : ''}>
+                                            <p className={`font-medium line-clamp-1 ${isMobile ? 'text-base' : 'text-sm'
+                                                }`}>
+                                                {video.title}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {video.channelTitle}
+                                            </p>
                                         </div>
                                     </div>
                                     <Button
                                         variant="ghost"
-                                        size="icon"
+                                        size={isMobile ? "default" : "icon"}
                                         onClick={() => onPlayPause(video)}
+                                        className={isMobile ? 'w-full mt-2' : ''}
                                     >
-                                        {currentTrack?.id === video.id && isPlaying ?
-                                            <Pause className="h-4 w-4" /> :
-                                            <Play className="h-4 w-4" />
-                                        }
+                                        {currentTrack?.id === video.id && isPlaying ? (
+                                            <>
+                                                <Pause className="h-4 w-4" />
+                                                {isMobile && <span className="ml-2">Pause</span>}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Play className="h-4 w-4" />
+                                                {isMobile && <span className="ml-2">Play</span>}
+                                            </>
+                                        )}
                                     </Button>
                                 </div>
                             ))}
@@ -185,33 +235,41 @@ const Dashboard = ({
             </div>
 
             {/* Active Users Section */}
-            <div className="col-span-6 lg:col-span-4">
+            <div className={`${isMobile ? 'col-span-1' :
+                    isTablet ? 'col-span-2' :
+                        'col-span-6 lg:col-span-4'
+                }`}>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Active Users</CardTitle>
+                        <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
+                            Active Users
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
                             {users.map((user, index) => (
                                 <div
                                     key={index}
-                                    className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors cursor-pointer"
+                                    className={`flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors cursor-pointer ${isMobile ? 'flex-col gap-2' : 'flex-row'
+                                        }`}
                                     onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
                                 >
-                                    <div className="flex items-center space-x-4">
-                                        <Avatar className="h-10 w-10">
+                                    <div className={`flex items-center ${isMobile ? 'flex-col text-center' : 'space-x-4'}`}>
+                                        <Avatar className={`${isMobile ? 'h-16 w-16' : 'h-10 w-10'}`}>
                                             <AvatarImage src={user.photoURL} />
                                             <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
                                                 {user.email[0].toUpperCase()}
                                             </AvatarFallback>
                                         </Avatar>
-                                        <div>
-                                            <p className="text-sm font-medium">{user.name || 'Anonymous'}</p>
+                                        <div className={isMobile ? 'mt-2' : ''}>
+                                            <p className={`font-medium ${isMobile ? 'text-base' : 'text-sm'}`}>
+                                                {user.name || 'Anonymous'}
+                                            </p>
                                             <p className="text-xs text-muted-foreground">{user.email}</p>
                                             <p className="text-xs text-muted-foreground">Role: {user.role}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center space-x-2">
+                                    <div className={`flex items-center ${isMobile ? 'w-full justify-center' : 'space-x-2'}`}>
                                         {user.role !== 'admin' && currentUser?.role === 'admin' ? (
                                             <Button
                                                 variant="ghost"
@@ -220,7 +278,8 @@ const Dashboard = ({
                                                     e.stopPropagation();
                                                     handleApprovalToggle(user.uid, user.isApproved);
                                                 }}
-                                                className={`px-2 py-1 rounded-full text-xs ${user.isApproved
+                                                className={`${isMobile ? 'w-full' : 'px-2 py-1'
+                                                    } rounded-full text-xs ${user.isApproved
                                                         ? 'bg-green-100 text-green-700 hover:bg-green-200'
                                                         : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
                                                     }`}
@@ -228,7 +287,8 @@ const Dashboard = ({
                                                 {user.isApproved ? 'Approved' : 'Pending'}
                                             </Button>
                                         ) : (
-                                            <span className={`px-2 py-1 rounded-full text-xs ${user.isApproved
+                                            <span className={`${isMobile ? 'w-full text-center' : 'px-2 py-1'
+                                                } rounded-full text-xs ${user.isApproved
                                                     ? 'bg-green-100 text-green-700'
                                                     : 'bg-yellow-100 text-yellow-700'
                                                 }`}>
@@ -244,18 +304,25 @@ const Dashboard = ({
             </div>
 
             {/* User Profile Section */}
-            <div className="col-span-6 lg:col-span-2">
+            <div className={`${isMobile ? 'col-span-1' :
+                    isTablet ? 'col-span-2' :
+                        'col-span-6 lg:col-span-2'
+                }`}>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Profile</CardTitle>
+                        <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
+                            Profile
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center space-y-4">
-                        <Avatar className="h-20 w-20">
+                        <Avatar className={`${isMobile ? 'h-24 w-24' : 'h-20 w-20'}`}>
                             <AvatarImage src={currentUser?.photoURL} />
                             <AvatarFallback>{currentUser?.email[0].toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="text-center">
-                            <h3 className="text-lg font-medium">{currentUser?.displayName || 'User'}</h3>
+                            <h3 className={`${isMobile ? 'text-xl' : 'text-lg'} font-medium`}>
+                                {currentUser?.displayName || 'User'}
+                            </h3>
                             <p className="text-sm text-muted-foreground">{currentUser?.email}</p>
                         </div>
                         <div className="w-full space-y-2">
