@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, AtSign, Mail, Lock, Image, UserPlus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMediaQuery } from 'react-responsive';
-
 const Auth = () => {
     const isMobile = useMediaQuery({ maxWidth: 767 });
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });

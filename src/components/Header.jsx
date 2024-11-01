@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Input } from "./ui/input";
 import { Home, Compass, Library, LogOut, Search, Menu } from 'lucide-react';
 import axios from 'axios';
+import { useTheme } from 'next-themes';
+import { Moon, Sun } from 'lucide-react';
 
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
@@ -16,6 +18,7 @@ const Header = ({ user, isApproved, onSearchResults }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [userProfile, setUserProfile] = useState(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const { theme, setTheme } = useTheme()
 
     const isMobile = useMediaQuery({ maxWidth: 767 });
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
@@ -94,15 +97,15 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                                 src="/images/minstrel-logo.png"
                                 alt="MinstrelMuse Logo"
                                 className={`${isMobile ? 'h-7 w-7' :
-                                        isTablet ? 'h-8 w-8' :
-                                            'h-9 w-9'
+                                    isTablet ? 'h-8 w-8' :
+                                        'h-9 w-9'
                                     } cursor-pointer transform hover:scale-105 transition-transform duration-300`}
                             />
                             <h1
                                 onClick={() => navigate('/')}
                                 className={`${isMobile ? 'text-lg' :
-                                        isTablet ? 'text-xl' :
-                                            'text-2xl'
+                                    isTablet ? 'text-xl' :
+                                        'text-2xl'
                                     } font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-all duration-300 bg-size-200 animate-gradient`}
                             >
                                 {isMobile ? 'MinstrelMuse' : 'MinstrelMuse'}
@@ -121,8 +124,8 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className={`${isTablet ? 'w-[180px]' :
-                                                    isDesktop ? 'w-[300px]' :
-                                                        'w-[200px]'
+                                                isDesktop ? 'w-[300px]' :
+                                                    'w-[200px]'
                                                 } pl-10 pr-4 py-2 rounded-full border-2 focus:border-purple-500 bg-background/50 hover:bg-background/80 transition-all duration-200`}
                                         />
                                     </div>
@@ -131,61 +134,75 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                         )}
                     </div>
 
-                    {/* Navigation and User Section */}
-                    {user && isApproved && (
-                        <div className="flex items-center gap-4">
-                            {/* Mobile Menu Button */}
-                            {isMobile && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                    className="relative p-2 hover:bg-purple-100 rounded-full transition-colors duration-200"
-                                >
-                                    <Menu className="h-5 w-5 text-purple-600" />
-                                </Button>
+                    {/* Theme Toggle and Navigation */}
+                    <div className="flex items-center gap-4">
+                        {/* Theme Toggle - Always visible */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                            className="relative p-2 hover:bg-purple-100 dark:hover:bg-purple-900 rounded-full transition-colors duration-200"
+                        >
+                            {theme === 'dark' ? (
+                                <Sun className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            ) : (
+                                <Moon className="h-5 w-5 text-purple-600" />
                             )}
+                        </Button>
 
-                            {/* Desktop and Tablet Navigation */}
-                            {(isTablet || isDesktop) && (
-                                <nav className="hidden md:flex items-center gap-2">
-                                    {['Home', 'Discover', 'Library'].map((item, index) => (
-                                        <Button
-                                            key={index}
-                                            variant="ghost"
-                                            onClick={() => navigate(`/dashboard${item === 'Home' ? '' : `/${item.toLowerCase()}`}`)}
-                                            className={`flex items-center gap-2 ${isTablet ? 'px-3 py-1.5' : 'px-4 py-2'
-                                                } hover:bg-purple-100 rounded-full transition-all duration-200`}
-                                        >
-                                            {item === 'Home' ? <Home className="h-4 w-4" /> :
-                                                item === 'Discover' ? <Compass className="h-4 w-4" /> :
-                                                    <Library className="h-4 w-4" />}
-                                            <span>{item}</span>
-                                        </Button>
-                                    ))}
-                                </nav>
-                            )}
+                        {/* Mobile Menu Button */}
+                        {user && isApproved && isMobile && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="relative p-2 hover:bg-purple-100 rounded-full transition-colors duration-200"
+                            >
+                                <Menu className="h-5 w-5 text-purple-600" />
+                            </Button>
+                        )}
 
-                            {/* User Profile Section */}
+                        {/* Desktop and Tablet Navigation */}
+                        {user && isApproved && (isTablet || isDesktop) && (
+                            <nav className="hidden md:flex items-center gap-2">
+                                {['Home', 'Discover', 'Library'].map((item, index) => (
+                                    <Button
+                                        key={index}
+                                        variant="ghost"
+                                        onClick={() => navigate(`/dashboard${item === 'Home' ? '' : `/${item.toLowerCase()}`}`)}
+                                        className={`flex items-center gap-2 ${isTablet ? 'px-3 py-1.5' : 'px-4 py-2'
+                                            } hover:bg-purple-100 dark:hover:bg-purple-900 rounded-full transition-all duration-200`}
+                                    >
+                                        {item === 'Home' ? <Home className="h-4 w-4" /> :
+                                            item === 'Discover' ? <Compass className="h-4 w-4" /> :
+                                                <Library className="h-4 w-4" />}
+                                        <span>{item}</span>
+                                    </Button>
+                                ))}
+                            </nav>
+                        )}
+
+                        {/* User Profile Section */}
+                        {user && isApproved && (
                             <div className="flex items-center gap-3">
                                 <div
                                     onClick={() => navigate('/dashboard/profile')}
                                     className={`flex items-center gap-2 ${isMobile ? 'px-2 py-1.5' :
-                                            isTablet ? 'px-2.5 py-1.5' :
-                                                'px-3 py-2'
-                                        } rounded-full bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 cursor-pointer transition-all duration-300`}
+                                        isTablet ? 'px-2.5 py-1.5' :
+                                            'px-3 py-2'
+                                        } rounded-full bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900 dark:to-blue-900 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-800 dark:hover:to-blue-800 cursor-pointer transition-all duration-300`}
                                 >
                                     <Avatar className={`${isMobile ? 'h-6 w-6' :
-                                            isTablet ? 'h-7 w-7' :
-                                                'h-8 w-8'
-                                        } border-2 border-purple-200 transition-transform hover:scale-105`}>
+                                        isTablet ? 'h-7 w-7' :
+                                            'h-8 w-8'
+                                        } border-2 border-purple-200 dark:border-purple-700 transition-transform hover:scale-105`}>
                                         <AvatarImage src={userProfile?.photoURL || ''} />
                                         <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
                                             {userProfile?.email?.[0]?.toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
                                     {(isTablet || isDesktop) && (
-                                        <span className="font-medium text-sm text-gray-700">
+                                        <span className="font-medium text-sm text-gray-700 dark:text-gray-200">
                                             {user?.displayName?.split(' ')[0] || user?.email?.split('@')[0]}
                                         </span>
                                     )}
@@ -195,22 +212,22 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                                     variant="destructive"
                                     onClick={handleSignOut}
                                     className={`flex items-center gap-2 rounded-full hover:bg-red-600 transition-colors duration-200 ${isMobile ? 'px-2' :
-                                            isTablet ? 'px-3' :
-                                                'px-4'
+                                        isTablet ? 'px-3' :
+                                            'px-4'
                                         }`}
                                 >
                                     <LogOut className="h-4 w-4" />
                                     {(isTablet || isDesktop) && <span>Sign Out</span>}
                                 </Button>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* Mobile Menu Dropdown */}
             {isMobile && isMenuOpen && (
-                <div className="absolute top-16 left-0 right-0 bg-white border-b shadow-lg animate-slideDown">
+                <div className="absolute top-16 left-0 right-0 bg-background border-b shadow-lg animate-slideDown">
                     <div className="container mx-auto p-4 space-y-4">
                         <form onSubmit={handleSearch} className="flex gap-2">
                             <Input
@@ -233,7 +250,7 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                                         navigate(`/dashboard${item === 'Home' ? '' : `/${item.toLowerCase()}`}`);
                                         setIsMenuOpen(false);
                                     }}
-                                    className="justify-start gap-3 hover:bg-purple-50 transition-colors duration-200"
+                                    className="justify-start gap-3 hover:bg-purple-50 dark:hover:bg-purple-900 transition-colors duration-200"
                                 >
                                     {item === 'Home' ? <Home className="h-4 w-4" /> :
                                         item === 'Discover' ? <Compass className="h-4 w-4" /> :
