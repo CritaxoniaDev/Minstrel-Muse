@@ -13,7 +13,7 @@ import { Moon, Sun } from 'lucide-react';
 
 const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-const Header = ({ user, isApproved, onSearchResults }) => {
+const Header = ({ user, onSearchResults }) => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [userProfile, setUserProfile] = useState(null);
@@ -69,15 +69,6 @@ const Header = ({ user, isApproved, onSearchResults }) => {
 
     const handleSignOut = async () => {
         try {
-            if (user) {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                const userData = userDoc.data();
-                if (userData.role !== "admin") {
-                    await updateDoc(doc(db, "users", user.uid), {
-                        isApproved: false
-                    });
-                }
-            }
             await auth.signOut();
             navigate('/');
         } catch (error) {
@@ -96,24 +87,18 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                             <img
                                 src="/images/minstrel-logo.png"
                                 alt="MinstrelMuse Logo"
-                                className={`${isMobile ? 'h-7 w-7' :
-                                    isTablet ? 'h-8 w-8' :
-                                        'h-9 w-9'
-                                    } cursor-pointer transform hover:scale-105 transition-transform duration-300`}
+                                className={`${isMobile ? 'h-7 w-7' : isTablet ? 'h-8 w-8' : 'h-9 w-9'} cursor-pointer transform hover:scale-105 transition-transform duration-300`}
                             />
                             <h1
                                 onClick={() => navigate('/')}
-                                className={`${isMobile ? 'text-lg' :
-                                    isTablet ? 'text-xl' :
-                                        'text-2xl'
-                                    } font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-all duration-300 bg-size-200 animate-gradient`}
+                                className={`${isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl'} font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-all duration-300 bg-size-200 animate-gradient`}
                             >
                                 {isMobile ? 'MinstrelMuse' : 'MinstrelMuse'}
                             </h1>
                         </div>
 
                         {/* Search Bar - Desktop and Tablet Only */}
-                        {user && isApproved && (isTablet || isDesktop) && (
+                        {user && (isTablet || isDesktop) && (
                             <div className="transition-all duration-300">
                                 <form onSubmit={handleSearch} className="flex items-center">
                                     <div className="relative group">
@@ -123,10 +108,7 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                                             placeholder="Search music..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className={`${isTablet ? 'w-[180px]' :
-                                                isDesktop ? 'w-[300px]' :
-                                                    'w-[200px]'
-                                                } pl-10 pr-4 py-2 rounded-full border-2 focus:border-purple-500 bg-background/50 hover:bg-background/80 transition-all duration-200`}
+                                            className={`${isTablet ? 'w-[180px]' : isDesktop ? 'w-[300px]' : 'w-[200px]'} pl-10 pr-4 py-2 rounded-full border-2 focus:border-purple-500 bg-background/50 hover:bg-background/80 transition-all duration-200`}
                                         />
                                     </div>
                                 </form>
@@ -151,7 +133,7 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                         </Button>
 
                         {/* Mobile Menu Button */}
-                        {user && isApproved && isMobile && (
+                        {user && isMobile && (
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -163,15 +145,14 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                         )}
 
                         {/* Desktop and Tablet Navigation */}
-                        {user && isApproved && (isTablet || isDesktop) && (
+                        {user && (isTablet || isDesktop) && (
                             <nav className="hidden md:flex items-center gap-2">
                                 {['Home', 'Discover', 'Library'].map((item, index) => (
                                     <Button
                                         key={index}
                                         variant="ghost"
                                         onClick={() => navigate(`/dashboard${item === 'Home' ? '' : `/${item.toLowerCase()}`}`)}
-                                        className={`flex items-center gap-2 ${isTablet ? 'px-3 py-1.5' : 'px-4 py-2'
-                                            } hover:bg-purple-100 dark:hover:bg-purple-900 rounded-full transition-all duration-200`}
+                                        className={`flex items-center gap-2 ${isTablet ? 'px-3 py-1.5' : 'px-4 py-2'} hover:bg-purple-100 dark:hover:bg-purple-900 rounded-full transition-all duration-200`}
                                     >
                                         {item === 'Home' ? <Home className="h-4 w-4" /> :
                                             item === 'Discover' ? <Compass className="h-4 w-4" /> :
@@ -183,19 +164,13 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                         )}
 
                         {/* User Profile Section */}
-                        {user && isApproved && (
-                            <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3">
+                            {user && (
                                 <div
                                     onClick={() => navigate('/dashboard/profile')}
-                                    className={`flex items-center gap-2 ${isMobile ? 'px-2 py-1.5' :
-                                        isTablet ? 'px-2.5 py-1.5' :
-                                            'px-3 py-2'
-                                        } rounded-full bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900 dark:to-blue-900 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-800 dark:hover:to-blue-800 cursor-pointer transition-all duration-300`}
+                                    className={`flex items-center gap-2 ${isMobile ? 'px-2 py-1.5' : isTablet ? 'px-2.5 py-1.5' : 'px-3 py-2'} rounded-full bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900 dark:to-blue-900 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-800 dark:hover:to-blue-800 cursor-pointer transition-all duration-300`}
                                 >
-                                    <Avatar className={`${isMobile ? 'h-6 w-6' :
-                                        isTablet ? 'h-7 w-7' :
-                                            'h-8 w-8'
-                                        } border-2 border-purple-200 dark:border-purple-700 transition-transform hover:scale-105`}>
+                                    <Avatar className={`${isMobile ? 'h-6 w-6' : isTablet ? 'h-7 w-7' : 'h-8 w-8'} border-2 border-purple-200 dark:border-purple-700 transition-transform hover:scale-105`}>
                                         <AvatarImage src={userProfile?.photoURL || ''} />
                                         <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
                                             {userProfile?.email?.[0]?.toUpperCase()}
@@ -207,20 +182,19 @@ const Header = ({ user, isApproved, onSearchResults }) => {
                                         </span>
                                     )}
                                 </div>
+                            )}
 
+                            {user && (
                                 <Button
                                     variant="destructive"
                                     onClick={handleSignOut}
-                                    className={`flex items-center gap-2 rounded-full hover:bg-red-600 transition-colors duration-200 ${isMobile ? 'px-2' :
-                                        isTablet ? 'px-3' :
-                                            'px-4'
-                                        }`}
+                                    className={`flex items-center gap-2 rounded-full hover:bg-red-600 transition-colors duration-200 ${isMobile ? 'px-2' : isTablet ? 'px-3' : 'px-4'}`}
                                 >
                                     <LogOut className="h-4 w-4" />
                                     {(isTablet || isDesktop) && <span>Sign Out</span>}
                                 </Button>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

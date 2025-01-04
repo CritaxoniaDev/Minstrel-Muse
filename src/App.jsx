@@ -247,41 +247,29 @@ function App() {
           </video>
         )}
         <div className="min-h-screen">
-          <Header user={user} isApproved={isApproved} onSearchResults={setSearchResults} />
+          <Header user={user} onSearchResults={setSearchResults} />
           <div className="pt-10">
             <Routes>
               <Route
                 path="/"
-                element={user ? (
-                  isApproved ? (
-                    <Navigate to="/dashboard" />
-                  ) : (
-                    <PendingApproval />
-                  )
-                ) : (
-                  <Auth />
-                )}
+                element={user ? <Navigate to="/dashboard" /> : <Auth />}
               />
               <Route
                 path="/dashboard/*"
                 element={
                   user ? (
-                    isApproved ? (
-                      <Dashboard
-                        user={user}
-                        currentTrack={currentTrack}
-                        isPlaying={isPlaying}
-                        onPlayPause={handlePlayPause}
-                        onSkipBack={handleSkipBack}
-                        onSkipForward={handleSkipForward}
-                        volume={volume}
-                        onVolumeChange={handleVolumeChange}
-                        queue={queue}
-                        currentUser={user} // Add this line
-                      />
-                    ) : (
-                      <Navigate to="/" />
-                    )
+                    <Dashboard
+                      user={user}
+                      currentTrack={currentTrack}
+                      isPlaying={isPlaying}
+                      onPlayPause={handlePlayPause}
+                      onSkipBack={handleSkipBack}
+                      onSkipForward={handleSkipForward}
+                      volume={volume}
+                      onVolumeChange={handleVolumeChange}
+                      queue={queue}
+                      currentUser={user}
+                    />
                   ) : (
                     <Navigate to="/" />
                   )
@@ -321,8 +309,7 @@ function App() {
             </Routes>
           </div>
 
-          {/* Only show player and controls if user is authenticated and approved */}
-          {user && isApproved && (
+          {user && (
             <>
               <YouTube
                 videoId={currentTrack?.id}
@@ -472,7 +459,7 @@ function App() {
           )}
         </div>
       </Router>
-    </ThemeProvider >
+    </ThemeProvider>
   );
 }
 

@@ -78,7 +78,6 @@ const Auth = () => {
                     createdAt: new Date().toISOString(),
                     photoURL: photoURL,
                     role: "member",
-                    isApproved: false,
                     favorites: [],
                     playlists: []
                 });
@@ -102,7 +101,6 @@ const Auth = () => {
                     email: formData.email,
                     createdAt: new Date().toISOString(),
                     role: "member",
-                    isApproved: false,
                     favorites: [],
                     playlists: []
                 });
@@ -131,11 +129,10 @@ const Auth = () => {
                     email: result.user.email,
                     photoURL: result.user.photoURL,
                     role: "member",
-                    isApproved: false,
                     createdAt: new Date().toISOString(),
                     favorites: [],
                     playlists: []
-                });
+                });                
             }
         } catch (err) {
             setError(err.message);

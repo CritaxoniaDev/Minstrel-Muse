@@ -21,7 +21,7 @@ const Profile = () => {
     });
 
     useEffect(() => {
-        const fetchUserData = async () => {
+        const fetchUserProfile = async () => {
             const userDoc = await getDoc(doc(db, "users", userId || auth.currentUser.uid));
             if (userDoc.exists()) {
                 const data = { ...userDoc.data(), uid: userDoc.id };
@@ -32,7 +32,7 @@ const Profile = () => {
                 });
             }
         };
-        fetchUserData();
+        fetchUserProfile();
     }, [userId]);
 
     const handleUpdate = async () => {

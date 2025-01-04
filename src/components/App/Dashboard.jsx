@@ -44,23 +44,6 @@ const Dashboard = ({
     const [recentlyPlayed, setRecentlyPlayed] = useState([]);
     const navigate = useNavigate();
 
-    const handleApprovalToggle = async (userId, currentStatus) => {
-        try {
-            const userRef = doc(db, "users", userId);
-            await updateDoc(userRef, {
-                isApproved: !currentStatus
-            });
-
-            setUsers(users.map(user =>
-                user.uid === userId
-                    ? { ...user, isApproved: !currentStatus }
-                    : user
-            ));
-        } catch (error) {
-            console.error('Error updating user approval status:', error);
-        }
-    };
-
     useEffect(() => {
         console.log('Current user role:', currentUser?.role);
     }, [currentUser]);
@@ -326,8 +309,7 @@ const Dashboard = ({
                                 {users.map((user, index) => (
                                     <div
                                         key={index}
-                                        className={`flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors cursor-pointer ${isMobile ? 'flex-col gap-2' : 'flex-row'
-                                            }`}
+                                        className={`flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors cursor-pointer ${isMobile ? 'flex-col gap-2' : 'flex-row'}`}
                                         onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
                                     >
                                         <div className={`flex items-center ${isMobile ? 'flex-col text-center' : 'space-x-4'}`}>
@@ -346,30 +328,18 @@ const Dashboard = ({
                                             </div>
                                         </div>
                                         <div className={`flex items-center ${isMobile ? 'w-full justify-center' : 'space-x-2'}`}>
-                                            {user.role !== 'admin' && currentUser?.role === 'admin' ? (
+                                            {user.role !== 'admin' && currentUser?.role === 'admin' && (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleApprovalToggle(user.uid, user.isApproved);
+                                                        handleRoleChange(user.uid, user.role);
                                                     }}
-                                                    className={`${isMobile ? 'w-full' : 'px-2 py-1'
-                                                        } rounded-full text-xs ${user.isApproved
-                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                            : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                                                        }`}
+                                                    className={`${isMobile ? 'w-full' : 'px-2 py-1'} rounded-full text-xs bg-purple-100 text-purple-700 hover:bg-purple-200`}
                                                 >
-                                                    {user.isApproved ? 'Approved' : 'Pending'}
+                                                    Change Role
                                                 </Button>
-                                            ) : (
-                                                <span className={`${isMobile ? 'w-full text-center' : 'px-2 py-1'
-                                                    } rounded-full text-xs ${user.isApproved
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-yellow-100 text-yellow-700'
-                                                    }`}>
-                                                    {user.isApproved ? 'Approved' : 'Pending'}
-                                                </span>
                                             )}
                                         </div>
                                     </div>
