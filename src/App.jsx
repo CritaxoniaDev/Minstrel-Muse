@@ -21,6 +21,7 @@ import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
 import Library from './components/Library';
 import PlaylistDetail from './components/PlaylistDetail';
+import NotFound from './components/Error/404';
 import './App.css';
 
 function App() {
@@ -233,6 +234,13 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  const ProtectedRoute = ({ children }) => {
+    if (!user) {
+      return <Navigate to="/" replace />;
+    }
+    return children;
+  };
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <Router>
@@ -248,43 +256,41 @@ function App() {
           </video>
         )}
         <Layout user={user} onSearchResults={setSearchResults}>
-          <Routes>
-            <Route
-              path="/"
-              element={user ? <Navigate to="/dashboard" /> : <Auth />}
-            />
-            <Route
-              path="/dashboard/*"
-              element={
-                user ? (
-                  <Dashboard
-                    user={user}
-                    currentTrack={currentTrack}
-                    isPlaying={isPlaying}
-                    onPlayPause={handlePlayPause}
-                    onSkipBack={handleSkipBack}
-                    onSkipForward={handleSkipForward}
-                    volume={volume}
-                    onVolumeChange={handleVolumeChange}
-                    queue={queue}
-                    currentUser={user}
-                  />
-                ) : (
-                  <Navigate to="/" />
-                )
-              }
-            />
-            <Route
-              path="/dashboard/profile"
-              element={user ? <Profile /> : <Navigate to="/" />}
-            />
-            <Route
-              path="/dashboard/profile/:userId"
-              element={user ? <Profile /> : <Navigate to="/" />}
-            />
-            <Route
-              path="/dashboard/search"
-              element={
+        <Routes>
+            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
+            
+            {/* Protected Dashboard Routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard
+                  user={user}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayPause={handlePlayPause}
+                  onSkipBack={handleSkipBack}
+                  onSkipForward={handleSkipForward}
+                  volume={volume}
+                  onVolumeChange={handleVolumeChange}
+                  queue={queue}
+                  currentUser={user}
+                />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/profile/:userId" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/search" element={
+              <ProtectedRoute>
                 <SearchResults
                   results={searchResults}
                   currentTrack={currentTrack}
@@ -292,19 +298,27 @@ function App() {
                   onPlayPause={handlePlayPause}
                   onAddToQueue={handleAddToQueue}
                 />
-              }
-            />
-            <Route
-              path="/dashboard/library"
-              element={
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/library" element={
+              <ProtectedRoute>
                 <Library
                   user={user}
                   onPlayPause={handlePlayPause}
                   onAddToQueue={handleAddToQueue}
                 />
-              }
-            />
-            <Route path="/dashboard/library/:id" element={<PlaylistDetail user={user} />} />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/library/:id" element={
+              <ProtectedRoute>
+                <PlaylistDetail user={user} />
+              </ProtectedRoute>
+            } />
+
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
 
           {user && (

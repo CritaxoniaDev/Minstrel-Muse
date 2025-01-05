@@ -94,44 +94,51 @@ const Dashboard = ({
             <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-background p-8 mb-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Left Content */}
+                        {/* Left Content - Enhanced */}
                         <div className="relative z-10 py-8 flex flex-col justify-center">
-                            <h1 className="text-5xl font-bold tracking-tighter bg-gradient-to-r from-primary/80 to-primary bg-clip-text text-transparent">
-                                Welcome back, {currentUser?.displayName || 'Music Lover'}! 👋
-                            </h1>
-                            <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed">
+                            <div className="relative">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 blur-lg"></div>
+                                <h1 className="relative text-6xl font-bold tracking-tighter bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-gradient-x">
+                                    Welcome back, {currentUser?.displayName || 'Music Lover'}!
+                                    <span className="inline-block animate-wave">👋</span>
+                                </h1>
+                            </div>
+
+                            <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed backdrop-blur-sm">
                                 Your personal music dashboard is ready. Discover trending tracks, manage your library, and connect with other music enthusiasts.
                             </p>
+
                             <div className="mt-8 flex gap-4">
                                 <Button
-                                    className="bg-primary hover:bg-primary/90 relative overflow-hidden group px-6 py-3"
+                                    className="bg-primary hover:bg-primary/90 relative overflow-hidden group px-8 py-4"
                                     onClick={() => navigate('/dashboard/library')}
                                 >
-                                    <span className="absolute inset-0 w-full h-full transition duration-300 ease-out transform translate-x-full bg-gradient-to-r from-primary-light to-primary group-hover:-translate-x-0" />
-                                    <span className="relative flex items-center gap-2">
-                                        <Music2 className="w-5 h-5" />
+                                    <span className="absolute inset-0 w-full h-full transition duration-500 ease-out transform translate-x-full bg-gradient-to-r from-purple-600 to-primary group-hover:-translate-x-0" />
+                                    <span className="relative flex items-center gap-3 text-lg">
+                                        <Music2 className="w-6 h-6 animate-pulse" />
                                         <span className="font-semibold">My Library</span>
                                     </span>
                                 </Button>
 
                                 <Button
                                     variant="outline"
-                                    className="relative overflow-hidden group border-2 border-primary/20 hover:border-primary/50 px-6 py-3"
+                                    className="relative overflow-hidden group border-2 border-primary/20 hover:border-primary/50 px-8 py-4"
                                     onClick={() => navigate('/dashboard/search')}
                                 >
-                                    <span className="absolute inset-0 w-full h-full transition duration-300 ease-out transform -translate-x-full bg-gradient-to-r from-background to-primary/10 group-hover:translate-x-0" />
-                                    <span className="relative flex items-center gap-2">
-                                        <Search className="w-5 h-5" />
+                                    <span className="absolute inset-0 w-full h-full transition duration-500 ease-out transform -translate-x-full bg-gradient-to-r from-background via-primary/20 to-primary/10 group-hover:translate-x-0" />
+                                    <span className="relative flex items-center gap-3 text-lg">
+                                        <Search className="w-6 h-6 group-hover:animate-bounce" />
                                         <span className="font-semibold">Discover Music</span>
                                     </span>
                                 </Button>
                             </div>
                         </div>
 
-                        {/* Right Content - Floating Phone Mockup */}
-                        <div className="relative hidden md:flex items-center justify-center">
-                            {/* Floating Headphones */}
-                            <div className="absolute -top-20 right-0 z-20 animate-float-delayed">
+                        {/* Right Content - Enhanced Floating Elements */}
+                        <div className="relative hidden md:flex items-center justify-center perspective-1000">
+                            {/* Floating Headphones with enhanced animation */}
+                            <div className="absolute -top-20 right-0 z-20 animate-float-slow transform hover:scale-110 transition-all duration-700">
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-500/30 blur-2xl rounded-full"></div>
                                 <img
                                     src="/resources/headphones.png"
                                     alt="Headphones"
@@ -139,27 +146,37 @@ const Dashboard = ({
                                 />
                             </div>
 
-                            <div className="relative w-[700px] h-[600px] animate-float transform rotate-12 hover:rotate-6 transition-transform duration-700">
-                                <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-3xl transform -rotate-6 scale-95 blur-xl" />
+                            <div className="relative w-[700px] h-[600px] animate-float-slower transform rotate-12 hover:rotate-6 transition-transform duration-700 group">
+                                {/* Enhanced background effects */}
+                                <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-purple-500/20 to-transparent rounded-3xl transform -rotate-6 scale-95 blur-xl group-hover:scale-100 transition-all duration-700" />
+                                <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] animate-grid-flow" />
+
                                 <img
                                     src="/resources/mockup.png"
                                     alt="Phone Mockup"
                                     className="w-full h-full object-contain drop-shadow-2xl transform hover:scale-105 transition-transform duration-500"
                                 />
-                                {/* Logo positioned inside the mockup with glow effect */}
-                                <img
-                                    src="/images/minstrel-logo.png"
-                                    alt="Minstrel Logo"
-                                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 object-contain animate-pulse drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]"
-                                />
-                                {/* Decorative elements */}
-                                <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-                                <div className="absolute -left-10 -bottom-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+
+                                {/* Enhanced logo with glow effect */}
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                    <div className="absolute inset-0 bg-primary/20 blur-2xl animate-pulse"></div>
+                                    <img
+                                        src="/images/minstrel-logo.png"
+                                        alt="Minstrel Logo"
+                                        className="relative w-32 h-32 object-contain animate-float drop-shadow-[0_0_25px_rgba(255,255,255,0.7)]"
+                                    />
+                                </div>
+
+                                {/* Enhanced decorative elements */}
+                                <div className="absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-full blur-3xl animate-pulse" />
+                                <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-gradient-to-r from-purple-500/20 to-primary/20 rounded-full blur-3xl animate-pulse-slow" />
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)]" />
+
+                {/* Enhanced background grid */}
+                <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] animate-grid-flow opacity-50" />
             </div>
 
             <div className={`grid gap-4 p-6 px-20 pb-32 ${isMobile ? 'grid-cols-1' :
