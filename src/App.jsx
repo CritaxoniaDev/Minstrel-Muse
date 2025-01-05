@@ -334,7 +334,7 @@ function App() {
                 className="hidden"
               />
 
-              <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
+              <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-[9999]">
                 <div className="flex max-w-7xl mx-auto items-center">
                   <div className="flex items-center space-x-4 w-1/4">
                     <img

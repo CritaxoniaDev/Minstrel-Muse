@@ -4,6 +4,7 @@ import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import axios from 'axios';
@@ -95,7 +96,7 @@ const Dashboard = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Left Content */}
                         <div className="relative z-10 py-8 flex flex-col justify-center">
-                            <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-primary/80 to-primary bg-clip-text text-transparent">
+                            <h1 className="text-5xl font-bold tracking-tighter bg-gradient-to-r from-primary/80 to-primary bg-clip-text text-transparent">
                                 Welcome back, {currentUser?.displayName || 'Music Lover'}! 👋
                             </h1>
                             <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed">
@@ -294,10 +295,7 @@ const Dashboard = ({
                 </div>
 
                 {/* Active Users Section */}
-                <div className={`${isMobile ? 'col-span-1' :
-                    isTablet ? 'col-span-2' :
-                        'col-span-6 lg:col-span-4'
-                    }`}>
+                <div className={`${isMobile ? 'col-span-1' : isTablet ? 'col-span-2' : 'col-span-6 lg:col-span-4'}`}>
                     <Card>
                         <CardHeader>
                             <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
@@ -306,44 +304,58 @@ const Dashboard = ({
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {users.map((user, index) => (
-                                    <div
-                                        key={index}
-                                        className={`flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors cursor-pointer ${isMobile ? 'flex-col gap-2' : 'flex-row'}`}
-                                        onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
-                                    >
-                                        <div className={`flex items-center ${isMobile ? 'flex-col text-center' : 'space-x-4'}`}>
-                                            <Avatar className={`${isMobile ? 'h-16 w-16' : 'h-10 w-10'}`}>
-                                                <AvatarImage src={user.photoURL} />
-                                                <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
-                                                    {user.email[0].toUpperCase()}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className={isMobile ? 'mt-2' : ''}>
-                                                <p className={`font-medium ${isMobile ? 'text-base' : 'text-sm'}`}>
-                                                    {user.name || 'Anonymous'}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">{user.email}</p>
-                                                <p className="text-xs text-muted-foreground">Role: {user.role}</p>
+                                {users.length > 0 ? (
+                                    users.map((user, index) => (
+                                        <div
+                                            key={index}
+                                            className={`flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors cursor-pointer ${isMobile ? 'flex-col gap-2' : 'flex-row'}`}
+                                            onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
+                                        >
+                                            <div className={`flex items-center ${isMobile ? 'flex-col text-center' : 'space-x-4'}`}>
+                                                <Avatar className={`${isMobile ? 'h-16 w-16' : 'h-10 w-10'}`}>
+                                                    <AvatarImage src={user.photoURL} />
+                                                    <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
+                                                        {user.email[0].toUpperCase()}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className={isMobile ? 'mt-2' : ''}>
+                                                    <p className={`font-medium ${isMobile ? 'text-base' : 'text-sm'}`}>
+                                                        {user.name || 'Anonymous'}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                                                    <p className="text-xs text-muted-foreground">Role: {user.role}</p>
+                                                </div>
+                                            </div>
+                                            <div className={`flex items-center ${isMobile ? 'w-full justify-center' : 'space-x-2'}`}>
+                                                {user.role !== 'admin' && currentUser?.role === 'admin' && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRoleChange(user.uid, user.role);
+                                                        }}
+                                                        className={`${isMobile ? 'w-full' : 'px-2 py-1'} rounded-full text-xs bg-purple-100 text-purple-700 hover:bg-purple-200`}
+                                                    >
+                                                        Change Role
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className={`flex items-center ${isMobile ? 'w-full justify-center' : 'space-x-2'}`}>
-                                            {user.role !== 'admin' && currentUser?.role === 'admin' && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleRoleChange(user.uid, user.role);
-                                                    }}
-                                                    className={`${isMobile ? 'w-full' : 'px-2 py-1'} rounded-full text-xs bg-purple-100 text-purple-700 hover:bg-purple-200`}
-                                                >
-                                                    Change Role
-                                                </Button>
-                                            )}
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 mb-4">
+                                            <User className="h-6 w-6 text-purple-600" />
                                         </div>
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                                            Welcome to MinstrelMuse!
+                                        </h3>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+                                            Be the first to join our vibrant community. Start your musical journey today!
+                                        </p>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </CardContent>
                     </Card>

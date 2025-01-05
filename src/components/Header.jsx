@@ -171,7 +171,10 @@ const Header = ({ user, onSearchResults }) => {
                                     className={`flex items-center gap-2 ${isMobile ? 'px-2 py-1.5' : isTablet ? 'px-2.5 py-1.5' : 'px-3 py-2'} rounded-full bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900 dark:to-blue-900 hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-800 dark:hover:to-blue-800 cursor-pointer transition-all duration-300`}
                                 >
                                     <Avatar className={`${isMobile ? 'h-6 w-6' : isTablet ? 'h-7 w-7' : 'h-8 w-8'} border-2 border-purple-200 dark:border-purple-700 transition-transform hover:scale-105`}>
-                                        <AvatarImage src={userProfile?.photoURL || ''} />
+                                        <AvatarImage
+                                            src={user?.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${userProfile?.email}`}
+                                            alt="User avatar"
+                                        />
                                         <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
                                             {userProfile?.email?.[0]?.toUpperCase()}
                                         </AvatarFallback>

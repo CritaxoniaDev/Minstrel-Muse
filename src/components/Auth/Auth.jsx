@@ -15,7 +15,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, AtSign, Mail, Lock, Image, UserPlus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { createUser } from '@/api/users'
+import prisma from '@/lib/prisma';
 import { useMediaQuery } from 'react-responsive';
+
 const Auth = () => {
     const isMobile = useMediaQuery({ maxWidth: 767 });
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
@@ -68,6 +71,14 @@ const Auth = () => {
                 photoURL = await getDownloadURL(uploadResult.ref);
             }
 
+            // Create user in Prisma database
+            await createUser({
+                id: userCredential.user.uid,
+                email: formData.email,
+                role: "user"
+            })
+
+            // Continue with Firebase document creation
             const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
 
             if (!userDoc.exists()) {
@@ -77,7 +88,7 @@ const Auth = () => {
                     email: formData.email,
                     createdAt: new Date().toISOString(),
                     photoURL: photoURL,
-                    role: "member",
+                    role: "user",
                     favorites: [],
                     playlists: []
                 });
@@ -119,20 +130,26 @@ const Auth = () => {
         try {
             const result = await signInWithPopup(auth, provider);
 
-            // First check if user document exists
+            // Create or verify user in Prisma database
+            await createUser({
+                id: userCredential.user.uid,
+                email: formData.email,
+                role: "user"
+            })
+
+            // First check if user document exists in Firebase
             const userDoc = await getDoc(doc(db, "users", result.user.uid));
 
             if (!userDoc.exists()) {
-                // Only create new document if user doesn't exist
                 await setDoc(doc(db, "users", result.user.uid), {
                     name: result.user.displayName,
                     email: result.user.email,
                     photoURL: result.user.photoURL,
-                    role: "member",
+                    role: "user",
                     createdAt: new Date().toISOString(),
                     favorites: [],
                     playlists: []
-                });                
+                });
             }
         } catch (err) {
             setError(err.message);
@@ -181,7 +198,7 @@ const Auth = () => {
             {/* Right Side - Auth Forms */}
             <div className={`${isMobile ? 'p-4' : 'p-8'}`}>
                 <Tabs defaultValue="login" className="space-y-6">
-                <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'text-sm' : ''}`}>
+                    <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'text-sm' : ''}`}>
                         <TabsTrigger
                             value="login"
                             className="transition-all duration-300 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
