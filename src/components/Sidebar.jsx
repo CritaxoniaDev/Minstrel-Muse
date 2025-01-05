@@ -1,11 +1,32 @@
-import { Home, Compass, Library, User, Settings, Music2 } from 'lucide-react';
+import { Home, Compass, Library, User, Settings, Music2, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useState, useEffect } from 'react';
+
+const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+
+    const listener = () => setMatches(media.matches);
+    media.addEventListener('change', listener);
+
+    return () => media.removeEventListener('change', listener);
+  }, [matches, query]);
+
+  return matches;
+};
 
 const Sidebar = ({ user }) => {
     const navigate = useNavigate();
+    const [isOpen, setIsOpen] = useState(false);
+    const isDesktop = useMediaQuery('(min-width: 1024px)');
 
     const menuItems = [
         { icon: Home, label: 'Home', path: '/dashboard' },
@@ -14,8 +35,8 @@ const Sidebar = ({ user }) => {
         { icon: Settings, label: 'Settings', path: '/dashboard/settings' }
     ];
 
-    return (
-        <div className="hidden lg:flex h-screen fixed left-0 flex-col w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6">
+    const sidebarContent = (
+        <>
             {/* Profile Section */}
             <div className="flex flex-col items-center space-y-4 mb-8">
                 <div className="relative group">
@@ -65,7 +86,10 @@ const Sidebar = ({ user }) => {
                                 window.location.pathname === item.path &&
                                 "bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-500"
                             )}
-                            onClick={() => navigate(item.path)}
+                            onClick={() => {
+                                navigate(item.path);
+                                !isDesktop && setIsOpen(false);
+                            }}
                         >
                             <Icon className="h-4 w-4" />
                             {item.label}
@@ -73,25 +97,38 @@ const Sidebar = ({ user }) => {
                     );
                 })}
             </nav>
+        </>
+    );
 
-            {/* Recently Played Section */}
-            <div className="mt-8">
-                <h4 className="text-sm font-semibold mb-4">Recently Played</h4>
-                <div className="space-y-3">
-                    {[1, 2, 3].map((_, i) => (
-                        <div key={i} className="flex items-center gap-3 p-2 rounded-md hover:bg-accent/50 transition-colors cursor-pointer">
-                            <div className="w-10 h-10 bg-accent rounded-md flex items-center justify-center">
-                                <Music2 className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">No track played</p>
-                                <p className="text-xs text-muted-foreground">Play something!</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+    return (
+        <>
+            {/* Mobile Menu Button */}
+            {!isDesktop && (
+                <Button
+                    variant="ghost"
+                    className="fixed top-4 left-4 z-50 lg:hidden"
+                    onClick={() => setIsOpen(!isOpen)}
+                >
+                    <Menu className="h-6 w-6" />
+                </Button>
+            )}
+
+            {/* Sidebar Container */}
+            <div className={cn(
+                "fixed left-0 h-screen w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6 transition-transform duration-300 ease-in-out z-40",
+                isDesktop ? "translate-x-0" : isOpen ? "translate-x-0" : "-translate-x-full"
+            )}>
+                {sidebarContent}
             </div>
-        </div>
+
+            {/* Overlay for mobile */}
+            {!isDesktop && isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-30"
+                    onClick={() => setIsOpen(false)}
+                />
+            )}
+        </>
     );
 };
 

@@ -105,7 +105,7 @@ const Header = ({ user, onSearchResults }) => {
                             )}
                         </Button>
 
-                        {user ? (
+                        {user && (
                             <Button
                                 variant="destructive"
                                 onClick={handleSignOut}
@@ -113,13 +113,6 @@ const Header = ({ user, onSearchResults }) => {
                             >
                                 <LogOut className="h-4 w-4 mr-2" />
                                 Sign Out
-                            </Button>
-                        ) : (
-                            <Button
-                                onClick={() => navigate('/login')}
-                                className="rounded-full"
-                            >
-                                Sign In
                             </Button>
                         )}
                     </div>

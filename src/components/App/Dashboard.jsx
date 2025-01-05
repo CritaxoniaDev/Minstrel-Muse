@@ -162,7 +162,7 @@ const Dashboard = ({
                 <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)]" />
             </div>
 
-            <div className={`grid gap-4 p-6 px-32 pb-32 ${isMobile ? 'grid-cols-1' :
+            <div className={`grid gap-4 p-6 px-20 pb-32 ${isMobile ? 'grid-cols-1' :
                 isTablet ? 'grid-cols-2' :
                     'lg:grid-cols-6'
                 }`}>

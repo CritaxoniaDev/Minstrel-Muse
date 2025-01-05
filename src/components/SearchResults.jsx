@@ -1,6 +1,12 @@
 import { Button } from "./ui/button";
 import { Play, Pause, Plus, Music2, SearchX } from "lucide-react";
 
+const decodeHTMLEntities = (text) => {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+};
+
 const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQueue }) => {
     return (
         <div className="container mx-auto px-4 py-6 pb-24">
@@ -48,10 +54,10 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
                             <div className="flex-grow flex items-center justify-between min-w-0">
                                 <div className="space-y-1 min-w-0">
                                     <p className="font-semibold truncate pr-4 group-hover:bg-gradient-to-r from-purple-600 to-blue-600 group-hover:bg-clip-text group-hover:text-transparent transition-all">
-                                        {video.title}
+                                        {decodeHTMLEntities(video.title)}
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        {video.channelTitle}
+                                    {decodeHTMLEntities(video.channelTitle)}
                                     </p>
                                 </div>
 
