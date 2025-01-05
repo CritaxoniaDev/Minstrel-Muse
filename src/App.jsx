@@ -14,6 +14,7 @@ import Header from './components/Header';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
 import PendingApproval from './components/Auth/PendingApproval';
+import Layout from './components/Layout/layout';
 import Profile from './components/Profile/Profile';
 import SearchResults from './components/SearchResults';
 import YouTube from 'react-youtube';
@@ -235,7 +236,7 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <Router>
-        <Toaster />
+        <Toaster className="z-[99999]" /> 
         {!user && (
           <video
             autoPlay
@@ -246,68 +247,65 @@ function App() {
             <source src="/videos/bg-video.mp4" type="video/mp4" />
           </video>
         )}
-        <div className="min-h-screen">
-          <Header user={user} onSearchResults={setSearchResults} />
-          <div className="pt-10">
-            <Routes>
-              <Route
-                path="/"
-                element={user ? <Navigate to="/dashboard" /> : <Auth />}
-              />
-              <Route
-                path="/dashboard/*"
-                element={
-                  user ? (
-                    <Dashboard
-                      user={user}
-                      currentTrack={currentTrack}
-                      isPlaying={isPlaying}
-                      onPlayPause={handlePlayPause}
-                      onSkipBack={handleSkipBack}
-                      onSkipForward={handleSkipForward}
-                      volume={volume}
-                      onVolumeChange={handleVolumeChange}
-                      queue={queue}
-                      currentUser={user}
-                    />
-                  ) : (
-                    <Navigate to="/" />
-                  )
-                }
-              />
-              <Route
-                path="/dashboard/profile"
-                element={user ? <Profile /> : <Navigate to="/" />}
-              />
-              <Route
-                path="/dashboard/profile/:userId"
-                element={user ? <Profile /> : <Navigate to="/" />}
-              />
-              <Route
-                path="/dashboard/search"
-                element={
-                  <SearchResults
-                    results={searchResults}
+        <Layout user={user} onSearchResults={setSearchResults}>
+          <Routes>
+            <Route
+              path="/"
+              element={user ? <Navigate to="/dashboard" /> : <Auth />}
+            />
+            <Route
+              path="/dashboard/*"
+              element={
+                user ? (
+                  <Dashboard
+                    user={user}
                     currentTrack={currentTrack}
                     isPlaying={isPlaying}
                     onPlayPause={handlePlayPause}
-                    onAddToQueue={handleAddToQueue}
+                    onSkipBack={handleSkipBack}
+                    onSkipForward={handleSkipForward}
+                    volume={volume}
+                    onVolumeChange={handleVolumeChange}
+                    queue={queue}
+                    currentUser={user}
                   />
-                }
-              />
-              <Route
-                path="/dashboard/library"
-                element={
-                  <Library
-                    user={user}
-                    onPlayPause={handlePlayPause}
-                    onAddToQueue={handleAddToQueue}
-                  />
-                }
-              />
-              <Route path="/dashboard/library/:id" element={<PlaylistDetail user={user} />} />
-            </Routes>
-          </div>
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
+            />
+            <Route
+              path="/dashboard/profile"
+              element={user ? <Profile /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/dashboard/profile/:userId"
+              element={user ? <Profile /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/dashboard/search"
+              element={
+                <SearchResults
+                  results={searchResults}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayPause={handlePlayPause}
+                  onAddToQueue={handleAddToQueue}
+                />
+              }
+            />
+            <Route
+              path="/dashboard/library"
+              element={
+                <Library
+                  user={user}
+                  onPlayPause={handlePlayPause}
+                  onAddToQueue={handleAddToQueue}
+                />
+              }
+            />
+            <Route path="/dashboard/library/:id" element={<PlaylistDetail user={user} />} />
+          </Routes>
 
           {user && (
             <>
@@ -334,7 +332,7 @@ function App() {
                 className="hidden"
               />
 
-              <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-[9999]">
+              <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-50">
                 <div className="flex max-w-7xl mx-auto items-center">
                   <div className="flex items-center space-x-4 w-1/4">
                     <img
@@ -457,7 +455,7 @@ function App() {
               </div>
             </>
           )}
-        </div>
+        </Layout>
       </Router>
     </ThemeProvider>
   );

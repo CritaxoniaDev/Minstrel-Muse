@@ -15,8 +15,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, AtSign, Mail, Lock, Image, UserPlus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createUser } from '@/api/users'
-import prisma from '@/lib/prisma';
 import { useMediaQuery } from 'react-responsive';
 
 const Auth = () => {
@@ -71,13 +69,6 @@ const Auth = () => {
                 photoURL = await getDownloadURL(uploadResult.ref);
             }
 
-            // Create user in Prisma database
-            await createUser({
-                id: userCredential.user.uid,
-                email: formData.email,
-                role: "user"
-            })
-
             // Continue with Firebase document creation
             const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
 
@@ -129,13 +120,6 @@ const Auth = () => {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-
-            // Create or verify user in Prisma database
-            await createUser({
-                id: userCredential.user.uid,
-                email: formData.email,
-                role: "user"
-            })
 
             // First check if user document exists in Firebase
             const userDoc = await getDoc(doc(db, "users", result.user.uid));
