@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getYoutubeApiKey, rotateApiKey } from '../../config/youtube-api';
 import { Progress } from "@/components/ui/progress";
 import axios from 'axios';
 import { useMediaQuery } from 'react-responsive';
@@ -50,41 +51,42 @@ const Dashboard = ({
     }, [currentUser]);
 
     const fetchYoutubeVideos = async () => {
-        try {
-            const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
-                params: {
-                    part: 'snippet',
-                    maxResults: 10,
-                    key: YOUTUBE_API_KEY,
-                    type: 'video',
-                    q: 'music trending'
+        let attempts = 0;
+        while (attempts < 4) {
+            try {
+                const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+                    params: {
+                        part: 'snippet',
+                        maxResults: 10,
+                        key: getYoutubeApiKey(),
+                        type: 'video',
+                        q: 'music trending'
+                    }
+                });
+
+                const videos = response.data.items.map(item => ({
+                    id: item.id.videoId,
+                    title: item.snippet.title,
+                    thumbnail: item.snippet.thumbnails.default.url,
+                    channelTitle: item.snippet.channelTitle,
+                    duration: '3:45'
+                }));
+
+                setRecentlyPlayed(videos);
+                break;
+            } catch (error) {
+                if (error?.response?.status === 403 || error?.response?.status === 429) {
+                    rotateApiKey();
+                    attempts++;
+                } else {
+                    console.error('Error fetching YouTube videos:', error);
+                    break;
                 }
-            });
-
-            const videos = response.data.items.map(item => ({
-                id: item.id.videoId,
-                title: item.snippet.title,
-                thumbnail: item.snippet.thumbnails.default.url,
-                channelTitle: item.snippet.channelTitle,
-                duration: '3:45'
-            }));
-
-            setRecentlyPlayed(videos);
-        } catch (error) {
-            console.error('Error fetching YouTube videos:', error);
+            }
         }
     };
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            const usersCollection = await getDocs(collection(db, "users"));
-            setUsers(usersCollection.docs.map(doc => ({
-                ...doc.data(),
-                uid: doc.id
-            })));
-        };
-
-        fetchUsers();
         fetchYoutubeVideos();
     }, []);
 

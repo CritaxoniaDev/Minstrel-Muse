@@ -244,7 +244,7 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <Router>
-        <Toaster className="z-[99999]" /> 
+        <Toaster className="z-[99999]" />
         {!user && (
           <video
             autoPlay
@@ -256,11 +256,12 @@ function App() {
           </video>
         )}
         <Layout user={user} onSearchResults={setSearchResults}>
-        <Routes>
+          <Routes>
             <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
-            
+
             {/* Protected Dashboard Routes */}
             <Route path="/dashboard" element={
+              user ? (
                 <Dashboard
                   user={user}
                   currentTrack={currentTrack}
@@ -273,6 +274,9 @@ function App() {
                   queue={queue}
                   currentUser={user}
                 />
+              ) : (
+                <Navigate to="/" replace />
+              )
             } />
 
             <Route path="/dashboard/profile" element={
