@@ -261,7 +261,6 @@ function App() {
             
             {/* Protected Dashboard Routes */}
             <Route path="/dashboard" element={
-              <ProtectedRoute>
                 <Dashboard
                   user={user}
                   currentTrack={currentTrack}
@@ -274,7 +273,6 @@ function App() {
                   queue={queue}
                   currentUser={user}
                 />
-              </ProtectedRoute>
             } />
 
             <Route path="/dashboard/profile" element={
