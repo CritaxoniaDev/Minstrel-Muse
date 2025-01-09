@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,8 +28,6 @@ import {
     CarouselNext,
     CarouselPrevious,
 } from "@/components/ui/carousel";
-
-const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
 const Dashboard = ({
     user,
@@ -83,6 +81,46 @@ const Dashboard = ({
                     break;
                 }
             }
+        }
+    };
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const usersQuery = query(
+                    collection(db, "users"),
+                    orderBy("createdAt", "desc")
+                );
+
+                const querySnapshot = await getDocs(usersQuery);
+                const usersList = querySnapshot.docs.map(doc => ({
+                    uid: doc.id,
+                    ...doc.data()
+                }));
+                setUsers(usersList);
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            }
+        };
+
+        fetchUsers();
+    }, []);
+
+    const handleRoleChange = async (userId, currentRole) => {
+        try {
+            const newRole = currentRole === 'user' ? 'admin' : 'user';
+            const userRef = doc(db, "users", userId);
+            await updateDoc(userRef, {
+                role: newRole
+            });
+
+            setUsers(users.map(user =>
+                user.uid === userId
+                    ? { ...user, role: newRole }
+                    : user
+            ));
+        } catch (error) {
+            console.error("Error updating user role:", error);
         }
     };
 
@@ -332,21 +370,21 @@ const Dashboard = ({
                                         >
                                             <div className={`flex items-center ${isMobile ? 'flex-col text-center' : 'space-x-4'}`}>
                                                 <Avatar className={`${isMobile ? 'h-16 w-16' : 'h-10 w-10'}`}>
-                                                    <AvatarImage src={user.photoURL} />
+                                                    <AvatarImage src={user?.photoURL} alt={user?.name || 'User'} />
                                                     <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
-                                                        {user.email[0].toUpperCase()}
+                                                        {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className={isMobile ? 'mt-2' : ''}>
                                                     <p className={`font-medium ${isMobile ? 'text-base' : 'text-sm'}`}>
-                                                        {user.name || 'Anonymous'}
+                                                        {user?.name || 'Anonymous'}
                                                     </p>
-                                                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                                                    <p className="text-xs text-muted-foreground">Role: {user.role}</p>
+                                                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                                                    <p className="text-xs text-muted-foreground">Role: {user?.role || 'user'}</p>
                                                 </div>
                                             </div>
                                             <div className={`flex items-center ${isMobile ? 'w-full justify-center' : 'space-x-2'}`}>
-                                                {user.role !== 'admin' && currentUser?.role === 'admin' && (
+                                                {user?.role !== 'admin' && currentUser?.role === 'admin' && (
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
