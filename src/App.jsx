@@ -10,7 +10,6 @@ import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from 'react-responsive';
 import { ThemeProvider } from 'next-themes';
-import Header from './components/Header';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
 import PendingApproval from './components/Auth/PendingApproval';
@@ -131,7 +130,11 @@ function App() {
     }
   };
 
-  const handlePlayPause = (video) => {
+  const clearQueue = () => {
+    setQueue([]);
+  };
+
+  const handlePlayPause = (video, remainingTracks = []) => {
     if (currentTrack?.id === video.id) {
       if (isPlaying) {
         player?.pauseVideo();
@@ -142,6 +145,16 @@ function App() {
     } else {
       setCurrentTrack(video);
       setIsPlaying(true);
+
+      // Add remaining tracks to queue
+      if (remainingTracks.length > 0) {
+        setQueue(prevQueue => [...remainingTracks]);
+        toast({
+          title: "Playlist loaded",
+          description: `Added ${remainingTracks.length} tracks to queue`,
+          duration: 3000,
+        });
+      }
     }
   };
 
@@ -304,19 +317,17 @@ function App() {
             } />
 
             <Route path="/dashboard/library" element={
-              <ProtectedRoute>
-                <Library
-                  user={user}
-                  onPlayPause={handlePlayPause}
-                  onAddToQueue={handleAddToQueue}
-                />
-              </ProtectedRoute>
+              <Library
+                user={user}
+                onPlayPause={handlePlayPause}
+                onAddToQueue={handleAddToQueue}
+                currentTrack={currentTrack}
+                isPlaying={isPlaying}
+              />
             } />
 
             <Route path="/dashboard/library/:id" element={
-              <ProtectedRoute>
-                <PlaylistDetail user={user} />
-              </ProtectedRoute>
+              <PlaylistDetail user={user} />
             } />
 
             {/* 404 Route */}

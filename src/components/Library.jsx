@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { getYoutubeApiKey, rotateApiKey } from '../config/youtube-api';
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Library as LibraryIcon, Music2, Trash2, Play, Search, Loader2, AlertCircle } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
@@ -12,8 +13,17 @@ import { Separator } from "./ui/separator";
 import { db } from '../config/firebase';
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import axios from 'axios';
-
-const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Library = ({ user, onPlayPause, onAddToQueue }) => {
     const navigate = useNavigate();
@@ -53,6 +63,16 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
 
     const handleCreatePlaylist = async (e) => {
         e.preventDefault();
+
+        if (!user || !user.uid) {
+            toast({
+                title: "Authentication required",
+                description: "Please sign in to create playlists",
+                variant: "destructive",
+            });
+            return;
+        }
+
         if (!newPlaylistName.trim() || initialSongs.length === 0) {
             toast({
                 title: "Invalid playlist",
@@ -64,22 +84,28 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
 
         setIsLoading(true);
         try {
-            const playlistRef = await addDoc(collection(db, "playlists"), {
+            const playlistData = {
                 name: newPlaylistName,
                 userId: user.uid,
-                createdAt: new Date(),
-                tracks: initialSongs
-            });
+                createdAt: new Date().toISOString(),
+                tracks: initialSongs.map(song => ({
+                    id: song.id,
+                    title: song.title,
+                    thumbnail: song.thumbnail,
+                    channelTitle: song.channelTitle
+                }))
+            };
 
-            setPlaylists([...playlists, {
+            const playlistRef = await addDoc(collection(db, "playlists"), playlistData);
+
+            setPlaylists(prevPlaylists => [...prevPlaylists, {
                 id: playlistRef.id,
-                name: newPlaylistName,
-                tracks: initialSongs
+                ...playlistData
             }]);
 
             toast({
-                title: "Playlist created",
-                description: `${newPlaylistName} has been created successfully`,
+                title: "Success",
+                description: `Playlist "${newPlaylistName}" created successfully`,
             });
 
             // Reset form
@@ -88,10 +114,12 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
             setSearchResults([]);
             setSearchQuery('');
             setShowCreateForm(false);
+
         } catch (error) {
+            console.error('Error creating playlist:', error);
             toast({
-                title: "Error creating playlist",
-                description: "Please try again",
+                title: "Creation failed",
+                description: "Unable to create playlist. Please try again.",
                 variant: "destructive",
             });
         } finally {
@@ -101,6 +129,7 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
 
     const handleDeletePlaylist = async (playlistId, e) => {
         e.stopPropagation();
+
         try {
             await deleteDoc(doc(db, "playlists", playlistId));
             setPlaylists(playlists.filter(playlist => playlist.id !== playlistId));
@@ -121,27 +150,12 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
         e.stopPropagation();
 
         try {
-            // Get the playlist details from Firestore
             const playlistDoc = await getDoc(doc(db, "playlists", playlist.id));
             const playlistData = playlistDoc.data();
 
-            if (playlistData.tracks && playlistData.tracks.length > 0) {
-                // Get the first track and remaining tracks
+            if (playlistData?.tracks?.length > 0) {
                 const [firstTrack, ...remainingTracks] = playlistData.tracks;
-
-                // Play the first track
-                onPlayPause(firstTrack);
-
-                // Add remaining tracks to queue
-                remainingTracks.forEach(track => {
-                    onAddToQueue(track);
-                });
-
-                toast({
-                    title: `Playing ${playlistData.name}`,
-                    description: `Added ${remainingTracks.length} tracks to queue`,
-                    duration: 3000,
-                });
+                onPlayPause(firstTrack, remainingTracks);
             }
         } catch (error) {
             console.error('Error playing playlist:', error);
@@ -167,42 +181,51 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
         setIsLoading(true);
         setError(null);
 
-        try {
-            const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
-                params: {
-                    part: 'snippet',
-                    maxResults: 5,
-                    key: YOUTUBE_API_KEY,
-                    type: 'video',
-                    q: searchQuery
-                }
-            });
-
-            const videos = response.data.items.map(item => ({
-                id: item.id.videoId,
-                title: item.snippet.title,
-                thumbnail: item.snippet.thumbnails.default.url,
-                channelTitle: item.snippet.channelTitle
-            }));
-
-            setSearchResults(videos);
-
-            if (videos.length === 0) {
-                toast({
-                    title: "No results found",
-                    description: "Try a different search term",
+        let attempts = 0;
+        while (attempts < 4) {
+            try {
+                const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+                    params: {
+                        part: 'snippet',
+                        maxResults: 5,
+                        key: getYoutubeApiKey(),
+                        type: 'video',
+                        q: searchQuery
+                    }
                 });
+
+                const videos = response.data.items.map(item => ({
+                    id: item.id.videoId,
+                    title: item.snippet.title,
+                    thumbnail: item.snippet.thumbnails.default.url,
+                    channelTitle: item.snippet.channelTitle
+                }));
+
+                setSearchResults(videos);
+
+                if (videos.length === 0) {
+                    toast({
+                        title: "No results found",
+                        description: "Try a different search term",
+                    });
+                }
+                break;
+            } catch (error) {
+                if (error?.response?.status === 403 || error?.response?.status === 429) {
+                    rotateApiKey();
+                    attempts++;
+                } else {
+                    setError("Failed to search for songs. Please try again.");
+                    toast({
+                        title: "Search failed",
+                        description: "Please try again later",
+                        variant: "destructive",
+                    });
+                    break;
+                }
             }
-        } catch (error) {
-            setError("Failed to search for songs. Please try again.");
-            toast({
-                title: "Search failed",
-                description: "Please try again later",
-                variant: "destructive",
-            });
-        } finally {
-            setIsLoading(false);
         }
+        setIsLoading(false);
     };
 
     const handlePlaylistClick = (playlistId) => {
@@ -414,14 +437,42 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
                                     >
                                         <Play className="h-4 w-4" />
                                     </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="rounded-full hover:bg-destructive hover:text-destructive-foreground"
-                                        onClick={(e) => handleDeletePlaylist(playlist.id, e)}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="rounded-full hover:bg-destructive hover:text-destructive-foreground"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent className="sm:max-w-[425px] bg-gradient-to-br from-background to-background/95 border-2 border-destructive/20">
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle className="text-xl font-bold bg-gradient-to-r from-destructive to-destructive/60 bg-clip-text text-transparent">
+                                                    Delete Playlist
+                                                </AlertDialogTitle>
+                                                <AlertDialogDescription className="text-muted-foreground">
+                                                    Are you sure you want to delete "{playlist.name}"? This action cannot be undone and all tracks will be removed from this playlist.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel className="border-2 border-muted hover:bg-accent hover:text-accent-foreground">
+                                                    Cancel
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeletePlaylist(playlist.id, e);
+                                                    }}
+                                                >
+                                                    Delete Playlist
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </CardHeader>
                             <CardContent>
