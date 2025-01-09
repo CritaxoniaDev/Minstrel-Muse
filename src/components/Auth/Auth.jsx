@@ -81,7 +81,22 @@ const Auth = () => {
                     photoURL: photoURL,
                     role: "user",
                     favorites: [],
-                    playlists: []
+                    playlists: [],
+                    settings: {
+                        theme: "light",
+                        notifications: true,
+                        language: "en"
+                    },
+                    stats: {
+                        totalListens: 0,
+                        lastActive: new Date().toISOString(),
+                        joinDate: new Date().toISOString()
+                    },
+                    profile: {
+                        bio: "",
+                        location: "",
+                        socialLinks: {}
+                    }
                 });
             }
         } catch (err) {
@@ -129,10 +144,26 @@ const Auth = () => {
                     name: result.user.displayName,
                     email: result.user.email,
                     photoURL: result.user.photoURL,
+                    username: result.user.email.split('@')[0], // Creates a default username
                     role: "user",
                     createdAt: new Date().toISOString(),
                     favorites: [],
-                    playlists: []
+                    playlists: [],
+                    settings: {
+                        theme: "light",
+                        notifications: true,
+                        language: "en"
+                    },
+                    stats: {
+                        totalListens: 0,
+                        lastActive: new Date().toISOString(),
+                        joinDate: new Date().toISOString()
+                    },
+                    profile: {
+                        bio: "",
+                        location: "",
+                        socialLinks: {}
+                    }
                 });
             }
         } catch (err) {
