@@ -3,13 +3,15 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Search, Plus, Play, Pause } from "lucide-react";
+import { Search, Plus, Play, Pause, X } from "lucide-react";
 import { db } from '../config/firebase';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import axios from 'axios';
 import { getYoutubeApiKey, rotateApiKey } from '../config/youtube-api';
+import { useToast } from "../hooks/use-toast";
 
-const PlaylistDetail = ({ user }) => {
+const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
+    const { toast } = useToast();
     const { id } = useParams();
     const [playlist, setPlaylist] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -30,7 +32,7 @@ const PlaylistDetail = ({ user }) => {
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!searchQuery.trim()) return;
-    
+
         let attempts = 0;
         while (attempts < 11) {
             try {
@@ -43,24 +45,28 @@ const PlaylistDetail = ({ user }) => {
                         q: searchQuery
                     }
                 });
-    
+
                 const videos = response.data.items.map(item => ({
                     id: item.id.videoId,
                     title: item.snippet.title,
                     thumbnail: item.snippet.thumbnails.default.url,
                     channelTitle: item.snippet.channelTitle,
-                    duration: '3:45' // You might want to fetch actual duration
                 }));
-    
+
                 setSearchResults(videos);
                 break;
-    
+
             } catch (error) {
                 if (error?.response?.status === 403 || error?.response?.status === 429) {
                     rotateApiKey();
                     attempts++;
                 } else {
                     console.error('Error searching videos:', error);
+                    toast({
+                        title: "Error",
+                        description: "Failed to search videos",
+                        variant: "destructive",
+                    });
                     break;
                 }
             }
@@ -73,17 +79,94 @@ const PlaylistDetail = ({ user }) => {
             await updateDoc(playlistRef, {
                 tracks: arrayUnion(video)
             });
-            
+
             setPlaylist(prev => ({
                 ...prev,
                 tracks: [...(prev.tracks || []), video]
             }));
+
+            toast({
+                title: "Success",
+                description: "Track added to playlist",
+            });
         } catch (error) {
             console.error('Error adding track to playlist:', error);
+            toast({
+                title: "Error",
+                description: "Failed to add track",
+                variant: "destructive",
+            });
         }
     };
 
-    if (!playlist) return <div>Loading...</div>;
+    const handlePlayTrack = (track) => {
+        const trackIndex = playlist.tracks.findIndex(t => t.id === track.id);
+        const remainingTracks = playlist.tracks.slice(trackIndex + 1);
+        onPlayPause(track, remainingTracks);
+
+        toast({
+            title: "Now Playing",
+            description: `Playing ${track.title} from ${playlist.name}`,
+        });
+    };
+
+    const handleDeleteTrack = async (trackToDelete) => {
+        try {
+            const playlistRef = doc(db, "playlists", id);
+            const updatedTracks = playlist.tracks.filter(track => track.id !== trackToDelete.id);
+
+            await updateDoc(playlistRef, {
+                tracks: updatedTracks
+            });
+
+            setPlaylist(prev => ({
+                ...prev,
+                tracks: updatedTracks
+            }));
+
+            toast({
+                title: "Track Removed",
+                description: "Track removed from playlist successfully",
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to remove track",
+                variant: "destructive",
+            });
+        }
+    };
+
+    if (!playlist) return (
+        <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-4">
+            <div className="animate-spin">
+                <svg
+                    className="w-12 h-12 text-primary"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                    ></circle>
+                    <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                </svg>
+            </div>
+            <div className="text-center space-y-2">
+                <h3 className="text-xl font-semibold text-primary">Loading Playlist</h3>
+                <p className="text-muted-foreground">Your musical journey is about to begin...</p>
+            </div>
+        </div>
+    );
 
     return (
         <div className="container mx-auto px-4 py-6">
@@ -126,13 +209,26 @@ const PlaylistDetail = ({ user }) => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleAddToPlaylist(video)}
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handlePlayTrack(video)}
+                                            >
+                                                {currentTrack?.id === video.id && isPlaying ? (
+                                                    <Pause className="h-4 w-4" />
+                                                ) : (
+                                                    <Play className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleAddToPlaylist(video)}
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -165,9 +261,27 @@ const PlaylistDetail = ({ user }) => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <Button variant="ghost" size="icon">
-                                            <Play className="h-4 w-4" />
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handlePlayTrack(track)}
+                                            >
+                                                {currentTrack?.id === track.id && isPlaying ? (
+                                                    <Pause className="h-4 w-4" />
+                                                ) : (
+                                                    <Play className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleDeleteTrack(track)}
+                                                className="text-destructive hover:text-destructive"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

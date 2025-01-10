@@ -327,7 +327,7 @@ function App() {
             } />
 
             <Route path="/dashboard/library/:id" element={
-              <PlaylistDetail user={user} />
+              <PlaylistDetail user={user} onPlayPause={handlePlayPause} />
             } />
 
             {/* 404 Route */}
