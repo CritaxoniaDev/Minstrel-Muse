@@ -358,128 +358,129 @@ function App() {
                 onStateChange={handlePlayerStateChange}
                 className="hidden"
               />
-
-              <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-50">
-                <div className="flex max-w-7xl mx-auto items-center">
-                  <div className="flex items-center space-x-4 w-1/4">
-                    <img
-                      src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
-                      alt={currentTrack?.title || "Current song"}
-                      className="rounded-md w-12 h-12 object-cover"
-                    />
-                    <div className="overflow-hidden">
-                      <div className={`${isPlaying ? 'animate-marquee' : ''} whitespace-nowrap mb-1`}>
-                        <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Button variant="ghost" size="icon" onClick={handleSkipBack}>
-                      <SkipBack className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      onClick={() => currentTrack && handlePlayPause(currentTrack)}
-                    >
-                      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={handleSkipForward}>
-                      <SkipForward className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-col items-center w-1/2 px-4">
-                    <div className="w-full flex items-center space-x-2 text-xs text-muted-foreground">
-                      <span>{formatTime(currentTime)}</span>
-                      <div className="relative flex-1 h-1 bg-secondary rounded-full overflow-hidden group">
-                        <div
-                          className="absolute h-full bg-primary rounded-full transition-all"
-                          style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                        />
-                        <input
-                          type="range"
-                          min={0}
-                          max={duration || 100}
-                          value={currentTime || 0}
-                          onChange={(e) => {
-                            const time = parseFloat(e.target.value);
-                            setCurrentTime(time);
-                            player?.seekTo(time);
-                          }}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        />
-                      </div>
-                      <span>{formatTime(duration)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end space-x-2 w-1/4">
-                    <Volume2 className="h-4 w-4" />
-                    <Slider
-                      value={[volume]}
-                      max={100}
-                      step={1}
-                      className="w-24"
-                      onValueChange={(value) => handleVolumeChange(value[0])}
-                    />
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="hover:bg-accent">
-                          <ListMusic className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80 p-0" align="end">
-                        <div className="p-4 border-b">
-                          <h4 className="font-semibold">Queue</h4>
-                          <p className="text-xs text-muted-foreground">Up next in your queue</p>
+              {currentTrack && (
+                <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-50 animate-slide-up">
+                  <div className="flex max-w-7xl mx-auto items-center">
+                    <div className="flex items-center space-x-4 w-1/4">
+                      <img
+                        src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
+                        alt={currentTrack?.title || "Current song"}
+                        className="rounded-md w-12 h-12 object-cover"
+                      />
+                      <div className="overflow-hidden">
+                        <div className={`${isPlaying ? 'animate-marquee' : ''} whitespace-nowrap mb-1`}>
+                          <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
                         </div>
-                        <div className="max-h-96 overflow-auto">
-                          {queue.map((video, index) => (
-                            <div
-                              key={video.id}
-                              className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
-                            >
-                              <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
-                              <img
-                                src={video.thumbnail}
-                                alt={video.title}
-                                className="w-10 h-10 rounded object-cover"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{video.title}</p>
-                                <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handlePlayPause(video)}
-                                >
-                                  {currentTrack?.id === video.id && isPlaying ? (
-                                    <Pause className="h-4 w-4" />
-                                  ) : (
-                                    <Play className="h-4 w-4" />
-                                  )}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleRemoveFromQueue(index)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
+                        <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Button variant="ghost" size="icon" onClick={handleSkipBack}>
+                        <SkipBack className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        onClick={() => currentTrack && handlePlayPause(currentTrack)}
+                      >
+                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={handleSkipForward}>
+                        <SkipForward className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-col items-center w-1/2 px-4">
+                      <div className="w-full flex items-center space-x-2 text-xs text-muted-foreground">
+                        <span>{formatTime(currentTime)}</span>
+                        <div className="relative flex-1 h-1 bg-secondary rounded-full overflow-hidden group">
+                          <div
+                            className="absolute h-full bg-primary rounded-full transition-all"
+                            style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                          />
+                          <input
+                            type="range"
+                            min={0}
+                            max={duration || 100}
+                            value={currentTime || 0}
+                            onChange={(e) => {
+                              const time = parseFloat(e.target.value);
+                              setCurrentTime(time);
+                              player?.seekTo(time);
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
                         </div>
-                      </PopoverContent>
-                    </Popover>
+                        <span>{formatTime(duration)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end space-x-2 w-1/4">
+                      <Volume2 className="h-4 w-4" />
+                      <Slider
+                        value={[volume]}
+                        max={100}
+                        step={1}
+                        className="w-24"
+                        onValueChange={(value) => handleVolumeChange(value[0])}
+                      />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="hover:bg-accent">
+                            <ListMusic className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-0" align="end">
+                          <div className="p-4 border-b">
+                            <h4 className="font-semibold">Queue</h4>
+                            <p className="text-xs text-muted-foreground">Up next in your queue</p>
+                          </div>
+                          <div className="max-h-96 overflow-auto">
+                            {queue.map((video, index) => (
+                              <div
+                                key={video.id}
+                                className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
+                              >
+                                <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
+                                <img
+                                  src={video.thumbnail}
+                                  alt={video.title}
+                                  className="w-10 h-10 rounded object-cover"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{video.title}</p>
+                                  <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handlePlayPause(video)}
+                                  >
+                                    {currentTrack?.id === video.id && isPlaying ? (
+                                      <Pause className="h-4 w-4" />
+                                    ) : (
+                                      <Play className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleRemoveFromQueue(index)}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </Layout>
