@@ -352,103 +352,97 @@ const Dashboard = ({
                 </div>
 
                 {/* Active Users Section */}
-                <div className={`${isMobile ? 'col-span-1' : isTablet ? 'col-span-2' : 'col-span-6 lg:col-span-4'}`}>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
-                                Active Users
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
+                <div className="col-span-full flex justify-center px-40">
+                    <div className="w-full max-w-6xl">
+                        <div className="text-center pb-8">
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-2">
+                                    <Users className="h-6 w-6 text-primary animate-pulse" />
+                                </div>
+                                <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60`}>
+                                    Active Users
+                                </h2>
+                                <p className="text-muted-foreground">Connect with our vibrant community</p>
+                            </div>
+                        </div>
+
+                        <Carousel
+                            opts={{
+                                align: "center",
+                                loop: true,
+                                slidesToScroll: 1,
+                            }}
+                            className="w-full"
+                        >
+                            <CarouselContent className="-ml-4">
                                 {users.length > 0 ? (
                                     users.map((user, index) => (
-                                        <div
-                                            key={index}
-                                            className={`flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors cursor-pointer ${isMobile ? 'flex-col gap-2' : 'flex-row'}`}
-                                            onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
-                                        >
-                                            <div className={`flex items-center ${isMobile ? 'flex-col text-center' : 'space-x-4'}`}>
-                                                <Avatar className={`${isMobile ? 'h-16 w-16' : 'h-10 w-10'}`}>
-                                                    <AvatarImage src={user?.photoURL} alt={user?.name || 'User'} />
-                                                    <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white">
-                                                        {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className={isMobile ? 'mt-2' : ''}>
-                                                    <p className={`font-medium ${isMobile ? 'text-base' : 'text-sm'}`}>
-                                                        {user?.name || 'Anonymous'}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">{user?.email}</p>
-                                                    <p className="text-xs text-muted-foreground">Role: {user?.role || 'user'}</p>
+                                        <CarouselItem key={index} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+                                            <div
+                                                className="group relative overflow-hidden rounded-xl bg-card hover:bg-accent/70 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 border border-border/50 h-full"
+                                                onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
+                                            >
+                                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/5 to-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                                <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent" />
+
+                                                <div className="relative p-8 flex flex-col items-center text-center space-y-6">
+                                                    <div className="relative group-hover:scale-105 transition-transform duration-500">
+                                                        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-purple-600 rounded-full blur opacity-0 group-hover:opacity-75 transition-opacity duration-500 animate-pulse" />
+                                                        <Avatar className="h-24 w-24 border-4 border-background shadow-xl">
+                                                            <AvatarImage src={user?.photoURL} alt={user?.name || 'User'} className="object-cover" />
+                                                            <AvatarFallback className="bg-gradient-to-r from-primary to-purple-600 text-white text-2xl">
+                                                                {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                    </div>
+
+                                                    <div className="space-y-3">
+                                                        <p className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 group-hover:from-purple-600 group-hover:to-primary transition-all duration-500">
+                                                            {user?.name || 'Anonymous'}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">{user?.email}</p>
+                                                        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium group-hover:bg-primary group-hover:text-white transition-colors duration-500">
+                                                            {user?.role || 'user'}
+                                                        </div>
+                                                    </div>
+
+                                                    {user?.role !== 'admin' && currentUser?.role === 'admin' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleRoleChange(user.uid, user.role);
+                                                            }}
+                                                            className="mt-2 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all duration-300 shadow-lg hover:shadow-primary/25"
+                                                        >
+                                                            Change Role
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div className={`flex items-center ${isMobile ? 'w-full justify-center' : 'space-x-2'}`}>
-                                                {user?.role !== 'admin' && currentUser?.role === 'admin' && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleRoleChange(user.uid, user.role);
-                                                        }}
-                                                        className={`${isMobile ? 'w-full' : 'px-2 py-1'} rounded-full text-xs bg-purple-100 text-purple-700 hover:bg-purple-200`}
-                                                    >
-                                                        Change Role
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
+                                        </CarouselItem>
                                     ))
                                 ) : (
-                                    <div className="text-center py-8">
-                                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 mb-4">
-                                            <User className="h-6 w-6 text-purple-600" />
+                                    <CarouselItem className="pl-4 basis-full">
+                                        <div className="text-center py-12">
+                                            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-6 animate-pulse">
+                                                <User className="h-8 w-8 text-primary" />
+                                            </div>
+                                            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 mb-4">
+                                                Welcome to MinstrelMuse!
+                                            </h3>
+                                            <p className="text-muted-foreground max-w-md mx-auto">
+                                                Be the first to join our vibrant community. Start your musical journey today!
+                                            </p>
                                         </div>
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                                            Welcome to MinstrelMuse!
-                                        </h3>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-                                            Be the first to join our vibrant community. Start your musical journey today!
-                                        </p>
-                                    </div>
+                                    </CarouselItem>
                                 )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* User Profile Section */}
-                <div className={`${isMobile ? 'col-span-1' :
-                    isTablet ? 'col-span-2' :
-                        'col-span-6 lg:col-span-2'
-                    }`}>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
-                                Profile
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex flex-col items-center space-y-4">
-                            <Avatar className={`${isMobile ? 'h-24 w-24' : 'h-20 w-20'}`}>
-                                <AvatarImage src={currentUser?.photoURL} />
-                                <AvatarFallback>{currentUser?.email[0].toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            <div className="text-center">
-                                <h3 className={`${isMobile ? 'text-xl' : 'text-lg'} font-medium`}>
-                                    {currentUser?.displayName || 'User'}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">{currentUser?.email}</p>
-                            </div>
-                            <div className="w-full space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span>Profile Completion</span>
-                                    <span>85%</span>
-                                </div>
-                                <Progress value={85} className="h-2" />
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CarouselContent>
+                            <CarouselPrevious className="hidden md:flex -left-12" />
+                            <CarouselNext className="hidden md:flex -right-12" />
+                        </Carousel>
+                    </div>
                 </div>
             </div>
         </div>

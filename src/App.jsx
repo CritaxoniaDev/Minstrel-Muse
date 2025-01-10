@@ -15,6 +15,7 @@ import Dashboard from './components/App/Dashboard';
 import PendingApproval from './components/Auth/PendingApproval';
 import Layout from './components/Layout/layout';
 import Profile from './components/Profile/Profile';
+import Discover from './components/Discover';
 import SearchResults from './components/SearchResults';
 import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
@@ -314,6 +315,15 @@ function App() {
                   onAddToQueue={handleAddToQueue}
                 />
               </ProtectedRoute>
+            } />
+
+            <Route path="/dashboard/discover" element={
+                <Discover
+                  onPlayPause={handlePlayPause}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onAddToQueue={handleAddToQueue}
+                />
             } />
 
             <Route path="/dashboard/library" element={

@@ -14,11 +14,11 @@ const Profile = () => {
     const [profileUser, setProfileUser] = useState(null);
     const [userPlaylists, setUserPlaylists] = useState([]);
     const [favoriteSongs, setFavoriteSongs] = useState([]);
-    
+
     useEffect(() => {
         const fetchUserData = async () => {
             if (!userId) return;
-            
+
             // Fetch user profile
             const userDoc = await getDoc(doc(db, "users", userId));
             if (userDoc.exists()) {
@@ -64,9 +64,9 @@ const Profile = () => {
 
     return (
         <div className="container mx-auto p-6 max-w-4xl pb-40">
-            <Button 
-                variant="ghost" 
-                className="mb-4" 
+            <Button
+                variant="ghost"
+                className="mb-4"
                 onClick={() => navigate('/dashboard')}
             >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -88,7 +88,7 @@ const Profile = () => {
                 <CardContent className="pt-20">
                     <div className="flex justify-between items-start mb-6">
                         <div>
-                        <h2 className="text-2xl font-bold">{profileUser.name || profileUser.displayName || 'User'}</h2>
+                            <h2 className="text-2xl font-bold">{profileUser.name || profileUser.displayName || 'User'}</h2>
                             <p className="text-muted-foreground">{profileUser.email}</p>
                             <p className="text-sm text-muted-foreground">Role: {profileUser.role || 'User'}</p>
                         </div>
@@ -122,18 +122,47 @@ const Profile = () => {
                             <div className="grid gap-4">
                                 {userPlaylists.length > 0 ? (
                                     userPlaylists.map(playlist => (
-                                        <div key={playlist.id} 
-                                            className="flex items-center justify-between p-4 rounded-lg bg-accent/50 hover:bg-accent transition-colors cursor-pointer"
-                                            onClick={() => navigate(`/dashboard/playlist/${playlist.id}`)}
+                                        <div key={playlist.id}
+                                            className="rounded-lg bg-accent/50 hover:bg-accent/70 transition-colors"
                                         >
-                                            <div className="flex items-center gap-4">
-                                                <Music className="h-5 w-5 text-primary" />
-                                                <div>
-                                                    <h3 className="font-medium">{playlist.name}</h3>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {playlist.songs?.length || 0} songs
-                                                    </p>
+                                            <div
+                                                className="flex items-center justify-between p-4 cursor-pointer"
+                                                onClick={() => navigate(`/dashboard/playlist/${playlist.id}`)}
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <Music className="h-5 w-5 text-primary" />
+                                                    <div>
+                                                        <h3 className="font-medium">{playlist.name}</h3>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {playlist.tracks?.length || 0} tracks
+                                                        </p>
+                                                    </div>
                                                 </div>
+                                            </div>
+
+                                            {/* First 3 Tracks */}
+                                            <div className="px-4 pb-4">
+                                                {playlist.tracks?.slice(0, 3).map((track, index) => (
+                                                    <div
+                                                        key={track.id || index}
+                                                        className="flex items-center gap-3 py-2 px-4 hover:bg-accent/80 rounded-md cursor-pointer"
+                                                    >
+                                                        <span className="text-sm text-muted-foreground w-6">
+                                                            {index + 1}
+                                                        </span>
+                                                        <div className="flex-1">
+                                                            <p className="font-medium text-sm">{track.title}</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {track.channelTitle}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {playlist.tracks?.length > 3 && (
+                                                    <p className="text-sm text-muted-foreground text-center pt-2">
+                                                        +{playlist.tracks.length - 3} more tracks
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     ))
@@ -147,7 +176,7 @@ const Profile = () => {
                             <div className="grid gap-4">
                                 {favoriteSongs.length > 0 ? (
                                     favoriteSongs.map(song => (
-                                        <div key={song.id} 
+                                        <div key={song.id}
                                             className="flex items-center justify-between p-4 rounded-lg bg-accent/50 hover:bg-accent transition-colors cursor-pointer"
                                         >
                                             <div className="flex items-center gap-4">
