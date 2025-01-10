@@ -182,7 +182,7 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
         setError(null);
 
         let attempts = 0;
-        while (attempts < 4) {
+        while (attempts < 11) {
             try {
                 const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
                     params: {

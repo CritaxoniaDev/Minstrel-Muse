@@ -7,8 +7,7 @@ import { Search, Plus, Play, Pause } from "lucide-react";
 import { db } from '../config/firebase';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import axios from 'axios';
-
-const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+import { getYoutubeApiKey, rotateApiKey } from '../config/youtube-api';
 
 const PlaylistDetail = ({ user }) => {
     const { id } = useParams();
@@ -31,29 +30,40 @@ const PlaylistDetail = ({ user }) => {
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!searchQuery.trim()) return;
-
-        try {
-            const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
-                params: {
-                    part: 'snippet',
-                    maxResults: 10,
-                    key: YOUTUBE_API_KEY,
-                    type: 'video',
-                    q: searchQuery
+    
+        let attempts = 0;
+        while (attempts < 11) {
+            try {
+                const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+                    params: {
+                        part: 'snippet',
+                        maxResults: 10,
+                        key: getYoutubeApiKey(),
+                        type: 'video',
+                        q: searchQuery
+                    }
+                });
+    
+                const videos = response.data.items.map(item => ({
+                    id: item.id.videoId,
+                    title: item.snippet.title,
+                    thumbnail: item.snippet.thumbnails.default.url,
+                    channelTitle: item.snippet.channelTitle,
+                    duration: '3:45' // You might want to fetch actual duration
+                }));
+    
+                setSearchResults(videos);
+                break;
+    
+            } catch (error) {
+                if (error?.response?.status === 403 || error?.response?.status === 429) {
+                    rotateApiKey();
+                    attempts++;
+                } else {
+                    console.error('Error searching videos:', error);
+                    break;
                 }
-            });
-
-            const videos = response.data.items.map(item => ({
-                id: item.id.videoId,
-                title: item.snippet.title,
-                thumbnail: item.snippet.thumbnails.default.url,
-                channelTitle: item.snippet.channelTitle,
-                duration: '3:45' // You might want to fetch actual duration
-            }));
-
-            setSearchResults(videos);
-        } catch (error) {
-            console.error('Error searching videos:', error);
+            }
         }
     };
 

@@ -1,3 +1,5 @@
+import { db } from "@/config/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { Home, Compass, Library, User, Settings, Music2, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -6,27 +8,47 @@ import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from 'react';
 
 const useMediaQuery = (query) => {
-  const [matches, setMatches] = useState(false);
+    const [matches, setMatches] = useState(false);
 
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
+    useEffect(() => {
+        const media = window.matchMedia(query);
+        if (media.matches !== matches) {
+            setMatches(media.matches);
+        }
 
-    const listener = () => setMatches(media.matches);
-    media.addEventListener('change', listener);
+        const listener = () => setMatches(media.matches);
+        media.addEventListener('change', listener);
 
-    return () => media.removeEventListener('change', listener);
-  }, [matches, query]);
+        return () => media.removeEventListener('change', listener);
+    }, [matches, query]);
 
-  return matches;
+    return matches;
 };
 
 const Sidebar = ({ user }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const isDesktop = useMediaQuery('(min-width: 1024px)');
+    const [playlistCount, setPlaylistCount] = useState(0);
+
+    useEffect(() => {
+        const fetchPlaylistCount = async () => {
+            if (!user?.uid) return;
+            
+            try {
+                const playlistsRef = collection(db, "playlists");
+                const q = query(playlistsRef, where("userId", "==", user.uid));
+                const querySnapshot = await getDocs(q);
+                setPlaylistCount(querySnapshot.size);
+            } catch (error) {
+                console.error("Error fetching playlist count:", error);
+            }
+        };
+
+        if (user) {
+            fetchPlaylistCount();
+        }
+    }, [user]);
 
     const menuItems = [
         { icon: Home, label: 'Home', path: '/dashboard' },
@@ -62,7 +84,7 @@ const Sidebar = ({ user }) => {
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-4 mb-8">
                 <div className="bg-accent/50 rounded-lg p-3 text-center">
-                    <h4 className="text-2xl font-bold">0</h4>
+                    <h4 className="text-2xl font-bold">{playlistCount}</h4>
                     <p className="text-xs text-muted-foreground">Playlists</p>
                 </div>
                 <div className="bg-accent/50 rounded-lg p-3 text-center">

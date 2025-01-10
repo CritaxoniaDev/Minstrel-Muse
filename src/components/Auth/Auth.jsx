@@ -31,6 +31,19 @@ const Auth = () => {
         photo: null
     });
 
+    const errorMessages = {
+        'auth/invalid-email': 'Please enter a valid email address',
+        'auth/user-disabled': 'This account has been disabled',
+        'auth/user-not-found': 'Email or password is incorrect',
+        'auth/wrong-password': 'Email or password is incorrect',
+        'auth/email-already-in-use': 'This email is already registered',
+        'auth/operation-not-allowed': 'Operation not allowed',
+        'auth/weak-password': 'Password should be at least 6 characters',
+        'auth/popup-closed-by-user': 'Google sign-in was cancelled',
+        'auth/cancelled-popup-request': 'Google sign-in was cancelled',
+        'auth/popup-blocked': 'Pop-up was blocked by your browser'
+    };
+
     const handleInputChange = (e) => {
         setFormData(prev => ({
             ...prev,
@@ -100,7 +113,7 @@ const Auth = () => {
                 });
             }
         } catch (err) {
-            setError(err.message);
+            setError(errorMessages[err.code] || 'An error occurred during registration');
         } finally {
             setIsLoading(false);
         }
@@ -123,7 +136,7 @@ const Auth = () => {
                 });
             }
         } catch (err) {
-            setError(err.message);
+            setError(errorMessages[err.code] || 'An error occurred during sign in');
         } finally {
             setIsLoading(false);
         }
@@ -167,7 +180,7 @@ const Auth = () => {
                 });
             }
         } catch (err) {
-            setError(err.message);
+            setError(errorMessages[err.code] || 'An error occurred during Google sign in');
         } finally {
             setIsLoading(false);
         }
@@ -461,7 +474,6 @@ const Auth = () => {
                 </div>
             </div>
         </Card>
-
     );
 };
 
