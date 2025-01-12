@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { auth, db } from './config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -10,8 +10,10 @@ import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast";
 import { useMediaQuery } from 'react-responsive';
 import { ThemeProvider } from 'next-themes';
+import { useLocation } from 'react-router-dom';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
+import FullPlayerView from './components/FullPlayerView';
 import PendingApproval from './components/Auth/PendingApproval';
 import Layout from './components/Layout/layout';
 import Profile from './components/Profile/Profile';
@@ -43,6 +45,19 @@ function App() {
   const { toast } = useToast();
   const [hasShownPlaceholder, setHasShownPlaceholder] = useState(false);
   const [hasPlayedEndSound, setHasPlayedEndSound] = useState(false);
+  const [isLooping, setIsLooping] = useState(false);
+  const [isFullPlayerVisible, setIsFullPlayerVisible] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isPlayerPage = location.pathname === '/dashboard/player';
+
+  const handleLoopToggle = () => {
+    setIsLooping(!isLooping);
+    if (!isLooping) {
+      setCurrentTime(0);
+      player?.seekTo(0);
+    }
+  };
 
   // Add this handler function
   const handleRemoveFromQueue = (indexToRemove) => {
@@ -72,7 +87,7 @@ function App() {
   const handlePlayerStateChange = (event) => {
     if (event.data === 1) { // Playing
       setDuration(Math.floor(event.target.getDuration()));
-      setHasPlayedEndSound(false); // Reset the flag when a new track starts playing
+      setHasPlayedEndSound(false);
 
       const interval = setInterval(() => {
         const time = Math.floor(event.target.getCurrentTime());
@@ -85,10 +100,15 @@ function App() {
           return prev;
         });
 
-        // Only trigger handleSkipForward if we're at the very end
-        if (time >= totalDuration && !hasPlayedEndSound) {
-          handleSkipForward();
-          clearInterval(interval);
+        // Only check for end conditions when we're very close to the end
+        if (totalDuration - time <= 0.5) {
+          if (isLooping) {
+            event.target.seekTo(0);
+            setCurrentTime(0);
+          } else {
+            handleSkipForward();
+            clearInterval(interval);
+          }
         }
       }, 250);
 
@@ -257,246 +277,305 @@ function App() {
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <Router>
-        <Toaster className="z-[99999]" />
-        {!user && (
-          <video
-            autoPlay
-            loop
-            muted
-            className="video-background"
-          >
-            <source src="/videos/bg-video.mp4" type="video/mp4" />
-          </video>
-        )}
-        <Layout user={user} onSearchResults={setSearchResults}>
-          <Routes>
-            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
+      <Toaster className="z-[99999]" />
+      {!user && (
+        <video
+          autoPlay
+          loop
+          muted
+          className="video-background"
+        >
+          <source src="/videos/bg-video.mp4" type="video/mp4" />
+        </video>
+      )}
+      <Layout user={user} onSearchResults={setSearchResults}>
+        <Routes>
+          <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
 
-            {/* Protected Dashboard Routes */}
-            <Route path="/dashboard" element={
-              user ? (
-                <Dashboard
-                  user={user}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayPause={handlePlayPause}
-                  onSkipBack={handleSkipBack}
-                  onSkipForward={handleSkipForward}
-                  volume={volume}
-                  onVolumeChange={handleVolumeChange}
-                  queue={queue}
-                  currentUser={user}
-                />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            } />
-
-            <Route path="/dashboard/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/dashboard/profile/:userId" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/dashboard/search" element={
-              <ProtectedRoute>
-                <SearchResults
-                  results={searchResults}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayPause={handlePlayPause}
-                  onAddToQueue={handleAddToQueue}
-                />
-              </ProtectedRoute>
-            } />
-
-            <Route path="/dashboard/discover" element={
-                <Discover
-                  onPlayPause={handlePlayPause}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onAddToQueue={handleAddToQueue}
-                />
-            } />
-
-            <Route path="/dashboard/library" element={
-              <Library
+          {/* Protected Dashboard Routes */}
+          <Route path="/dashboard" element={
+            user ? (
+              <Dashboard
                 user={user}
-                onPlayPause={handlePlayPause}
-                onAddToQueue={handleAddToQueue}
                 currentTrack={currentTrack}
                 isPlaying={isPlaying}
+                onPlayPause={handlePlayPause}
+                onSkipBack={handleSkipBack}
+                onSkipForward={handleSkipForward}
+                volume={volume}
+                onVolumeChange={handleVolumeChange}
+                queue={queue}
+                currentUser={user}
               />
-            } />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          } />
 
-            <Route path="/dashboard/library/:id" element={
-              <PlaylistDetail user={user} onPlayPause={handlePlayPause} />
-            } />
+          <Route path="/dashboard/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
 
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Route path="/dashboard/profile/:userId" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
 
-          {user && (
-            <>
-              <YouTube
-                videoId={currentTrack?.id}
-                opts={{
-                  height: '0',
-                  width: '0',
-                  playerVars: {
-                    autoplay: 1,
-                    controls: 0,
-                    enablejsapi: 1,
-                    origin: window.location.origin,
-                    playsinline: 1,
-                    rel: 0,
-                    modestbranding: 1
-                  },
-                }}
-                onReady={(event) => {
-                  setPlayer(event.target);
-                  event.target.setVolume(volume);
-                }}
-                onStateChange={handlePlayerStateChange}
-                className="hidden"
+          <Route path="/dashboard/search" element={
+            <ProtectedRoute>
+              <SearchResults
+                results={searchResults}
+                currentTrack={currentTrack}
+                isPlaying={isPlaying}
+                onPlayPause={handlePlayPause}
+                onAddToQueue={handleAddToQueue}
               />
-              {currentTrack && (
-                <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-50 animate-slide-up">
-                  <div className="flex max-w-7xl mx-auto items-center">
-                    <div className="flex items-center space-x-4 w-1/4">
-                      <img
-                        src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
-                        alt={currentTrack?.title || "Current song"}
-                        className="rounded-md w-12 h-12 object-cover"
-                      />
-                      <div className="overflow-hidden">
-                        <div className={`${isPlaying ? 'animate-marquee' : ''} whitespace-nowrap mb-1`}>
-                          <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
+            </ProtectedRoute>
+          } />
+
+          <Route
+            path="/dashboard/player"
+            element={
+              <FullPlayerView
+                currentTrack={currentTrack}
+                isPlaying={isPlaying}
+                onPlayPause={() => currentTrack && handlePlayPause(currentTrack)}
+                onSkipBack={handleSkipBack}
+                onSkipForward={handleSkipForward}
+                currentTime={currentTime}
+                duration={duration}
+                formatTime={formatTime}
+                volume={volume}
+                onVolumeChange={handleVolumeChange}
+                player={player}
+                setCurrentTime={setCurrentTime}
+                isLooping={isLooping}
+                handleLoopToggle={handleLoopToggle}
+                queue={queue}
+                handleRemoveFromQueue={handleRemoveFromQueue}
+              />
+            }
+          />
+
+          <Route path="/dashboard/discover" element={
+            <Discover
+              onPlayPause={handlePlayPause}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              onAddToQueue={handleAddToQueue}
+            />
+          } />
+
+          <Route path="/dashboard/library" element={
+            <Library
+              user={user}
+              onPlayPause={handlePlayPause}
+              onAddToQueue={handleAddToQueue}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+            />
+          } />
+
+          <Route path="/dashboard/library/:id" element={
+            <PlaylistDetail user={user} onPlayPause={handlePlayPause} />
+          } />
+
+          {/* 404 Route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+
+        {user && (
+          <>
+            <YouTube
+              videoId={currentTrack?.id}
+              opts={{
+                height: '0',
+                width: '0',
+                playerVars: {
+                  autoplay: 1,
+                  controls: 0,
+                  enablejsapi: 1,
+                  origin: window.location.origin,
+                  playsinline: 1,
+                  rel: 0,
+                  modestbranding: 1
+                },
+              }}
+              onReady={(event) => {
+                setPlayer(event.target);
+                event.target.setVolume(volume);
+              }}
+              onStateChange={handlePlayerStateChange}
+              className="hidden"
+            />
+            {currentTrack && !isPlayerPage && (
+              <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-50 animate-slide-up">
+                <div className="flex max-w-7xl mx-auto items-center">
+                  <div
+                    className="flex items-center space-x-4 w-1/4 cursor-pointer"
+                    onClick={() => navigate('/dashboard/player')}
+                  >
+                    <img
+                      src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
+                      alt={currentTrack?.title || "Current song"}
+                      className="rounded-md w-12 h-12 object-cover"
+                    />
+                    <div className="overflow-hidden">
+                      <div className={`${isPlaying ? 'animate-marquee' : ''} whitespace-nowrap mb-1`}>
+                        <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
                       </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Button variant="ghost" size="icon" onClick={handleSkipBack}>
-                        <SkipBack className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        onClick={() => currentTrack && handlePlayPause(currentTrack)}
-                      >
-                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={handleSkipForward}>
-                        <SkipForward className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <div className="flex flex-col items-center w-1/2 px-4">
-                      <div className="w-full flex items-center space-x-2 text-xs text-muted-foreground">
-                        <span>{formatTime(currentTime)}</span>
-                        <div className="relative flex-1 h-1 bg-secondary rounded-full overflow-hidden group">
-                          <div
-                            className="absolute h-full bg-primary rounded-full transition-all"
-                            style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                          />
-                          <input
-                            type="range"
-                            min={0}
-                            max={duration || 100}
-                            value={currentTime || 0}
-                            onChange={(e) => {
-                              const time = parseFloat(e.target.value);
-                              setCurrentTime(time);
-                              player?.seekTo(time);
-                            }}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          />
-                        </div>
-                        <span>{formatTime(duration)}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-end space-x-2 w-1/4">
-                      <Volume2 className="h-4 w-4" />
-                      <Slider
-                        value={[volume]}
-                        max={100}
-                        step={1}
-                        className="w-24"
-                        onValueChange={(value) => handleVolumeChange(value[0])}
-                      />
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="icon" className="hover:bg-accent">
-                            <ListMusic className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 p-0" align="end">
-                          <div className="p-4 border-b">
-                            <h4 className="font-semibold">Queue</h4>
-                            <p className="text-xs text-muted-foreground">Up next in your queue</p>
-                          </div>
-                          <div className="max-h-96 overflow-auto">
-                            {queue.map((video, index) => (
-                              <div
-                                key={video.id}
-                                className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
-                              >
-                                <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
-                                <img
-                                  src={video.thumbnail}
-                                  alt={video.title}
-                                  className="w-10 h-10 rounded object-cover"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{video.title}</p>
-                                  <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handlePlayPause(video)}
-                                  >
-                                    {currentTrack?.id === video.id && isPlaying ? (
-                                      <Pause className="h-4 w-4" />
-                                    ) : (
-                                      <Play className="h-4 w-4" />
-                                    )}
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleRemoveFromQueue(index)}
-                                    className="text-destructive hover:text-destructive"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
+                      <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
                     </div>
                   </div>
+
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Button variant="ghost" size="icon" onClick={handleSkipBack}>
+                      <SkipBack className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      onClick={() => currentTrack && handlePlayPause(currentTrack)}
+                    >
+                      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={handleSkipForward}>
+                      <SkipForward className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleLoopToggle}
+                      className={`transition-colors duration-200 ${isLooping
+                        ? "text-primary hover:text-primary/80"
+                        : "text-muted-foreground hover:text-foreground"
+                        }`}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill={isLooping ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`transition-transform duration-200 ${isLooping ? "scale-110" : "scale-100"
+                          }`}
+                      >
+                        <path d="M17 2l4 4-4 4" />
+                        <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+                        <path d="M7 22l-4-4 4-4" />
+                        <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+                      </svg>
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-col items-center w-1/2 px-4">
+                    <div className="w-full flex items-center space-x-2 text-xs text-muted-foreground">
+                      <span>{formatTime(currentTime)}</span>
+                      <div className="relative flex-1 h-1 bg-secondary rounded-full overflow-hidden group">
+                        <div
+                          className="absolute h-full bg-primary rounded-full transition-all"
+                          style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                        />
+                        <input
+                          type="range"
+                          min={0}
+                          max={duration || 100}
+                          value={currentTime || 0}
+                          onChange={(e) => {
+                            const time = parseFloat(e.target.value);
+                            setCurrentTime(time);
+                            player?.seekTo(time);
+                          }}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                      </div>
+                      <span>{formatTime(duration)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end space-x-2 w-1/4">
+                    <Volume2 className="h-4 w-4" />
+                    <Slider
+                      value={[volume]}
+                      max={100}
+                      step={1}
+                      className="w-24"
+                      onValueChange={(value) => handleVolumeChange(value[0])}
+                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="hover:bg-accent">
+                          <ListMusic className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-0" align="end">
+                        <div className="p-4 border-b">
+                          <h4 className="font-semibold">Queue</h4>
+                          <p className="text-xs text-muted-foreground">Up next in your queue</p>
+                        </div>
+                        <div className="max-h-96 overflow-auto">
+                          {queue.map((video, index) => (
+                            <div
+                              key={video.id}
+                              className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
+                            >
+                              <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
+                              <img
+                                src={video.thumbnail}
+                                alt={video.title}
+                                className="w-10 h-10 rounded object-cover"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{video.title}</p>
+                                <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handlePlayPause(video)}
+                                >
+                                  {currentTrack?.id === video.id && isPlaying ? (
+                                    <Pause className="h-4 w-4" />
+                                  ) : (
+                                    <Play className="h-4 w-4" />
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleRemoveFromQueue(index)}
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
-              )}
-            </>
-          )}
-        </Layout>
-      </Router>
+              </div>
+            )}
+          </>
+        )}
+      </Layout>
     </ThemeProvider>
   );
 }
 
-export default App;
+export default function Root() {
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+}
