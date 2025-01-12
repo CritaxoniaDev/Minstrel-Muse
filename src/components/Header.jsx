@@ -19,6 +19,12 @@ const Header = ({ user, onSearchResults }) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const searchRef = useRef(null);
 
+    const decodeHTMLEntities = (text) => {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text;
+        return textarea.value;
+    };
+
     const fetchSuggestions = async (query) => {
         if (!query.trim()) {
             setSuggestions([]);
@@ -214,10 +220,10 @@ const Header = ({ user, onSearchResults }) => {
                                                     </div>
                                                     <div className="flex flex-col flex-1 min-w-0">
                                                         <span className="text-sm font-medium line-clamp-1 group-hover/item:text-purple-600 transition-colors">
-                                                            {suggestion.title}
+                                                            {decodeHTMLEntities(suggestion.title)}
                                                         </span>
                                                         <span className="text-xs text-muted-foreground">
-                                                            {suggestion.channelTitle}
+                                                            {decodeHTMLEntities(suggestion.channelTitle)}
                                                         </span>
                                                     </div>
                                                 </div>

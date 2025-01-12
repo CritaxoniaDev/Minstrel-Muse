@@ -128,6 +128,12 @@ const Dashboard = ({
         fetchYoutubeVideos();
     }, []);
 
+    const decodeHTMLEntities = (text) => {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text;
+        return textarea.value;
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
             {/* Hero Welcome Section */}
@@ -338,9 +344,9 @@ const Dashboard = ({
                                         </div>
                                         <div className="p-4">
                                             <h3 className="font-semibold line-clamp-1 mb-1 group-hover:text-primary transition-colors">
-                                                {video.title}
+                                                {decodeHTMLEntities(video.title)}
                                             </h3>
-                                            <p className="text-sm text-muted-foreground">{video.channelTitle}</p>
+                                            <p className="text-sm text-muted-foreground">{decodeHTMLEntities(video.channelTitle)}</p>
                                         </div>
                                     </Card>
                                 </CarouselItem>

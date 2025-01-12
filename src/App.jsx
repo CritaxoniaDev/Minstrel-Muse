@@ -275,6 +275,12 @@ function App() {
     return children;
   };
 
+  const decodeHTMLEntities = (text) => {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+  };
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <Toaster className="z-[99999]" />
@@ -425,9 +431,9 @@ function App() {
                     />
                     <div className="overflow-hidden">
                       <div className={`${isPlaying ? 'animate-marquee' : ''} whitespace-nowrap mb-1`}>
-                        <p className="text-sm font-medium">{currentTrack?.title || "No track playing"}</p>
+                        <p className="text-sm font-medium">{decodeHTMLEntities(currentTrack?.title) || "No track playing"}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground">{currentTrack?.channelTitle || "Select a track"}</p>
+                      <p className="text-xs text-muted-foreground">{decodeHTMLEntities(currentTrack?.channelTitle) || "Select a track"}</p>
                     </div>
                   </div>
 

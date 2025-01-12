@@ -32,9 +32,15 @@ const FullPlayerView = ({
       navigate('/dashboard');
     }
   }, [currentTrack]);
-  
+
+  const decodeHTMLEntities = (text) => {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+  };
+
   return (
-    <div className="container mx-auto px-4 py-6 pb-32">
+    <div className="container mx-auto px-4 py-6 pb-20">
       <div className="flex flex-col items-center justify-center space-y-8 max-w-4xl mx-auto">
         <motion.div
           initial={{ scale: 0.9 }}
@@ -52,10 +58,10 @@ const FullPlayerView = ({
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-bold truncate">
-              {currentTrack?.title || "No track playing"}
+              {decodeHTMLEntities(currentTrack?.title) || "No track playing"}
             </h2>
             <p className="text-muted-foreground">
-              {currentTrack?.channelTitle || "Select a track"}
+              {decodeHTMLEntities(currentTrack?.channelTitle) || "Select a track"}
             </p>
           </div>
 
@@ -69,6 +75,10 @@ const FullPlayerView = ({
                 <div
                   className="absolute h-full bg-primary rounded-full transition-all"
                   style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                />
+                <div
+                  className="absolute h-4 w-4 -top-1 bg-primary rounded-full shadow-lg transform -translate-y-1/4 transition-all group-hover:scale-110"
+                  style={{ left: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`, transform: 'translateX(-50%)' }}
                 />
                 <input
                   type="range"
@@ -108,8 +118,8 @@ const FullPlayerView = ({
               size="icon"
               onClick={handleLoopToggle}
               className={`transition-colors duration-200 ${isLooping
-                  ? "text-primary hover:text-primary/80"
-                  : "text-muted-foreground hover:text-foreground"
+                ? "text-primary hover:text-primary/80"
+                : "text-muted-foreground hover:text-foreground"
                 }`}
             >
               <svg
