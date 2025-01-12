@@ -21,6 +21,7 @@ import Discover from './components/Discover';
 import SearchResults from './components/SearchResults';
 import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
+import MainPage from './components/MainPage';
 import Library from './components/Library';
 import PlaylistDetail from './components/PlaylistDetail';
 import NotFound from './components/Error/404';
@@ -296,7 +297,8 @@ function App() {
       )}
       <Layout user={user} onSearchResults={setSearchResults}>
         <Routes>
-          <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
+          <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={

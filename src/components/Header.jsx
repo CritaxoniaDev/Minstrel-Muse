@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { LogOut, Search, Music2 } from 'lucide-react';
+import { LogOut, Search, Music2, User2 } from 'lucide-react';
 import { auth } from '../config/firebase';
 import { useTheme } from 'next-themes';
 import { Moon, Sun } from 'lucide-react';
@@ -248,7 +248,16 @@ const Header = ({ user, onSearchResults }) => {
                                 <Moon className="h-5 w-5 text-purple-600" />
                             )}
                         </Button>
-
+                        {!user && (
+                            <Button
+                                variant="default"
+                                className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                                onClick={() => navigate('/login')}
+                            >
+                                Login
+                                <User2 className="ml-2 h-4 w-4" />
+                            </Button>
+                        )}
                         {user && (
                             <Button
                                 variant="default"
