@@ -1,20 +1,11 @@
 import { useState } from 'react';
-import { auth, db, storage } from '../../config/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    GoogleAuthProvider,
-    signInWithPopup
-} from 'firebase/auth';
+import { auth, db } from '../../config/firebase';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, AtSign, Mail, Lock, Image, UserPlus, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { useMediaQuery } from 'react-responsive';
 
 const Auth = () => {
@@ -23,123 +14,11 @@ const Auth = () => {
     const isDesktop = useMediaQuery({ minWidth: 1024 });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        name: '',
-        username: '',
-        photo: null
-    });
 
     const errorMessages = {
-        'auth/invalid-email': 'Please enter a valid email address',
-        'auth/user-disabled': 'This account has been disabled',
-        'auth/user-not-found': 'Email or password is incorrect',
-        'auth/wrong-password': 'Email or password is incorrect',
-        'auth/email-already-in-use': 'This email is already registered',
-        'auth/operation-not-allowed': 'Operation not allowed',
-        'auth/weak-password': 'Password should be at least 6 characters',
         'auth/popup-closed-by-user': 'Google sign-in was cancelled',
         'auth/cancelled-popup-request': 'Google sign-in was cancelled',
         'auth/popup-blocked': 'Pop-up was blocked by your browser'
-    };
-
-    const handleInputChange = (e) => {
-        setFormData(prev => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        }));
-    };
-
-    const handleFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setFormData(prev => ({
-                ...prev,
-                photo: file
-            }));
-        }
-    };
-
-    const signUp = async () => {
-        if (!formData.name || !formData.username) {
-            setError('Please fill in all fields');
-            return;
-        }
-        setIsLoading(true);
-        setError('');
-        try {
-            const userCredential = await createUserWithEmailAndPassword(
-                auth,
-                formData.email,
-                formData.password
-            );
-
-            let photoURL = null;
-            if (formData.photo) {
-                const storageRef = ref(storage, `users/${userCredential.user.uid}/profile`);
-                const uploadResult = await uploadBytes(storageRef, formData.photo);
-                photoURL = await getDownloadURL(uploadResult.ref);
-            }
-
-            // Continue with Firebase document creation
-            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-
-            if (!userDoc.exists()) {
-                await setDoc(doc(db, "users", userCredential.user.uid), {
-                    name: formData.name,
-                    username: formData.username,
-                    email: formData.email,
-                    createdAt: new Date().toISOString(),
-                    photoURL: photoURL,
-                    role: "user",
-                    favorites: [],
-                    playlists: [],
-                    settings: {
-                        theme: "light",
-                        notifications: true,
-                        language: "en"
-                    },
-                    stats: {
-                        totalListens: 0,
-                        lastActive: new Date().toISOString(),
-                        joinDate: new Date().toISOString()
-                    },
-                    profile: {
-                        bio: "",
-                        location: "",
-                        socialLinks: {}
-                    }
-                });
-            }
-        } catch (err) {
-            setError(errorMessages[err.code] || 'An error occurred during registration');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const signIn = async () => {
-        setIsLoading(true);
-        setError('');
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
-            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-
-            if (!userDoc.exists()) {
-                await setDoc(doc(db, "users", userCredential.user.uid), {
-                    email: formData.email,
-                    createdAt: new Date().toISOString(),
-                    role: "member",
-                    favorites: [],
-                    playlists: []
-                });
-            }
-        } catch (err) {
-            setError(errorMessages[err.code] || 'An error occurred during sign in');
-        } finally {
-            setIsLoading(false);
-        }
     };
 
     const signInWithGoogle = async () => {
@@ -148,8 +27,6 @@ const Auth = () => {
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
-
-            // First check if user document exists in Firebase
             const userDoc = await getDoc(doc(db, "users", result.user.uid));
 
             if (!userDoc.exists()) {
@@ -157,7 +34,7 @@ const Auth = () => {
                     name: result.user.displayName,
                     email: result.user.email,
                     photoURL: result.user.photoURL,
-                    username: result.user.email.split('@')[0], // Creates a default username
+                    username: result.user.email.split('@')[0],
                     role: "user",
                     createdAt: new Date().toISOString(),
                     favorites: [],
@@ -187,288 +64,99 @@ const Auth = () => {
     };
 
     return (
-        <Card className={`mx-auto shadow-xl ${isMobile ? 'w-[95%] max-w-md' :
-            isTablet ? 'w-[90%] max-w-2xl' :
-                'w-full max-w-4xl grid md:grid-cols-2'
-            } overflow-hidden`}>
+        <Card className="mx-auto shadow-2xl w-full max-w-4xl h-[600px] grid md:grid-cols-2 overflow-hidden bg-white/5 backdrop-blur-lg">
             {/* Left Side - Visual Section */}
-            {(isTablet || isDesktop) && (
-                <div className="relative hidden md:block">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600">
-                        <div className="absolute inset-0 bg-black/20" />
+            <div className="relative hidden md:block h-full">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-500 to-purple-700">
+                    <div className="absolute inset-0 bg-black/30" />
+                    <img
+                        src="/resources/background.webp"
+                        alt="Enterprise Background"
+                        className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-80"
+                    />
+                </div>
+                <div className="relative p-12 flex flex-col h-full justify-between text-white">
+                    <div className="flex items-center gap-3">
                         <img
-                            src="/resources/background.webp"
-                            alt="Enterprise Background"
-                            className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+                            src="/images/minstrel-logo.png"
+                            alt="MinstrelMuse Logo"
+                            className="w-10 h-10 rounded-xl shadow-lg"
                         />
+                        <span className="text-2xl font-bold tracking-tight">MinstrelMuse</span>
                     </div>
-                    <div className="relative p-8 flex flex-col h-full justify-between text-white">
-                        <div className="flex items-center gap-2">
-                            <span className="text-xl font-bold">MinstrelMuse</span>
-                        </div>
-                        <div className="space-y-4">
-                            <h3 className="text-2xl font-bold">Transform Your Music Experience</h3>
-                            <p className="text-sm opacity-90">Join thousands of users who trust MinstrelMuse for their music needs.</p>
-                            <div className="flex gap-3">
-                                <div className="flex flex-col">
-                                    <span className="text-3xl font-bold">10K+</span>
-                                    <span className="text-xs">Active Users</span>
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-3xl font-bold">50M+</span>
-                                    <span className="text-xs">Songs Played</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="space-y-6">
+                        <h3 className="text-3xl font-bold leading-tight">Discover Your Perfect <br />Music Experience</h3>
+                        <p className="text-base opacity-90 leading-relaxed">Join our community of music lovers and explore endless possibilities.</p>
                     </div>
                 </div>
-            )}
-            {/* Right Side - Auth Forms */}
-            <div className={`${isMobile ? 'p-4' : 'p-8'}`}>
-                <Tabs defaultValue="login" className="space-y-6">
-                    <TabsList className={`grid w-full grid-cols-2 ${isMobile ? 'text-sm' : ''}`}>
-                        <TabsTrigger
-                            value="login"
-                            className="transition-all duration-300 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-                        >
-                            Login
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="register"
-                            className="transition-all duration-300 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-                        >
-                            Register
-                        </TabsTrigger>
-                    </TabsList>
+            </div>
 
-                    <div className="relative min-h-[470px]">
-                        <TabsContent
-                            value="login"
-                            className="space-y-4 absolute top-0 left-0 w-full transition-opacity duration-300 ease-in-out"
+            {/* Right Side - Auth Form */}
+            <div className="p-12 flex flex-col items-center justify-center min-h-full bg-white">
+                <div className="w-full max-w-md mx-auto backdrop-blur-sm">
+                    <CardHeader className="space-y-4 px-0 text-center mb-10">
+                        <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-gradient">
+                            Welcome Back
+                        </CardTitle>
+                        <CardDescription className="text-base text-gray-600/90 leading-relaxed">
+                            Continue your musical journey with one click
+                        </CardDescription>
+                    </CardHeader>
+
+                    <CardContent className="space-y-8 px-0">
+                        {error && (
+                            <Alert variant="destructive" className="animate-shake shadow-lg border-red-200">
+                                <AlertDescription className="font-medium">{error}</AlertDescription>
+                            </Alert>
+                        )}
+
+                        <Button
+                            variant="outline"
+                            onClick={signInWithGoogle}
+                            disabled={isLoading}
+                            className="w-full h-16 relative overflow-hidden group border-2 hover:border-purple-400 transition-all duration-500 shadow-lg hover:shadow-xl rounded-xl"
                         >
-                            <CardHeader className="space-y-1 px-0">
-                                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Welcome Back!
-                                </CardTitle>
-                                <CardDescription className="text-muted-foreground">
-                                    Sign in to continue your music journey
-                                </CardDescription>
-                            </CardHeader>
-
-                            <CardContent className="space-y-4 px-0">
-                                {error && (
-                                    <Alert variant="destructive">
-                                        <AlertDescription>{error}</AlertDescription>
-                                    </Alert>
-                                )}
-                                <Button
-                                    variant="outline"
-                                    onClick={signInWithGoogle}
-                                    disabled={isLoading}
-                                    className="w-full relative overflow-hidden group"
-                                >
-                                    <div className="absolute inset-0 w-3 bg-gradient-to-r from-purple-600 to-blue-600 transition-all duration-[250ms] ease-out group-hover:w-full"></div>
-                                    <div className="relative flex items-center justify-center gap-2">
-                                        <img
-                                            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                                            alt="Google"
-                                            className="w-5 h-5"
-                                        />
-                                        <span className="group-hover:text-white transition-colors duration-200">
-                                            {isLoading ? (
-                                                <div className="flex items-center gap-2">
-                                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                                    <span>Please wait...</span>
-                                                </div>
-                                            ) : (
-                                                'Continue with Google'
-                                            )}
-                                        </span>
-                                    </div>
-                                </Button>
-
-                                <div className="relative">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-gray-200"></div>
-                                    </div>
-                                    <div className="relative flex justify-center text-xs uppercase">
-                                        <span className="bg-background px-2 text-muted-foreground">
-                                            Or continue with email
-                                        </span>
-                                    </div>
+                            <div className="absolute inset-0 w-3 bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 transition-all duration-500 ease-out group-hover:w-full opacity-90"></div>
+                            <div className="relative flex items-center justify-center gap-4">
+                                <div className="bg-white p-2 rounded-lg shadow-sm">
+                                    <img
+                                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                                        alt="Google"
+                                        className="w-6 h-6 transform group-hover:scale-110 transition-transform duration-300"
+                                    />
                                 </div>
-
-                                <div className="space-y-4">
-                                    <div className="relative">
-                                        <Input
-                                            type="email"
-                                            name="email"
-                                            placeholder="Email address"
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            disabled={isLoading}
-                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
-                                        />
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    </div>
-                                    <div className="relative">
-                                        <Input
-                                            type="password"
-                                            name="password"
-                                            placeholder="Password"
-                                            value={formData.password}
-                                            onChange={handleInputChange}
-                                            disabled={isLoading}
-                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
-                                        />
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    </div>
-                                </div>
-                            </CardContent>
-
-                            <CardFooter className="flex flex-col space-y-4 px-0">
-                                <Button
-                                    className="w-full relative overflow-hidden group bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                                    onClick={signIn}
-                                    disabled={isLoading}
-                                >
-                                    <span className="relative flex items-center justify-center gap-2">
-                                        {isLoading ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                <span>Signing in...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span>Sign In</span>
-                                            </>
-                                        )}
-                                    </span>
-                                </Button>
-                                <p className="text-xs text-center text-muted-foreground">
-                                    Forgot your password?{' '}
-                                    <Link to="/reset-password" className="text-purple-600 hover:underline">
-                                        Reset it here
-                                    </Link>
-                                </p>
-                            </CardFooter>
-                        </TabsContent>
-                        <TabsContent
-                            value="register"
-                            className="space-y-4 absolute top-0 left-0 w-full transition-opacity duration-300 ease-in-out"
-                        >
-                            <CardHeader className="space-y-1 px-0">
-                                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                    Create an Account
-                                </CardTitle>
-                                <CardDescription className="text-muted-foreground">
-                                    Join our community and start your musical journey today
-                                </CardDescription>
-                            </CardHeader>
-
-                            <CardContent className="space-y-6 px-0">
-                                {error && (
-                                    <Alert variant="destructive">
-                                        <AlertDescription>{error}</AlertDescription>
-                                    </Alert>
-                                )}
-
-                                <div className="space-y-4">
-                                    <div className="relative">
-                                        <Input
-                                            type="text"
-                                            name="name"
-                                            placeholder="Full Name"
-                                            value={formData.name}
-                                            onChange={handleInputChange}
-                                            disabled={isLoading}
-                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
-                                        />
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    </div>
-
-                                    <div className="relative">
-                                        <Input
-                                            type="text"
-                                            name="username"
-                                            placeholder="Choose a username"
-                                            value={formData.username}
-                                            onChange={handleInputChange}
-                                            disabled={isLoading}
-                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
-                                        />
-                                        <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    </div>
-
-                                    <div className="relative">
-                                        <Input
-                                            type="email"
-                                            name="email"
-                                            placeholder="Email address"
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            disabled={isLoading}
-                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
-                                        />
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    </div>
-
-                                    <div className="relative">
-                                        <Input
-                                            type="password"
-                                            name="password"
-                                            placeholder="Create a strong password"
-                                            value={formData.password}
-                                            onChange={handleInputChange}
-                                            disabled={isLoading}
-                                            className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-purple-600 border-gray-200 hover:border-purple-400"
-                                        />
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
-                                        <div className="relative">
-                                            <Input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleFileChange}
-                                                disabled={isLoading}
-                                                className="hidden"
-                                                id="file-upload"
-                                            />
-                                            <label
-                                                htmlFor="file-upload"
-                                                className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-200 rounded-lg hover:border-purple-400 cursor-pointer transition-colors"
-                                            >
-                                                <Image className="h-5 w-5 text-gray-400" />
-                                                <span className="text-sm text-gray-600">
-                                                    {formData.photo ? formData.photo.name : 'Upload a profile picture'}
-                                                </span>
-                                            </label>
+                                <span className="text-lg font-semibold group-hover:text-white transition-colors duration-300">
+                                    {isLoading ? (
+                                        <div className="flex items-center gap-3">
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                            <span>Connecting...</span>
                                         </div>
-                                    </div>
-                                </div>
-                                <Button
-                                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                                    onClick={signUp}
-                                    disabled={isLoading}
-                                >
-                                    {isLoading ? 'Creating account...' : 'Create Account'}
-                                </Button>
-                            </CardContent>
-                        </TabsContent>
-                    </div>
-                </Tabs>
-                <div className="pt-2 mt-6 border-t border-gray-200">
-                    <div className="flex items-center justify-center space-x-2">
-                        <img
-                            src="/images/logo.png"
-                            alt="Adiklaas Logo"
-                            className="w-6 h-6 rounded-full"
-                        />
-                        <span className="text-sm text-muted-foreground">
-                            Maintained by <span className="font-medium text-purple-600">Adiklaas</span>
+                                    ) : (
+                                        'Continue with Google'
+                                    )}
+                                </span>
+                            </div>
+                        </Button>
+
+                        <div className="flex items-center justify-center space-x-2 opacity-80">
+                            <div className="h-px w-12 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                            <span className="text-sm text-gray-500">Secure login powered by Google</span>
+                            <div className="h-px w-12 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                        </div>
+                    </CardContent>
+                </div>
+
+                <div className="w-full pt-6 border-t border-gray-200/50 mt-auto">
+                    <div className="flex items-center justify-center space-x-3">
+                        <div className="p-2 bg-white/80 rounded-lg shadow-sm">
+                            <img
+                                src="/images/logo.png"
+                                alt="Adiklaas Logo"
+                                className="w-6 h-6 rounded-md"
+                            />
+                        </div>
+                        <span className="text-sm text-gray-600">
+                            Maintained by <span className="font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Adiklaas</span>
                         </span>
                     </div>
                 </div>

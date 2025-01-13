@@ -6,7 +6,7 @@ const Layout = ({ user, children, onSearchResults }) => {
         <div>
             <Header user={user} onSearchResults={onSearchResults} />
             {user && <Sidebar user={user} />}
-            <main className={`${user ? 'lg:ml-64' : 'mt-20'} `}>
+            <main className={`${user ? 'lg:ml-64' : 'mt-10'} `}>
                 {children}
             </main>
         </div>
