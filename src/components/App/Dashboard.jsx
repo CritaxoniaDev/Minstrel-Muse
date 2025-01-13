@@ -144,13 +144,13 @@ const Dashboard = ({
                         <div className="relative z-10 py-8 flex flex-col justify-center">
                             <div className="relative">
                                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 blur-lg"></div>
-                                <h1 className="relative text-6xl font-bold tracking-tighter bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-gradient-x">
+                                <h1 className="relative antialiased text-5xl font-bold tracking-tighter bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-gradient-x">
                                     Welcome back, {currentUser?.displayName || 'Music Lover'}!
                                     <span className="inline-block animate-wave">👋</span>
                                 </h1>
                             </div>
 
-                            <p className="mt-6 text-lg text-muted-foreground max-w-xl leading-relaxed backdrop-blur-sm">
+                            <p className="mt-6 text-md tracking-tighter text-muted-foreground max-w-xl leading-relaxed backdrop-blur-sm">
                                 Your personal music dashboard is ready. Discover trending tracks, manage your library, and connect with other music enthusiasts.
                             </p>
 
@@ -355,100 +355,6 @@ const Dashboard = ({
                         <CarouselPrevious className="hidden md:flex -left-12" />
                         <CarouselNext className="hidden md:flex -right-12" />
                     </Carousel>
-                </div>
-
-                {/* Active Users Section */}
-                <div className="col-span-full flex justify-center px-40">
-                    <div className="w-full max-w-6xl">
-                        <div className="text-center pb-8">
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-2">
-                                    <Users className="h-6 w-6 text-primary animate-pulse" />
-                                </div>
-                                <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60`}>
-                                    Active Users
-                                </h2>
-                                <p className="text-muted-foreground">Connect with our vibrant community</p>
-                            </div>
-                        </div>
-
-                        <Carousel
-                            opts={{
-                                align: "center",
-                                loop: true,
-                                slidesToScroll: 1,
-                            }}
-                            className="w-full"
-                        >
-                            <CarouselContent className="-ml-4">
-                                {users.length > 0 ? (
-                                    users.map((user, index) => (
-                                        <CarouselItem key={index} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-                                            <div
-                                                className="group relative overflow-hidden rounded-xl bg-card hover:bg-accent/70 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 border border-border/50 h-full"
-                                                onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
-                                            >
-                                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/5 to-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                                <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent" />
-
-                                                <div className="relative p-8 flex flex-col items-center text-center space-y-6">
-                                                    <div className="relative group-hover:scale-105 transition-transform duration-500">
-                                                        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-purple-600 rounded-full blur opacity-0 group-hover:opacity-75 transition-opacity duration-500 animate-pulse" />
-                                                        <Avatar className="h-24 w-24 border-4 border-background shadow-xl">
-                                                            <AvatarImage src={user?.photoURL} alt={user?.name || 'User'} className="object-cover" />
-                                                            <AvatarFallback className="bg-gradient-to-r from-primary to-purple-600 text-white text-2xl">
-                                                                {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                    </div>
-
-                                                    <div className="space-y-3">
-                                                        <p className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 group-hover:from-purple-600 group-hover:to-primary transition-all duration-500">
-                                                            {user?.name || 'Anonymous'}
-                                                        </p>
-                                                        <p className="text-sm text-muted-foreground">{user?.email}</p>
-                                                        <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-                                                            {user?.role || 'user'}
-                                                        </div>
-                                                    </div>
-
-                                                    {user?.role !== 'admin' && currentUser?.role === 'admin' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleRoleChange(user.uid, user.role);
-                                                            }}
-                                                            className="mt-2 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all duration-300 shadow-lg hover:shadow-primary/25"
-                                                        >
-                                                            Change Role
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </CarouselItem>
-                                    ))
-                                ) : (
-                                    <CarouselItem className="pl-4 basis-full">
-                                        <div className="text-center py-12">
-                                            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-6 animate-pulse">
-                                                <User className="h-8 w-8 text-primary" />
-                                            </div>
-                                            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600 mb-4">
-                                                Welcome to MinstrelMuse!
-                                            </h3>
-                                            <p className="text-muted-foreground max-w-md mx-auto">
-                                                Be the first to join our vibrant community. Start your musical journey today!
-                                            </p>
-                                        </div>
-                                    </CarouselItem>
-                                )}
-                            </CarouselContent>
-                            <CarouselPrevious className="hidden md:flex -left-12" />
-                            <CarouselNext className="hidden md:flex -right-12" />
-                        </Carousel>
-                    </div>
                 </div>
             </div>
         </div>

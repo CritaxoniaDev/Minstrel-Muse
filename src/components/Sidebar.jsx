@@ -1,6 +1,7 @@
 import { db } from "@/config/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { Home, Compass, Library, User, Settings, Music2, Menu } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { Home, Compass, Library, Users, Settings, Music2, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,11 +31,35 @@ const Sidebar = ({ user }) => {
     const [isOpen, setIsOpen] = useState(false);
     const isDesktop = useMediaQuery('(min-width: 1024px)');
     const [playlistCount, setPlaylistCount] = useState(0);
+    const [users, setUsers] = useState([]);
+
+    // Add this useEffect for fetching users
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const usersQuery = query(
+                    collection(db, "users"),
+                    orderBy("createdAt", "desc")
+                );
+
+                const querySnapshot = await getDocs(usersQuery);
+                const usersList = querySnapshot.docs.map(doc => ({
+                    uid: doc.id,
+                    ...doc.data()
+                }));
+                setUsers(usersList);
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            }
+        };
+
+        fetchUsers();
+    }, []);
 
     useEffect(() => {
         const fetchPlaylistCount = async () => {
             if (!user?.uid) return;
-            
+
             try {
                 const playlistsRef = collection(db, "playlists");
                 const q = query(playlistsRef, where("userId", "==", user.uid));
@@ -81,20 +106,6 @@ const Sidebar = ({ user }) => {
 
             <Separator className="my-4" />
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="bg-accent/50 rounded-lg p-3 text-center">
-                    <h4 className="text-2xl font-bold">{playlistCount}</h4>
-                    <p className="text-xs text-muted-foreground">Playlists</p>
-                </div>
-                <div className="bg-accent/50 rounded-lg p-3 text-center">
-                    <h4 className="text-2xl font-bold">0</h4>
-                    <p className="text-xs text-muted-foreground">Favorites</p>
-                </div>
-            </div>
-
-            <Separator className="my-4" />
-
             {/* Navigation */}
             <nav className="space-y-2 mt-auto">
                 {menuItems.map((item, index) => {
@@ -119,6 +130,54 @@ const Sidebar = ({ user }) => {
                     );
                 })}
             </nav>
+
+            <Separator className="my-4" />
+
+            {/* Active Users Section */}
+            <div className="relative">
+                <div className="flex items-center gap-2 px-2 mb-4">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Users className="h-4 w-4 text-primary animate-pulse" />
+                    </div>
+                    <div className="flex items-center justify-between w-full">
+                        <h3 className="font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                            Active Users
+                        </h3>
+                        <span className="text-xs text-muted-foreground">
+                            {users.length} online
+                        </span>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    {users.slice(0, 3).map((user) => (
+                        <div
+                            key={user.uid}
+                            onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
+                            className="group flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-all duration-300 cursor-pointer"
+                        >
+                            <Avatar className="h-10 w-10 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
+                                <AvatarImage src={user?.photoURL} />
+                                <AvatarFallback className="bg-primary/10">
+                                    {user?.name?.charAt(0) || user?.email?.charAt(0)}
+                                </AvatarFallback>
+                            </Avatar>
+
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                                    {user?.name || 'Anonymous'}
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                                    <p className="text-xs text-muted-foreground group-hover:text-primary/70">
+                                        {user?.role}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </>
     );
 

@@ -420,29 +420,37 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
                     playlists.map((playlist) => (
                         <Card
                             key={playlist.id}
-                            className="group hover:shadow-lg transition-shadow cursor-pointer border-2 border-primary/20"
+                            className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-primary/20 bg-gradient-to-br from-background/80 to-background hover:scale-[1.02] relative overflow-hidden"
                             onClick={() => handlePlaylistClick(playlist.id)}
                         >
-                            <CardHeader className="flex flex-row items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Music2 className="w-5 h-5 text-primary" />
-                                    <CardTitle className="text-lg">{playlist.name}</CardTitle>
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                                        <Music2 className="w-6 h-6 text-primary group-hover:text-purple-500 transition-colors" />
+                                    </div>
+                                    <div>
+                                        <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                            {playlist.name}
+                                        </CardTitle>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0 translate-x-4">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                        className="rounded-full bg-purple-600/10 hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
                                         onClick={(e) => handlePlayPlaylist(e, playlist)}
                                     >
-                                        <Play className="h-4 w-4" />
+                                        <Play className="h-5 w-5" />
                                     </Button>
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="rounded-full hover:bg-destructive hover:text-destructive-foreground"
+                                                className="rounded-full bg-red-600/10 hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -476,9 +484,17 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-muted-foreground">
-                                    {playlist.tracks?.length || 0} tracks
-                                </p>
+                                <div className="flex items-center gap-2">
+                                    <div className="h-1 flex-1 bg-primary/10 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-purple-600 to-blue-600 group-hover:animate-pulse"
+                                            style={{ width: `${(playlist.tracks?.length || 0) * 10}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                                        {playlist.tracks?.length || 0} tracks
+                                    </p>
+                                </div>
                             </CardContent>
                         </Card>
                     ))

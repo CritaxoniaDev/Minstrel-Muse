@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Search, Plus, Play, Pause, X } from "lucide-react";
+import { Search, Plus, Play, Pause, X, Music2 } from "lucide-react";
 import { db } from '../config/firebase';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import axios from 'axios';
@@ -176,57 +176,79 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Add Tracks</CardTitle>
+                    <Card className="bg-gradient-to-br from-background/80 to-background border-2 border-primary/20">
+                        <CardHeader className="border-b border-primary/10">
+                            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent flex items-center gap-3">
+                                <Plus className="w-6 h-6" />
+                                Add Tracks
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-                                <Input
-                                    placeholder="Search for tracks..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                <Button type="submit">Search</Button>
+                        <CardContent className="pt-6">
+                            <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search for tracks..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-10 focus-visible:ring-purple-600 bg-background/50"
+                                    />
+                                </div>
+                                <Button
+                                    type="submit"
+                                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90"
+                                >
+                                    Search
+                                </Button>
                             </form>
 
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 {searchResults.map((video) => (
                                     <div
                                         key={video.id}
-                                        className="flex items-center justify-between p-2 hover:bg-accent rounded-lg"
+                                        className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300 hover:shadow-md hover:scale-[1.01]"
                                     >
-                                        <div className="flex items-center gap-2">
-                                            <img
-                                                src={video.thumbnail}
-                                                alt={video.title}
-                                                className="w-10 h-10 rounded"
-                                            />
-                                            <div>
-                                                <p className="text-sm font-medium">{video.title}</p>
-                                                <p className="text-xs text-muted-foreground">
+                                        <div className="flex items-center gap-4">
+                                            <div className="relative group/image">
+                                                <img
+                                                    src={video.thumbnail}
+                                                    alt={video.title}
+                                                    className="w-12 h-12 rounded-lg object-cover transition-transform duration-300 group-hover/image:scale-105"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover/image:opacity-100 transition-opacity" />
+                                            </div>
+
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                                                    {video.title}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground group-hover:text-primary/70 transition-colors">
                                                     {video.channelTitle}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
+
+                                        <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handlePlayTrack(video)}
+                                                className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
                                             >
                                                 {currentTrack?.id === video.id && isPlaying ? (
-                                                    <Pause className="h-4 w-4" />
+                                                    <Pause className="h-5 w-5" />
                                                 ) : (
-                                                    <Play className="h-4 w-4" />
+                                                    <Play className="h-5 w-5" />
                                                 )}
                                             </Button>
+
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handleAddToPlaylist(video)}
+                                                className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
                                             >
-                                                <Plus className="h-4 w-4" />
+                                                <Plus className="h-5 w-5" />
                                             </Button>
                                         </div>
                                     </div>
@@ -237,49 +259,65 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
                 </div>
 
                 <div>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Playlist Tracks</CardTitle>
+                    <Card className="bg-gradient-to-br from-background/80 to-background border-2 border-primary/20">
+                        <CardHeader className="border-b border-primary/10">
+                            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent flex items-center gap-3">
+                                <Music2 className="w-6 h-6" />
+                                Playlist Tracks
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                {playlist.tracks?.map((track) => (
+                        <CardContent className="pt-6">
+                            <div className="space-y-3">
+                                {playlist.tracks?.map((track, index) => (
                                     <div
                                         key={track.id}
-                                        className="flex items-center justify-between p-2 hover:bg-accent rounded-lg"
+                                        className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300 hover:shadow-md hover:scale-[1.01] relative"
                                     >
-                                        <div className="flex items-center gap-2">
-                                            <img
-                                                src={track.thumbnail}
-                                                alt={track.title}
-                                                className="w-10 h-10 rounded"
-                                            />
-                                            <div>
-                                                <p className="text-sm font-medium">{track.title}</p>
-                                                <p className="text-xs text-muted-foreground">
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-50 pl-2 text-sm font-medium text-primary">
+                                            {index + 1}
+                                        </div>
+
+                                        <div className="flex items-center gap-4 pl-8">
+                                            <div className="relative group/image">
+                                                <img
+                                                    src={track.thumbnail}
+                                                    alt={track.title}
+                                                    className="w-12 h-12 rounded-lg object-cover transition-transform duration-300 group-hover/image:scale-105"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover/image:opacity-100 transition-opacity" />
+                                            </div>
+
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                                                    {track.title}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground group-hover:text-primary/70 transition-colors">
                                                     {track.channelTitle}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
+
+                                        <div className="flex items-center gap-3">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handlePlayTrack(track)}
+                                                className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
                                             >
                                                 {currentTrack?.id === track.id && isPlaying ? (
-                                                    <Pause className="h-4 w-4" />
+                                                    <Pause className="h-5 w-5" />
                                                 ) : (
-                                                    <Play className="h-4 w-4" />
+                                                    <Play className="h-5 w-5" />
                                                 )}
                                             </Button>
+
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handleDeleteTrack(track)}
-                                                className="text-destructive hover:text-destructive"
+                                                className="rounded-full hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
                                             >
-                                                <X className="h-4 w-4" />
+                                                <X className="h-5 w-5" />
                                             </Button>
                                         </div>
                                     </div>
