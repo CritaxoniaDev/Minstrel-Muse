@@ -327,9 +327,7 @@ function App() {
           } />
 
           <Route path="/dashboard/profile/:userId" element={
-            <ProtectedRoute>
               <Profile />
-            </ProtectedRoute>
           } />
 
           <Route path="/dashboard/search" element={
