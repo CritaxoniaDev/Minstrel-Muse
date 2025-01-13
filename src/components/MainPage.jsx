@@ -27,37 +27,11 @@ const MainPage = () => {
                             </motion.div>
                         </div>
 
-                        <motion.h1
-                            className="text-7xl font-bold tracking-tighter font-inter bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-2xl [text-shadow:0_4px_8px_rgba(0,0,0,0.1)] transform-gpu"
-                            initial={{ scale: 0.9, rotateX: -20 }}
-                            animate={{
-                                scale: 1,
-                                rotateX: 0,
-                                textShadow: "0 8px 16px rgba(0,0,0,0.2)"
-                            }}
-                            transition={{
-                                duration: 0.8,
-                                ease: "easeOut",
-                                textShadow: {
-                                    repeat: Infinity,
-                                    duration: 2,
-                                    repeatType: "reverse"
-                                }
-                            }}
-                            whileHover={{
-                                scale: 1.05,
-                                rotateY: [-5, 5],
-                                transition: {
-                                    rotateY: {
-                                        repeat: Infinity,
-                                        duration: 1,
-                                        repeatType: "reverse"
-                                    }
-                                }
-                            }}
+                        <h1
+                            className="text-7xl font-bold tracking-tighter font-inter bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-2xl [text-shadow:0_4px_8px_rgba(0,0,0,0.1)]"
                         >
                             MinstrelMuse
-                        </motion.h1>
+                        </h1>
 
                         <motion.p
                             className="text-3xl tracking-tighter text-muted-foreground max-w-2xl mx-auto"
