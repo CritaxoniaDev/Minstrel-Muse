@@ -27,6 +27,19 @@ html {
   background: hsl(var(--primary));
 }
 
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: currentColor;
+  border-radius: 20px;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
