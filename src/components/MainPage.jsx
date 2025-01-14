@@ -1,22 +1,34 @@
+import { auth } from '../config/firebase';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Music2, Youtube, Headphones, Radio, Sparkles, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 const MainPage = () => {
+    const user = auth.currentUser;
+
     return (
         <div className="min-h-screen relative -mt-20">
-            {/* Animated Background Elements */}
+            <div className="fixed inset-0 z-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/30 via-purple-900/30 to-blue-900/30" />
+                <div className="absolute inset-0 bg-[url('/resources/bg-pattern.png')] opacity-5 bg-repeat" />
+                <div className="absolute inset-0 bg-grid-white/10 bg-grid-16 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
+            </div>
 
+            {/* Add this to create floating particles effect */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -inset-[10px] bg-gradient-to-r from-purple-500/20 via-transparent to-blue-500/20 blur-3xl opacity-30 animate-pulse" />
+                <div className="absolute -inset-[10px] bg-gradient-to-b from-transparent via-purple-500/20 to-blue-500/20 blur-3xl opacity-30 animate-pulse delay-1000" />
+            </div>  
             {/* Hero Section */}
             <div className="relative">
-                <div className="container mx-auto px-4 py-32">
+                <div className="container mx-auto py-32">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-center space-y-8 relative z-10"
+                        className="text-center relative z-10"
                     >
-                        <div className="flex justify-center items-center gap-4 mb-12">
+                        <div className="flex justify-center items-center gap-4 mb-2">
                             <motion.div
                                 className="relative"
                                 animate={{ rotate: 360 }}
@@ -27,10 +39,13 @@ const MainPage = () => {
                             </motion.div>
                         </div>
 
-                        <h1
-                            className="text-7xl font-bold tracking-tighter font-inter bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-2xl [text-shadow:0_4px_8px_rgba(0,0,0,0.1)]"
-                        >
-                            MinstrelMuse
+                        <h1 className="text-7xl font-bold tracking-tighter font-inter bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-2xl [text-shadow:0_4px_8px_rgba(0,0,0,0.1)] flex items-center justify-center gap-4">
+                            <span className='-mr-10'>MinstrelMuse</span>
+                            <img
+                                src="/resources/bg-image-2.png"
+                                alt="MinstrelMuse Logo"
+                                className="h-40 w-40 object-contain"
+                            />
                         </h1>
 
                         <motion.p

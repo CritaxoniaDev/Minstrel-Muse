@@ -153,7 +153,6 @@ const Sidebar = ({ user }) => {
                     {users.slice(0, 3).map((user) => (
                         <div
                             key={user.uid}
-                            onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
                             className="group flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-all duration-300 cursor-pointer"
                         >
                             <Avatar className="h-10 w-10 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
@@ -168,9 +167,9 @@ const Sidebar = ({ user }) => {
                                     {user?.name || 'Anonymous'}
                                 </p>
                                 <div className="flex items-center gap-2">
-                                    <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                                    <span className={`h-2 w-2 rounded-full ${user.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
                                     <p className="text-xs text-muted-foreground group-hover:text-primary/70">
-                                        {user?.role}
+                                        {user.isOnline ? 'Online' : 'Offline'}
                                     </p>
                                 </div>
                             </div>

@@ -9,6 +9,9 @@ import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import axios from 'axios';
 import { getYoutubeApiKey, rotateApiKey } from '../config/youtube-api';
 import { useToast } from "../hooks/use-toast";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "./ui/drawer";
+import { Slider } from "./ui/slider";
+import { ArrowUpDown } from "lucide-react";
 
 const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
     const { toast } = useToast();
@@ -28,6 +31,36 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
 
         fetchPlaylist();
     }, [id]);
+
+    const handleReorderTrack = async (trackId, newIndex) => {
+        const oldIndex = playlist.tracks.findIndex(t => t.id === trackId);
+        const newTracks = [...playlist.tracks];
+        const [movedTrack] = newTracks.splice(oldIndex, 1);
+        newTracks.splice(newIndex, 0, movedTrack);
+
+        try {
+            const playlistRef = doc(db, "playlists", id);
+            await updateDoc(playlistRef, {
+                tracks: newTracks
+            });
+
+            setPlaylist(prev => ({
+                ...prev,
+                tracks: newTracks
+            }));
+
+            toast({
+                title: "Track Reordered",
+                description: `Moved to position ${newIndex + 1}`,
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to reorder track",
+                variant: "destructive",
+            });
+        }
+    };
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -298,6 +331,48 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
                                         </div>
 
                                         <div className="flex items-center gap-3">
+                                            <Drawer>
+                                                <DrawerTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
+                                                    >
+                                                        <ArrowUpDown className="h-5 w-5" />
+                                                    </Button>
+                                                </DrawerTrigger>
+                                                <DrawerContent className="bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-lg border-t-2 border-primary/20">
+                                                    <DrawerHeader className="border-b border-primary/10">
+                                                        <DrawerTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                                            Reorder Track
+                                                        </DrawerTitle>
+                                                        <p className="text-sm text-muted-foreground mt-2">
+                                                            Current Position: {index + 1}
+                                                        </p>
+                                                    </DrawerHeader>
+                                                    <div className="p-6 flex justify-center items-center">
+                                                        <div className={`grid ${playlist.tracks.length <= 4 ? 'grid-cols-4' : 'grid-cols-8'} auto-rows-auto gap-2 place-items-center w-fit mx-auto`}>
+                                                            {Array.from({ length: playlist.tracks.length }, (_, i) => (
+                                                                <Button
+                                                                    key={i}
+                                                                    variant={i === index ? "default" : "outline"}
+                                                                    onClick={() => handleReorderTrack(track.id, i)}
+                                                                    className={`h-10 w-10 rounded-lg transition-all duration-300 ${i === index
+                                                                            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                                                                            : 'hover:bg-gradient-to-r hover:from-purple-600/90 hover:to-blue-600/90 hover:text-white'
+                                                                        }`}
+                                                                >
+                                                                    {i + 1}
+                                                                </Button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground mb-4 text-center">
+                                                        Click on a number to move "{track.title}" to that position
+                                                    </p>
+                                                </DrawerContent>
+                                            </Drawer>
+
                                             <Button
                                                 variant="ghost"
                                                 size="icon"

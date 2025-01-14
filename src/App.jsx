@@ -251,10 +251,19 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      setUser(user);
-
       if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userRef = doc(db, "users", user.uid);
+
+        // Update online status
+        await updateDoc(userRef, {
+          isOnline: true,
+          lastSeen: new Date().toISOString()
+        });
+
+        // Set up offline status on disconnect
+        onDisconnect(ref(rtdb, `status/${user.uid}`)).set('offline');
+
+        const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setUser(prevUser => ({
@@ -263,10 +272,22 @@ function App() {
           }));
           setIsApproved(userData.isApproved || false);
         }
+      } else {
+        setUser(null);
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      // Set offline when component unmounts
+      if (auth.currentUser) {
+        const userRef = doc(db, "users", auth.currentUser.uid);
+        updateDoc(userRef, {
+          isOnline: false,
+          lastSeen: new Date().toISOString()
+        });
+      }
+    };
   }, []);
 
   const ProtectedRoute = ({ children }) => {
@@ -285,16 +306,6 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <Toaster className="z-[99999]" />
-      {!user && (
-        <video
-          autoPlay
-          loop
-          muted
-          className="video-background"
-        >
-          <source src="/videos/bg-video.mp4" type="video/mp4" />
-        </video>
-      )}
       <Layout user={user} onSearchResults={setSearchResults}>
         <Routes>
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
@@ -327,7 +338,7 @@ function App() {
           } />
 
           <Route path="/dashboard/profile/:userId" element={
-              <Profile />
+            <Profile />
           } />
 
           <Route path="/dashboard/search" element={
