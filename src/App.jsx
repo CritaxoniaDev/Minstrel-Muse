@@ -19,7 +19,7 @@ import Layout from './components/Layout/layout';
 import Profile from './components/Profile/Profile';
 import Discover from './components/Discover';
 import SearchResults from './components/SearchResults';
-import AdminDashboard from './admin/AdminDashboard';
+import AdminDashboard from '@/admin/AdminDashboard';
 import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
 import MainPage from './components/MainPage';
