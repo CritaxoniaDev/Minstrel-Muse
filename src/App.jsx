@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { auth, db } from './config/firebase';
-import { doc, getDoc, addDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Play, Pause, SkipBack, SkipForward, Volume2, ListMusic, X } from 'lucide-react';
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,7 +19,7 @@ import Layout from './components/Layout/layout';
 import Profile from './components/Profile/Profile';
 import Discover from './components/Discover';
 import SearchResults from './components/SearchResults';
-import AdminDashboard from './Admin/AdminDashboard';
+import AdminDashboard from './admin/AdminDashboard';
 import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
 import MainPage from './components/MainPage';
