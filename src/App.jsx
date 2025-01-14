@@ -251,19 +251,10 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      setUser(user);
+
       if (user) {
-        const userRef = doc(db, "users", user.uid);
-
-        // Update online status
-        await updateDoc(userRef, {
-          isOnline: true,
-          lastSeen: new Date().toISOString()
-        });
-
-        // Set up offline status on disconnect
-        onDisconnect(ref(rtdb, `status/${user.uid}`)).set('offline');
-
-        const userDoc = await getDoc(userRef);
+        const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
           setUser(prevUser => ({
@@ -272,22 +263,10 @@ function App() {
           }));
           setIsApproved(userData.isApproved || false);
         }
-      } else {
-        setUser(null);
       }
     });
 
-    return () => {
-      unsubscribe();
-      // Set offline when component unmounts
-      if (auth.currentUser) {
-        const userRef = doc(db, "users", auth.currentUser.uid);
-        updateDoc(userRef, {
-          isOnline: false,
-          lastSeen: new Date().toISOString()
-        });
-      }
-    };
+    return () => unsubscribe();
   }, []);
 
   const ProtectedRoute = ({ children }) => {
@@ -338,7 +317,7 @@ function App() {
           } />
 
           <Route path="/dashboard/profile/:userId" element={
-            <Profile />
+              <Profile />
           } />
 
           <Route path="/dashboard/search" element={

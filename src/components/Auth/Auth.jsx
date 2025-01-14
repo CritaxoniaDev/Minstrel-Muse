@@ -53,15 +53,7 @@ const Auth = () => {
                         bio: "",
                         location: "",
                         socialLinks: {}
-                    },
-                    isOnline: true,
-                    lastSeen: new Date().toISOString()
-                });
-            } else {
-                // Update online status when user logs in
-                await updateDoc(doc(db, "users", result.user.uid), {
-                    isOnline: true,
-                    lastSeen: new Date().toISOString()
+                    }
                 });
             }
         } catch (err) {
