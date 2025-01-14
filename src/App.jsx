@@ -14,7 +14,7 @@ import { useLocation } from 'react-router-dom';
 import Auth from './components/Auth/Auth';
 import Dashboard from './components/App/Dashboard';
 import FullPlayerView from './components/FullPlayerView';
-import AdminDashboard from '@/admin/AdminDashboard';
+import AdminDashboard from '@/Admin/AdminDashboard';
 import PendingApproval from './components/Auth/PendingApproval';
 import Layout from './components/Layout/layout';
 import Profile from './components/Profile/Profile';
