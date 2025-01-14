@@ -1,11 +1,12 @@
 import { db } from "@/config/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { Home, Compass, Library, Users, Settings, Music2, Menu } from 'lucide-react';
+import { Home, Compass, Library, Users, Settings, Music2, Menu, Shield, Users2, BarChart3, Database, Flag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from 'react';
 
 const useMediaQuery = (query) => {
@@ -33,7 +34,42 @@ const Sidebar = ({ user }) => {
     const [playlistCount, setPlaylistCount] = useState(0);
     const [users, setUsers] = useState([]);
 
-    // Add this useEffect for fetching users
+    const menuItems = [
+        { icon: Home, label: 'Home', path: '/dashboard' },
+        { icon: Compass, label: 'Discover', path: '/dashboard/discover' },
+        { icon: Library, label: 'Library', path: '/dashboard/library' },
+        { icon: Settings, label: 'Settings', path: '/dashboard/settings' }
+    ];
+
+    const adminMenuItems = [
+        { 
+            icon: Shield, 
+            label: 'Admin Panel', 
+            path: '/dashboard/admin',
+            badge: 'New'
+        },
+        { 
+            icon: Users2, 
+            label: 'User Management', 
+            path: '/dashboard/admin/users' 
+        },
+        { 
+            icon: BarChart3, 
+            label: 'Analytics', 
+            path: '/dashboard/admin/analytics' 
+        },
+        { 
+            icon: Database, 
+            label: 'Content Manager', 
+            path: '/dashboard/admin/content' 
+        },
+        { 
+            icon: Flag, 
+            label: 'Reports', 
+            path: '/dashboard/admin/reports' 
+        }
+    ];
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -75,16 +111,8 @@ const Sidebar = ({ user }) => {
         }
     }, [user]);
 
-    const menuItems = [
-        { icon: Home, label: 'Home', path: '/dashboard' },
-        { icon: Compass, label: 'Discover', path: '/dashboard/discover' },
-        { icon: Library, label: 'Library', path: '/dashboard/library' },
-        { icon: Settings, label: 'Settings', path: '/dashboard/settings' }
-    ];
-
     const sidebarContent = (
         <>
-            {/* Profile Section */}
             <div className="flex flex-col items-center space-y-4 mb-8">
                 <div className="relative group">
                     <img
@@ -95,7 +123,7 @@ const Sidebar = ({ user }) => {
                     />
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1">
                         <Music2 className="h-3 w-3" />
-                        Online
+                        {user?.role === 'admin' ? 'Admin' : 'Online'}
                     </div>
                 </div>
                 <div className="text-center">
@@ -106,34 +134,70 @@ const Sidebar = ({ user }) => {
 
             <Separator className="my-4" />
 
-            {/* Navigation */}
-            <nav className="space-y-2 mt-auto">
-                {menuItems.map((item, index) => {
-                    const Icon = item.icon;
-                    return (
-                        <Button
-                            key={index}
-                            variant="ghost"
-                            className={cn(
-                                "w-full justify-start gap-2 hover:bg-accent transition-all duration-200",
-                                window.location.pathname === item.path &&
-                                "bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-500"
-                            )}
-                            onClick={() => {
-                                navigate(item.path);
-                                !isDesktop && setIsOpen(false);
-                            }}
-                        >
-                            <Icon className="h-4 w-4" />
-                            {item.label}
-                        </Button>
-                    );
-                })}
+            <nav className="space-y-4">
+                <div className="space-y-2">
+                    {menuItems.map((item, index) => {
+                        const Icon = item.icon;
+                        return (
+                            <Button
+                                key={index}
+                                variant="ghost"
+                                className={cn(
+                                    "w-full justify-start gap-2 hover:bg-accent transition-all duration-200",
+                                    window.location.pathname === item.path &&
+                                    "bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-500"
+                                )}
+                                onClick={() => {
+                                    navigate(item.path);
+                                    !isDesktop && setIsOpen(false);
+                                }}
+                            >
+                                <Icon className="h-4 w-4" />
+                                {item.label}
+                            </Button>
+                        );
+                    })}
+                </div>
+
+                {user?.role === 'admin' && (
+                    <div className="pt-4">
+                        <div className="px-3 mb-2">
+                            <h2 className="text-sm font-semibold text-primary">Admin Dashboard</h2>
+                        </div>
+                        <div className="space-y-1">
+                            {adminMenuItems.map((item, index) => {
+                                const Icon = item.icon;
+                                return (
+                                    <Button
+                                        key={index}
+                                        variant="ghost"
+                                        className={cn(
+                                            "w-full justify-start gap-2 hover:bg-accent/80 transition-all duration-200",
+                                            window.location.pathname === item.path &&
+                                            "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-red-500"
+                                        )}
+                                        onClick={() => {
+                                            navigate(item.path);
+                                            !isDesktop && setIsOpen(false);
+                                        }}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        <span className="flex-1">{item.label}</span>
+                                        {item.badge && (
+                                            <Badge variant="secondary" className="ml-auto">
+                                                {item.badge}
+                                            </Badge>
+                                        )}
+                                    </Button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </nav>
 
             <Separator className="my-4" />
 
-            {/* Active Users Section */}
             <div className="relative">
                 <div className="flex items-center gap-2 px-2 mb-4">
                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -182,7 +246,6 @@ const Sidebar = ({ user }) => {
 
     return (
         <>
-            {/* Mobile Menu Button */}
             {!isDesktop && (
                 <Button
                     variant="ghost"
@@ -193,7 +256,6 @@ const Sidebar = ({ user }) => {
                 </Button>
             )}
 
-            {/* Sidebar Container */}
             <div className={cn(
                 "fixed left-0 h-screen w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6 transition-transform duration-300 ease-in-out z-40",
                 isDesktop ? "translate-x-0" : isOpen ? "translate-x-0" : "-translate-x-full"
@@ -201,7 +263,6 @@ const Sidebar = ({ user }) => {
                 {sidebarContent}
             </div>
 
-            {/* Overlay for mobile */}
             {!isDesktop && isOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-30"

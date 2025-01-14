@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { auth, db } from './config/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, addDoc } from 'firebase/firestore';
 import { Play, Pause, SkipBack, SkipForward, Volume2, ListMusic, X } from 'lucide-react';
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,6 +19,7 @@ import Layout from './components/Layout/layout';
 import Profile from './components/Profile/Profile';
 import Discover from './components/Discover';
 import SearchResults from './components/SearchResults';
+import AdminDashboard from './Admin/AdminDashboard';
 import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
 import MainPage from './components/MainPage';
@@ -262,6 +263,14 @@ function App() {
             ...userData
           }));
           setIsApproved(userData.isApproved || false);
+
+          addDoc(collection(db, "userActivities"), {
+            userId: user.uid,
+            userName: user.displayName,
+            userPhoto: user.photoURL,
+            action: "Logged in",
+            timestamp: serverTimestamp()
+          });
         }
       }
     });
@@ -317,7 +326,7 @@ function App() {
           } />
 
           <Route path="/dashboard/profile/:userId" element={
-              <Profile />
+            <Profile />
           } />
 
           <Route path="/dashboard/search" element={
@@ -355,6 +364,9 @@ function App() {
               />
             }
           />
+
+          <Route path="/dashboard/admin" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/dashboard" />} />
+
 
           <Route path="/dashboard/discover" element={
             <Discover
