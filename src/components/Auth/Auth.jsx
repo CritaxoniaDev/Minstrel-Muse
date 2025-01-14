@@ -56,6 +56,16 @@ const Auth = () => {
                     }
                 });
             }
+
+            // Add the login activity notification here
+            await addDoc(collection(db, "userActivities"), {
+                userId: result.user.uid,
+                userName: result.user.displayName,
+                userPhoto: result.user.photoURL,
+                action: "Logged in",
+                timestamp: serverTimestamp()
+            });
+
         } catch (err) {
             setError(errorMessages[err.code] || 'An error occurred during Google sign in');
         } finally {

@@ -42,31 +42,31 @@ const Sidebar = ({ user }) => {
     ];
 
     const adminMenuItems = [
-        { 
-            icon: Shield, 
-            label: 'Admin Panel', 
+        {
+            icon: Shield,
+            label: 'Admin Panel',
             path: '/dashboard/admin',
             badge: 'New'
         },
-        { 
-            icon: Users2, 
-            label: 'User Management', 
-            path: '/dashboard/admin/users' 
+        {
+            icon: Users2,
+            label: 'User Management',
+            path: '/dashboard/admin/users'
         },
-        { 
-            icon: BarChart3, 
-            label: 'Analytics', 
-            path: '/dashboard/admin/analytics' 
+        {
+            icon: BarChart3,
+            label: 'Analytics',
+            path: '/dashboard/admin/analytics'
         },
-        { 
-            icon: Database, 
-            label: 'Content Manager', 
-            path: '/dashboard/admin/content' 
+        {
+            icon: Database,
+            label: 'Content Manager',
+            path: '/dashboard/admin/content'
         },
-        { 
-            icon: Flag, 
-            label: 'Reports', 
-            path: '/dashboard/admin/reports' 
+        {
+            icon: Flag,
+            label: 'Reports',
+            path: '/dashboard/admin/reports'
         }
     ];
 
@@ -198,48 +198,33 @@ const Sidebar = ({ user }) => {
 
             <Separator className="my-4" />
 
-            <div className="relative">
-                <div className="flex items-center gap-2 px-2 mb-4">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Users className="h-4 w-4 text-primary animate-pulse" />
-                    </div>
-                    <div className="flex items-center justify-between w-full">
-                        <h3 className="font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                            Active Users
-                        </h3>
-                        <span className="text-xs text-muted-foreground">
-                            {users.length} online
-                        </span>
-                    </div>
-                </div>
+            <div className="space-y-2">
+                {users.slice(0, 3).map((user) => (
+                    <div
+                        key={user.uid}
+                        className="group flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-all duration-300 cursor-pointer"
+                        onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
+                    >
+                        <Avatar className="h-10 w-10 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
+                            <AvatarImage src={user?.photoURL} />
+                            <AvatarFallback className="bg-primary/10">
+                                {user?.name?.charAt(0) || user?.email?.charAt(0)}
+                            </AvatarFallback>
+                        </Avatar>
 
-                <div className="space-y-2">
-                    {users.slice(0, 3).map((user) => (
-                        <div
-                            key={user.uid}
-                            className="group flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-all duration-300 cursor-pointer"
-                        >
-                            <Avatar className="h-10 w-10 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
-                                <AvatarImage src={user?.photoURL} />
-                                <AvatarFallback className="bg-primary/10">
-                                    {user?.name?.charAt(0) || user?.email?.charAt(0)}
-                                </AvatarFallback>
-                            </Avatar>
-
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-                                    {user?.name || 'Anonymous'}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                                {user?.name || 'Anonymous'}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <span className={`h-2 w-2 rounded-full ${user.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                                <p className="text-xs text-muted-foreground group-hover:text-primary/70">
+                                    {user.isOnline ? 'Online' : 'Offline'}
                                 </p>
-                                <div className="flex items-center gap-2">
-                                    <span className={`h-2 w-2 rounded-full ${user.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-                                    <p className="text-xs text-muted-foreground group-hover:text-primary/70">
-                                        {user.isOnline ? 'Online' : 'Offline'}
-                                    </p>
-                                </div>
                             </div>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                ))}
             </div>
         </>
     );
