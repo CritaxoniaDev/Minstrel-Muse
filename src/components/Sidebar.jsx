@@ -198,7 +198,7 @@ const Sidebar = ({ user }) => {
 
             <Separator className="my-4" />
 
-            <div className="h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent hover:scrollbar-thumb-primary/20 pr-2">
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent hover:scrollbar-thumb-primary/20">
                 <div className="relative">
                     <div className="flex items-center gap-2 px-2 mb-4 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -214,7 +214,7 @@ const Sidebar = ({ user }) => {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="mb-16">
                         {users.slice(0, 3).map((user) => (
                             <div
                                 key={user.uid}
@@ -252,7 +252,7 @@ const Sidebar = ({ user }) => {
             {!isDesktop && (
                 <Button
                     variant="ghost"
-                    className="fixed top-4 left-4 z-50 lg:hidden"
+                    className="fixed top-4 left-4 z-[9999] lg:hidden"
                     onClick={() => setIsOpen(!isOpen)}
                 >
                     <Menu className="h-6 w-6" />
@@ -260,15 +260,17 @@ const Sidebar = ({ user }) => {
             )}
 
             <div className={cn(
-                "fixed left-0 h-screen w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-6 transition-transform duration-300 ease-in-out z-40",
+                "fixed left-0 h-screen w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/30 transition-transform duration-300 ease-in-out z-[9999]",
                 isDesktop ? "translate-x-0" : isOpen ? "translate-x-0" : "-translate-x-full"
             )}>
-                {sidebarContent}
+                <div className="p-6 space-y-4">
+                    {sidebarContent}
+                </div>
             </div>
 
             {!isDesktop && isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-30"
+                    className="fixed inset-0 bg-black/50 z-[9998]"
                     onClick={() => setIsOpen(false)}
                 />
             )}
