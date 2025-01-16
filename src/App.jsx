@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { useEffect, useState } from 'react';
 import { auth, db } from './config/firebase';
 import { cn } from "@/lib/utils";
-import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 import { Play, Pause, SkipBack, SkipForward, Volume2, ListMusic, X } from 'lucide-react';
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -40,6 +40,7 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [player, setPlayer] = useState(null);
   const [volume, setVolume] = useState(75);
+  const [playlists, setPlaylists] = useState([]);
   const [queue, setQueue] = useState([]);
   // State declarations with stable initial values
   const [currentTime, setCurrentTime] = useState(0);
@@ -252,6 +253,25 @@ function App() {
   }, [currentTrack]);
 
   useEffect(() => {
+    const fetchPlaylists = async () => {
+      if (user) {
+        const q = query(
+          collection(db, "playlists"),
+          where("userId", "==", user.uid)
+        );
+        const querySnapshot = await getDocs(q);
+        const playlistsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setPlaylists(playlistsData);
+      }
+    };
+
+    fetchPlaylists();
+  }, [user]);
+
+  useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setUser(user);
 
@@ -320,27 +340,25 @@ function App() {
             )
           } />
 
-          <Route path="/dashboard/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-
           <Route path="/dashboard/profile/:userId" element={
             <Profile />
           } />
 
-          <Route path="/dashboard/search" element={
-            <ProtectedRoute>
-              <SearchResults
-                results={searchResults}
-                currentTrack={currentTrack}
-                isPlaying={isPlaying}
-                onPlayPause={handlePlayPause}
-                onAddToQueue={handleAddToQueue}
-              />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/dashboard/search"
+            element={
+              <ProtectedRoute>
+                <SearchResults
+                  results={searchResults}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayPause={handlePlayPause}
+                  onAddToQueue={handleAddToQueue}
+                  playlists={playlists}
+                />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/dashboard/player"

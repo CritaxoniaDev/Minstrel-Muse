@@ -1,5 +1,14 @@
 import { Button } from "./ui/button";
-import { Play, Pause, Plus, Music2, SearchX } from "lucide-react";
+import { Play, Pause, Plus, Music2, SearchX, ListPlus } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { useToast } from '../hooks/use-toast';
 
 const decodeHTMLEntities = (text) => {
     const textarea = document.createElement('textarea');
@@ -7,7 +16,55 @@ const decodeHTMLEntities = (text) => {
     return textarea.value;
 };
 
-const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQueue }) => {
+const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQueue, playlists }) => {
+    const { toast } = useToast();
+
+    const handleAddToPlaylist = async (video, playlistId) => {
+        try {
+            // Get current playlist data
+            const playlistDoc = await getDoc(doc(db, "playlists", playlistId));
+            const playlistData = playlistDoc.data();
+    
+            // Check if song already exists
+            if (playlistData.tracks?.some(track => track.id === video.id)) {
+                toast({
+                    title: "Already in playlist",
+                    description: "This song is already in the selected playlist",
+                    duration: 3000,
+                });
+                return;
+            }
+    
+            // Create new track object
+            const newTrack = {
+                id: video.id,
+                title: video.title,
+                thumbnail: video.thumbnail,
+                channelTitle: video.channelTitle,
+                addedAt: new Date().toISOString()
+            };
+    
+            // Update playlist with new track
+            await updateDoc(doc(db, "playlists", playlistId), {
+                tracks: arrayUnion(newTrack)
+            });
+    
+            toast({
+                title: "Added to playlist",
+                description: "Song has been added to your playlist successfully",
+                duration: 3000,
+            });
+        } catch (error) {
+            console.error("Error adding song to playlist:", error);
+            toast({
+                title: "Error",
+                description: "Failed to add song to playlist",
+                variant: "destructive",
+                duration: 3000,
+            });
+        }
+    };    
+
     return (
         <div className="container mx-auto px-4 py-6 pb-24">
             <div className="flex items-center gap-2 mb-6">
@@ -57,7 +114,7 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
                                         {decodeHTMLEntities(video.title)}
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                    {decodeHTMLEntities(video.channelTitle)}
+                                        {decodeHTMLEntities(video.channelTitle)}
                                     </p>
                                 </div>
 
@@ -82,6 +139,31 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
                                     >
                                         <Plus className="h-4 w-4" />
                                     </Button>
+
+                                    {playlists && playlists.length > 0 && (
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                                >
+                                                    <ListPlus className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48">
+                                                {playlists.map((playlist) => (
+                                                    <DropdownMenuItem
+                                                        key={playlist.id}
+                                                        onClick={() => handleAddToPlaylist(video, playlist.id)}
+                                                        className="cursor-pointer hover:bg-accent/40"
+                                                    >
+                                                        {playlist.name}
+                                                    </DropdownMenuItem>
+                                                ))}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    )}
                                 </div>
                             </div>
                         </div>
