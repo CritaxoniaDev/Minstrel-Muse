@@ -162,19 +162,19 @@ const Dashboard = ({
                                     <span className="absolute inset-0 w-full h-full transition duration-500 ease-out transform translate-x-full bg-gradient-to-r from-purple-600 to-primary group-hover:-translate-x-0" />
                                     <span className="relative flex items-center gap-3 text-lg">
                                         <Music2 className="w-6 h-6 animate-pulse" />
-                                        <span className="font-semibold">My Library</span>
+                                        <span className="font-semibold tracking-tighter">My Library</span>
                                     </span>
                                 </Button>
 
                                 <Button
                                     variant="outline"
                                     className="relative overflow-hidden group border-2 border-primary/20 hover:border-primary/50 px-8 py-4"
-                                    onClick={() => navigate('/dashboard/search')}
+                                    onClick={() => navigate('/dashboard/discover')}
                                 >
                                     <span className="absolute inset-0 w-full h-full transition duration-500 ease-out transform -translate-x-full bg-gradient-to-r from-background via-primary/20 to-primary/10 group-hover:translate-x-0" />
                                     <span className="relative flex items-center gap-3 text-lg">
                                         <Search className="w-6 h-6 group-hover:animate-bounce" />
-                                        <span className="font-semibold">Discover Music</span>
+                                        <span className="font-semibold tracking-tighter">Discover Music</span>
                                     </span>
                                 </Button>
                             </div>

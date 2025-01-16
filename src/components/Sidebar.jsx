@@ -126,7 +126,7 @@ const Sidebar = ({ user }) => {
                         {user?.role === 'admin' ? 'Admin' : 'Online'}
                     </div>
                 </div>
-                <div className="text-center">
+                <div className="text-center tracking-tighter">
                     <h3 className="font-semibold text-lg">{user?.displayName}</h3>
                     <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
@@ -260,7 +260,7 @@ const Sidebar = ({ user }) => {
             )}
 
             <div className={cn(
-                "fixed left-0 h-screen w-64 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/30 transition-transform duration-300 ease-in-out z-[9999]",
+                "fixed left-0 h-screen w-64 tracking-tight border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/30 transition-transform duration-300 ease-in-out z-[9999]",
                 isDesktop ? "translate-x-0" : isOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <div className="p-6 space-y-4">

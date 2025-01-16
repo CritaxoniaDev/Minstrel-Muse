@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { auth, db } from './config/firebase';
+import { cn } from "@/lib/utils";
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Play, Pause, SkipBack, SkipForward, Volume2, ListMusic, X } from 'lucide-react';
 import { Slider } from "@/components/ui/slider";
@@ -420,7 +421,10 @@ function App() {
               className="hidden"
             />
             {currentTrack && !isPlayerPage && (
-              <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-50 animate-slide-up">
+              <div className={cn(
+                "fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-50 animate-slide-up",
+                isDesktop ? "ml-64" : "" // Add margin-left when sidebar is visible on desktop
+              )}>
                 <div className="flex max-w-7xl mx-auto items-center">
                   <div
                     className="flex items-center space-x-4 w-1/4 cursor-pointer"
