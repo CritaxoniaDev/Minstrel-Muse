@@ -21,6 +21,7 @@ import Layout from './components/Layout/layout';
 import Profile from './components/Profile/Profile';
 import Discover from './components/Discover';
 import SearchResults from './components/SearchResults';
+import UserManagement from './Admin/UserManagement';
 import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
 import MainPage from './components/MainPage';
@@ -384,6 +385,15 @@ function App() {
             }
           />
 
+          <Route
+            path="/dashboard/admin/users"
+            element={
+              user?.role === 'admin'
+                ? <UserManagement />
+                : <Navigate to="/dashboard" />
+            }
+          />
+
           <Route path="/dashboard/admin" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/dashboard" />} />
 
 
@@ -440,7 +450,7 @@ function App() {
             />
             {currentTrack && !isPlayerPage && (
               <div className={cn(
-                "fixed bottom-0 left-0 right-0 border-t bg-background p-4 z-50 animate-slide-up",
+                "fixed bottom-0 left-0 right-0 border-t z-[9998] bg-background p-4 z-50 animate-slide-up",
                 isDesktop ? "ml-64" : "" // Add margin-left when sidebar is visible on desktop
               )}>
                 <div className="flex max-w-7xl mx-auto items-center">

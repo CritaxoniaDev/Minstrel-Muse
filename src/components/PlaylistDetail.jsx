@@ -341,7 +341,7 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
                                                         <ArrowUpDown className="h-5 w-5" />
                                                     </Button>
                                                 </DrawerTrigger>
-                                                <DrawerContent className="bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-lg border-t-2 border-primary/20">
+                                                <DrawerContent className="z-[9999] bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-lg border-t-2 border-primary/20">
                                                     <DrawerHeader className="border-b border-primary/10">
                                                         <DrawerTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                                                             Reorder Track

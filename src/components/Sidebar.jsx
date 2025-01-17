@@ -51,22 +51,29 @@ const Sidebar = ({ user }) => {
         {
             icon: Users2,
             label: 'User Management',
-            path: '/dashboard/admin/users'
+            path: '/dashboard/admin/users',
+            badge: 'New'
         },
         {
             icon: BarChart3,
             label: 'Analytics',
-            path: '/dashboard/admin/analytics'
+            path: '/dashboard/admin/analytics',
+            disabled: true,
+            badge: 'Coming Soon'
         },
         {
             icon: Database,
             label: 'Content Manager',
-            path: '/dashboard/admin/content'
+            path: '/dashboard/admin/content',
+            disabled: true,
+            badge: 'Coming Soon'
         },
         {
             icon: Flag,
             label: 'Reports',
-            path: '/dashboard/admin/reports'
+            path: '/dashboard/admin/reports',
+            disabled: true,
+            badge: 'Coming Soon'
         }
     ];
 
@@ -171,20 +178,30 @@ const Sidebar = ({ user }) => {
                                     <Button
                                         key={index}
                                         variant="ghost"
+                                        disabled={item.disabled}
                                         className={cn(
                                             "w-full justify-start gap-2 hover:bg-accent/80 transition-all duration-200",
                                             window.location.pathname === item.path &&
-                                            "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-red-500"
+                                            "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-red-500",
+                                            item.disabled && "opacity-50 cursor-not-allowed hover:bg-transparent"
                                         )}
                                         onClick={() => {
-                                            navigate(item.path);
-                                            !isDesktop && setIsOpen(false);
+                                            if (!item.disabled) {
+                                                navigate(item.path);
+                                                !isDesktop && setIsOpen(false);
+                                            }
                                         }}
                                     >
-                                        <Icon className="h-4 w-4" />
+                                        <Icon className={cn("h-4 w-4", item.disabled && "text-muted-foreground")} />
                                         <span className="flex-1">{item.label}</span>
                                         {item.badge && (
-                                            <Badge variant="secondary" className="ml-auto">
+                                            <Badge
+                                                variant={item.disabled ? "outline" : "secondary"}
+                                                className={cn(
+                                                    "ml-auto",
+                                                    item.disabled && "animate-pulse"
+                                                )}
+                                            >
                                                 {item.badge}
                                             </Badge>
                                         )}
