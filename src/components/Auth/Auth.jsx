@@ -36,6 +36,7 @@ const Auth = () => {
                     photoURL: result.user.photoURL,
                     username: result.user.email.split('@')[0],
                     role: "user",
+                    isApproved: false,
                     createdAt: new Date().toISOString(),
                     favorites: [],
                     playlists: [],

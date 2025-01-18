@@ -26,7 +26,7 @@ const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
     const fetchTracks = async (query) => {
         setLoading(true);
         let attempts = 0;
-        while (attempts < 11) {
+        while (attempts < 13) {
             try {
                 const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
                     params: {

@@ -37,7 +37,7 @@ const Header = ({ user, onSearchResults }) => {
         }
 
         let attempts = 0;
-        while (attempts < 11) {
+        while (attempts < 13) {
             try {
                 const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
                     params: {
@@ -186,7 +186,7 @@ const Header = ({ user, onSearchResults }) => {
                         )}
                     </div>
 
-                    {user && (
+                    {user?.isApproved && (
                         <div ref={searchRef} className={cn(
                             "relative",
                             isMobile ? "w-full mx-2" : "flex-1 max-w-md mx-4"

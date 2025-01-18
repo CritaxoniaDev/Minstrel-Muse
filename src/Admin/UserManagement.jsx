@@ -78,6 +78,32 @@ const UserManagement = () => {
         }
     };
 
+    const handleApprovalChange = async (userId, isApproved) => {
+        try {
+            const userRef = doc(db, "users", userId);
+            await updateDoc(userRef, {
+                isApproved: isApproved
+            });
+    
+            setUsers(users.map(user =>
+                user.id === userId ? { ...user, isApproved } : user
+            ));
+    
+            toast({
+                title: "Status Updated",
+                description: `User ${isApproved ? 'approved' : 'pending approval'}`,
+                duration: 3000,
+            });
+        } catch (error) {
+            console.error("Error updating approval status:", error);
+            toast({
+                title: "Error",
+                description: "Failed to update user status",
+                variant: "destructive",
+            });
+        }
+    };
+
     const filteredUsers = users.filter(user =>
         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.displayName?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -148,6 +174,11 @@ const UserManagement = () => {
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
+                                            <span className="text-sm text-muted-foreground">
+                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
                                             <Select
                                                 defaultValue={user.role}
                                                 onValueChange={(value) => handleRoleChange(user.id, value)}
@@ -162,9 +193,18 @@ const UserManagement = () => {
                                             </Select>
                                         </TableCell>
                                         <TableCell>
-                                            <span className="text-sm text-muted-foreground">
-                                                {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                                            </span>
+                                            <Select
+                                                defaultValue={user.isApproved ? "approved" : "pending"}
+                                                onValueChange={(value) => handleApprovalChange(user.id, value === "approved")}
+                                            >
+                                                <SelectTrigger className="w-32">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="pending">Pending</SelectItem>
+                                                    <SelectItem value="approved">Approved</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </TableCell>
                                     </TableRow>
                                 ))}

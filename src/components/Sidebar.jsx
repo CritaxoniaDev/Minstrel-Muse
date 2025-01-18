@@ -50,10 +50,10 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
     const adminMenuItems = [
         { icon: Shield, label: 'Admin Panel', path: '/dashboard/admin' },
         { icon: Users2, label: 'User Management', path: '/dashboard/admin/users' },
-        { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics', disabled: true },
-        { icon: Database, label: 'Content Manager', path: '/dashboard/admin/content', disabled: true },
-        { icon: Flag, label: 'Reports', path: '/dashboard/admin/reports', disabled: true }
     ];
+
+    const visibleMenuItems = user?.isApproved ? menuItems : [];
+    const visibleAdminItems = user?.isApproved && user?.role === 'admin' ? adminMenuItems : [];
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -153,7 +153,7 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
 
                     <nav className="space-y-4">
                         <div className="space-y-2">
-                            {menuItems.map((item, index) => {
+                            {visibleMenuItems.map((item, index) => {
                                 const Icon = item.icon;
                                 return (
                                     <Button
@@ -191,7 +191,7 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                     </div>
                                 )}
                                 <div className="space-y-1">
-                                    {adminMenuItems.map((item, index) => {
+                                    {visibleAdminItems.map((item, index) => {
                                         const Icon = item.icon;
                                         return (
                                             <Button
@@ -238,97 +238,99 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
 
                     {!isMinimized && <Separator className="my-4" />}
 
-                    <div className="flex-1 scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent hover:scrollbar-thumb-primary/20">
-                        <div className="relative">
-                            {!isMinimized ? (
-                                // Existing full-width view
-                                <div className="flex items-center gap-2 px-2 mb-4 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">
-                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <Users className="h-4 w-4 text-primary animate-pulse" />
-                                    </div>
-                                    <div className="flex items-center justify-between w-full">
-                                        <h3 className="font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                                            Active Users
-                                        </h3>
-                                        <span className="text-xs text-muted-foreground">
-                                            {users.length} online
-                                        </span>
-                                    </div>
-                                </div>
-                            ) : (
-                                // Minimized view - just the icon
-                                <div className="flex justify-center mb-4">
-                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <Users className="h-4 w-4 text-primary animate-pulse" />
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className={cn("mb-16", isMinimized && "flex flex-col items-center gap-2")}>
-                                {users.slice(0, 3).map((user) => (
-                                    <div
-                                        key={user.uid}
-                                        className={cn(
-                                            "group transition-all duration-300 cursor-pointer",
-                                            isMinimized ? "p-1" : "flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
-                                        )}
-                                        onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
-                                    >
-                                        <div className="relative">
-                                            {isMinimized ? (
-                                                <TooltipProvider delayDuration={0}>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Avatar className={cn(
-                                                                "border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20",
-                                                                "h-10 w-10"
-                                                            )}>
-                                                                <AvatarImage src={user?.photoURL} />
-                                                                <AvatarFallback className="bg-primary/10">
-                                                                    {user?.name?.charAt(0) || user?.email?.charAt(0)}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent
-                                                            side="right"
-                                                            className="flex flex-col gap-1 z-[99999]"
-                                                            sideOffset={5}
-                                                        >
-                                                            <p className="font-medium">{user?.name || 'Anonymous'}</p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {user.isOnline ? 'Active now' : 'Offline'}
-                                                            </p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            ) : (
-                                                // Existing Avatar code for non-minimized state
-                                                <Avatar className="h-12 w-12 border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20">
-                                                    <AvatarImage src={user?.photoURL} />
-                                                    <AvatarFallback className="bg-primary/10">
-                                                        {user?.name?.charAt(0) || user?.email?.charAt(0)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                            )}
-                                            <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'} ${user.isOnline ? 'animate-pulse' : ''}`} />
+                    {user?.isApproved && (
+                        <div className="flex-1 scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent hover:scrollbar-thumb-primary/20">
+                            <div className="relative">
+                                {!isMinimized ? (
+                                    // Existing full-width view
+                                    <div className="flex items-center gap-2 px-2 mb-4 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">
+                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <Users className="h-4 w-4 text-primary animate-pulse" />
                                         </div>
-
-                                        {!isMinimized && (
-                                            // Existing user info for non-minimized state
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-                                                    {user?.name || 'Anonymous'}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground group-hover:text-primary/70">
-                                                    {user.isOnline ? 'Active now' : 'Offline'}
-                                                </p>
-                                            </div>
-                                        )}
+                                        <div className="flex items-center justify-between w-full">
+                                            <h3 className="font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                                                Active Users
+                                            </h3>
+                                            <span className="text-xs text-muted-foreground">
+                                                {users.length} online
+                                            </span>
+                                        </div>
                                     </div>
-                                ))}
+                                ) : (
+                                    // Minimized view - just the icon
+                                    <div className="flex justify-center mb-4">
+                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <Users className="h-4 w-4 text-primary animate-pulse" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className={cn("mb-16", isMinimized && "flex flex-col items-center gap-2")}>
+                                    {users.slice(0, 3).map((user) => (
+                                        <div
+                                            key={user.uid}
+                                            className={cn(
+                                                "group transition-all duration-300 cursor-pointer",
+                                                isMinimized ? "p-1" : "flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+                                            )}
+                                            onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
+                                        >
+                                            <div className="relative">
+                                                {isMinimized ? (
+                                                    <TooltipProvider delayDuration={0}>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Avatar className={cn(
+                                                                    "border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20",
+                                                                    "h-10 w-10"
+                                                                )}>
+                                                                    <AvatarImage src={user?.photoURL} />
+                                                                    <AvatarFallback className="bg-primary/10">
+                                                                        {user?.name?.charAt(0) || user?.email?.charAt(0)}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent
+                                                                side="right"
+                                                                className="flex flex-col gap-1 z-[99999]"
+                                                                sideOffset={5}
+                                                            >
+                                                                <p className="font-medium">{user?.name || 'Anonymous'}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {user.isOnline ? 'Active now' : 'Offline'}
+                                                                </p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                ) : (
+                                                    // Existing Avatar code for non-minimized state
+                                                    <Avatar className="h-12 w-12 border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20">
+                                                        <AvatarImage src={user?.photoURL} />
+                                                        <AvatarFallback className="bg-primary/10">
+                                                            {user?.name?.charAt(0) || user?.email?.charAt(0)}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                )}
+                                                <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'} ${user.isOnline ? 'animate-pulse' : ''}`} />
+                                            </div>
+
+                                            {!isMinimized && (
+                                                // Existing user info for non-minimized state
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                                                        {user?.name || 'Anonymous'}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground group-hover:text-primary/70">
+                                                        {user.isOnline ? 'Active now' : 'Offline'}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 

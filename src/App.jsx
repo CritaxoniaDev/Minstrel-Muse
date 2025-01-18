@@ -327,107 +327,88 @@ function App() {
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
 
-          {/* Protected Dashboard Routes */}
-          <Route path="/dashboard" element={
-            user ? (
-              <Dashboard
-                user={user}
-                currentTrack={currentTrack}
-                isPlaying={isPlaying}
-                onPlayPause={handlePlayPause}
-                onSkipBack={handleSkipBack}
-                onSkipForward={handleSkipForward}
-                volume={volume}
-                onVolumeChange={handleVolumeChange}
-                queue={queue}
-                currentUser={user}
-              />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          } />
+          {!user ? (
+            <Route path="*" element={<Navigate to="/" />} />
+          ) : !user.isApproved ? (
+            <Route path="*" element={<PendingApproval />} />
+          ) : (
+            <>
+              <Route path="/dashboard" element={
+                <Dashboard
+                  user={user}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayPause={handlePlayPause}
+                  onSkipBack={handleSkipBack}
+                  onSkipForward={handleSkipForward}
+                  volume={volume}
+                  onVolumeChange={handleVolumeChange}
+                  queue={queue}
+                  currentUser={user}
+                />
+              } />
+              <Route path="/dashboard/profile/:userId" element={<Profile />} />
+              <Route path="/dashboard/search" element={
+                <SearchResults
+                  results={searchResults}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayPause={handlePlayPause}
+                  onAddToQueue={handleAddToQueue}
+                  playlists={playlists}
+                />
+              } />
+              <Route path="/dashboard/player" element={
+                <FullPlayerView
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayPause={() => currentTrack && handlePlayPause(currentTrack)}
+                  onSkipBack={handleSkipBack}
+                  onSkipForward={handleSkipForward}
+                  currentTime={currentTime}
+                  duration={duration}
+                  formatTime={formatTime}
+                  volume={volume}
+                  onVolumeChange={handleVolumeChange}
+                  player={player}
+                  setCurrentTime={setCurrentTime}
+                  isLooping={isLooping}
+                  handleLoopToggle={handleLoopToggle}
+                  queue={queue}
+                  handleRemoveFromQueue={handleRemoveFromQueue}
+                />
+              } />
+              <Route path="/dashboard/admin/users" element={
+                user?.role === 'admin' ? <UserManagement /> : <Navigate to="/dashboard" />
+              } />
+              <Route path="/dashboard/admin" element={
+                user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/dashboard" />
+              } />
+              <Route path="/dashboard/discover" element={
+                <Discover
+                  onPlayPause={handlePlayPause}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onAddToQueue={handleAddToQueue}
+                />
+              } />
+              <Route path="/dashboard/library" element={
+                <Library
+                  user={user}
+                  onPlayPause={handlePlayPause}
+                  onAddToQueue={handleAddToQueue}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                />
+              } />
+              <Route path="/dashboard/library/:id" element={
+                <PlaylistDetail user={user} onPlayPause={handlePlayPause} />
+              } />
+            </>
+          )}
 
-          <Route path="/dashboard/profile/:userId" element={
-            <Profile />
-          } />
-
-          <Route
-            path="/dashboard/search"
-            element={
-              <SearchResults
-                results={searchResults}
-                currentTrack={currentTrack}
-                isPlaying={isPlaying}
-                onPlayPause={handlePlayPause}
-                onAddToQueue={handleAddToQueue}
-                playlists={playlists}
-              />
-            }
-          />
-
-          <Route
-            path="/dashboard/player"
-            element={
-              <FullPlayerView
-                currentTrack={currentTrack}
-                isPlaying={isPlaying}
-                onPlayPause={() => currentTrack && handlePlayPause(currentTrack)}
-                onSkipBack={handleSkipBack}
-                onSkipForward={handleSkipForward}
-                currentTime={currentTime}
-                duration={duration}
-                formatTime={formatTime}
-                volume={volume}
-                onVolumeChange={handleVolumeChange}
-                player={player}
-                setCurrentTime={setCurrentTime}
-                isLooping={isLooping}
-                handleLoopToggle={handleLoopToggle}
-                queue={queue}
-                handleRemoveFromQueue={handleRemoveFromQueue}
-              />
-            }
-          />
-
-          <Route
-            path="/dashboard/admin/users"
-            element={
-              user?.role === 'admin'
-                ? <UserManagement />
-                : <Navigate to="/dashboard" />
-            }
-          />
-
-          <Route path="/dashboard/admin" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/dashboard" />} />
-
-
-          <Route path="/dashboard/discover" element={
-            <Discover
-              onPlayPause={handlePlayPause}
-              currentTrack={currentTrack}
-              isPlaying={isPlaying}
-              onAddToQueue={handleAddToQueue}
-            />
-          } />
-
-          <Route path="/dashboard/library" element={
-            <Library
-              user={user}
-              onPlayPause={handlePlayPause}
-              onAddToQueue={handleAddToQueue}
-              currentTrack={currentTrack}
-              isPlaying={isPlaying}
-            />
-          } />
-
-          <Route path="/dashboard/library/:id" element={
-            <PlaylistDetail user={user} onPlayPause={handlePlayPause} />
-          } />
-
-          {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-
         {user && (
           <>
             <YouTube
