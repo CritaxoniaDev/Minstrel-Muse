@@ -348,7 +348,6 @@ function App() {
           <Route
             path="/dashboard/search"
             element={
-              <ProtectedRoute>
                 <SearchResults
                   results={searchResults}
                   currentTrack={currentTrack}
@@ -357,7 +356,6 @@ function App() {
                   onAddToQueue={handleAddToQueue}
                   playlists={playlists}
                 />
-              </ProtectedRoute>
             }
           />
 

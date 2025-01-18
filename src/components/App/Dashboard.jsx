@@ -134,6 +134,13 @@ const Dashboard = ({
         return textarea.value;
     };
 
+    const getTimeOfDay = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'morning';
+        if (hour < 18) return 'afternoon';
+        return 'evening';
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
             {/* Hero Welcome Section */}
