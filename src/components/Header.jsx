@@ -5,13 +5,18 @@ import { Input } from './ui/input';
 import { LogOut, Search, Music2, User2 } from 'lucide-react';
 import { auth } from '../config/firebase';
 import { useTheme } from 'next-themes';
+import { useMediaQuery } from 'react-responsive';
 import { Moon, Sun } from 'lucide-react';
 import axios from 'axios';
 import { getYoutubeApiKey, rotateApiKey } from '../config/youtube-api';
 import { Card } from './ui/card';
+import { cn } from "@/lib/utils";
 import { ScrollArea } from './ui/scroll-area';
 
 const Header = ({ user, onSearchResults }) => {
+    const isMobile = useMediaQuery({ maxWidth: 767 });
+    const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+    const isDesktop = useMediaQuery({ minWidth: 1024 });
     const navigate = useNavigate();
     const { theme, setTheme } = useTheme();
     const [searchQuery, setSearchQuery] = useState('');
@@ -174,19 +179,24 @@ const Header = ({ user, onSearchResults }) => {
                                 <Music2 className="h-8 w-8 text-white bg-gradient-to-r from-purple-600 to-blue-600 p-1.5 rounded-full" />
                             </div>
                         </div>
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent group-hover:scale-105 transition-transform">
-                            MinstrelMuse
-                        </h1>
+                        {!isMobile && (
+                            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent group-hover:scale-105 transition-transform">
+                                MinstrelMuse
+                            </h1>
+                        )}
                     </div>
 
                     {user && (
-                        <div ref={searchRef} className="flex-1 max-w-md mx-4 relative">
+                        <div ref={searchRef} className={cn(
+                            "relative",
+                            isMobile ? "w-full mx-2" : "flex-1 max-w-md mx-4"
+                        )}>
                             <form onSubmit={handleFormSubmit}>
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
                                         type="search"
-                                        placeholder="Search music..."
+                                        placeholder={isMobile ? "Search..." : "Search music..."}
                                         value={searchQuery}
                                         onChange={handleSearchInput}
                                         onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
@@ -196,7 +206,10 @@ const Header = ({ user, onSearchResults }) => {
                             </form>
 
                             {showSuggestions && suggestions.length > 0 && (
-                                <Card className="absolute w-full mt-2 overflow-hidden border-2 border-muted">
+                                <Card className={cn(
+                                    "absolute mt-2 overflow-hidden border-2 border-muted",
+                                    isMobile ? "w-[calc(100vw-2rem)] left-1/2 -translate-x-1/2" : "w-full"
+                                )}>
                                     <ScrollArea className="max-h-[300px]">
                                         <div className="p-2 space-y-1">
                                             {suggestions.map((suggestion) => (
@@ -222,9 +235,11 @@ const Header = ({ user, onSearchResults }) => {
                                                         <span className="text-sm font-medium line-clamp-1 group-hover/item:text-purple-600 transition-colors">
                                                             {decodeHTMLEntities(suggestion.title)}
                                                         </span>
-                                                        <span className="text-xs text-muted-foreground">
-                                                            {decodeHTMLEntities(suggestion.channelTitle)}
-                                                        </span>
+                                                        {!isMobile && (
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {decodeHTMLEntities(suggestion.channelTitle)}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}
@@ -235,7 +250,7 @@ const Header = ({ user, onSearchResults }) => {
                         </div>
                     )}
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4">
                         <Button
                             variant="ghost"
                             size="icon"
@@ -248,24 +263,23 @@ const Header = ({ user, onSearchResults }) => {
                                 <Moon className="h-5 w-5 text-purple-600" />
                             )}
                         </Button>
-                        {!user && (
+                        {!user ? (
                             <Button
                                 variant="default"
                                 className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                                 onClick={() => navigate('/login')}
                             >
-                                Login
-                                <User2 className="ml-2 h-4 w-4" />
+                                {!isMobile && "Login"}
+                                <User2 className={cn("h-4 w-4", !isMobile && "ml-2")} />
                             </Button>
-                        )}
-                        {user && (
+                        ) : (
                             <Button
                                 variant="default"
                                 onClick={handleSignOut}
                                 className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                             >
-                                <LogOut className="h-4 w-4 mr-2" />
-                                Sign Out
+                                <LogOut className="h-4 w-4" />
+                                {!isMobile && <span className="ml-2">Sign Out</span>}
                             </Button>
                         )}
                     </div>

@@ -55,6 +55,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const isPlayerPage = location.pathname === '/dashboard/player';
+  const [isMinimized, setIsMinimized] = useState(true);
 
   const handleLoopToggle = () => {
     setIsLooping(!isLooping);
@@ -316,7 +317,12 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <Toaster className="z-[99999]" />
-      <Layout user={user} onSearchResults={setSearchResults}>
+      <Layout
+        user={user}
+        onSearchResults={setSearchResults}
+        isMinimized={isMinimized}
+        setIsMinimized={setIsMinimized}
+      >
         <Routes>
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
@@ -348,14 +354,14 @@ function App() {
           <Route
             path="/dashboard/search"
             element={
-                <SearchResults
-                  results={searchResults}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayPause={handlePlayPause}
-                  onAddToQueue={handleAddToQueue}
-                  playlists={playlists}
-                />
+              <SearchResults
+                results={searchResults}
+                currentTrack={currentTrack}
+                isPlaying={isPlaying}
+                onPlayPause={handlePlayPause}
+                onAddToQueue={handleAddToQueue}
+                playlists={playlists}
+              />
             }
           />
 
@@ -449,7 +455,7 @@ function App() {
             {currentTrack && !isPlayerPage && (
               <div className={cn(
                 "fixed bottom-0 left-0 right-0 border-t z-[9998] bg-background p-4 z-50 animate-slide-up",
-                isDesktop ? "ml-64" : "" // Add margin-left when sidebar is visible on desktop
+                isDesktop ? (isMinimized ? "ml-20" : "ml-64") : ""
               )}>
                 <div className="flex max-w-7xl mx-auto items-center">
                   <div

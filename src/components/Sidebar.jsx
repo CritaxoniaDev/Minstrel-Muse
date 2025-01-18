@@ -42,11 +42,11 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
     ];
 
     const adminMenuItems = [
-        { icon: Shield, label: 'Admin Panel', path: '/dashboard/admin', badge: 'New' },
-        { icon: Users2, label: 'User Management', path: '/dashboard/admin/users', badge: 'New' },
-        { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics', disabled: true, badge: 'Coming Soon' },
-        { icon: Database, label: 'Content Manager', path: '/dashboard/admin/content', disabled: true, badge: 'Coming Soon' },
-        { icon: Flag, label: 'Reports', path: '/dashboard/admin/reports', disabled: true, badge: 'Coming Soon' }
+        { icon: Shield, label: 'Admin Panel', path: '/dashboard/admin' },
+        { icon: Users2, label: 'User Management', path: '/dashboard/admin/users' },
+        { icon: BarChart3, label: 'Analytics', path: '/dashboard/admin/analytics', disabled: true },
+        { icon: Database, label: 'Content Manager', path: '/dashboard/admin/content', disabled: true },
+        { icon: Flag, label: 'Reports', path: '/dashboard/admin/reports', disabled: true }
     ];
 
     useEffect(() => {
@@ -100,10 +100,10 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                 isMinimized ? "w-20" : "w-64",
                 isDesktop ? "translate-x-0" : isOpen ? "translate-x-0" : "-translate-x-full"
             )}>
-                <div className={cn("p-6 space-y-4", isMinimized && "p-2")}>
+                <div className={cn("px-6 py-2 space-y-4", isMinimized && "p-2")}>
                     {isDesktop && (
                         <div className={cn(
-                            "flex mb-4",
+                            "flex",
                             isMinimized ? "justify-center" : "justify-end"
                         )}>
                             <Button
@@ -117,14 +117,14 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                         </div>
                     )}
 
-                    <div className="flex flex-col items-center space-y-4 mb-8">
+                    <div className="flex flex-col items-center space-y-4">
                         <div className="relative group">
                             <img
                                 src={user?.photoURL}
                                 alt={user?.displayName}
                                 className={cn(
                                     "rounded-full border-4 border-purple-500/20 transition-transform duration-300 group-hover:scale-105",
-                                    isMinimized ? "h-10 w-10" : "h-24 w-24"
+                                    isMinimized ? "h-10 w-10" : "h-18 w-18"
                                 )}
                                 onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
                             />
@@ -174,6 +174,8 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                 );
                             })}
                         </div>
+
+                        {!isMinimized && <Separator className="my-4" />}
 
                         {user?.role === 'admin' && (
                             <div className="pt-4">
@@ -227,6 +229,8 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                             </div>
                         )}
                     </nav>
+
+                    {!isMinimized && <Separator className="my-4" />}
 
                     <div className="flex-1 scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent hover:scrollbar-thumb-primary/20">
                         <div className="relative">
