@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { db } from "@/config/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
@@ -7,7 +8,12 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { useState, useEffect } from 'react';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const useMediaQuery = (query) => {
     const [matches, setMatches] = useState(false);
@@ -269,19 +275,46 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                         onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
                                     >
                                         <div className="relative">
-                                            <Avatar className={cn(
-                                                "border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20",
-                                                isMinimized ? "h-10 w-10" : "h-12 w-12"
-                                            )}>
-                                                <AvatarImage src={user?.photoURL} />
-                                                <AvatarFallback className="bg-primary/10">
-                                                    {user?.name?.charAt(0) || user?.email?.charAt(0)}
-                                                </AvatarFallback>
-                                            </Avatar>
+                                            {isMinimized ? (
+                                                <TooltipProvider delayDuration={0}>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Avatar className={cn(
+                                                                "border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20",
+                                                                "h-10 w-10"
+                                                            )}>
+                                                                <AvatarImage src={user?.photoURL} />
+                                                                <AvatarFallback className="bg-primary/10">
+                                                                    {user?.name?.charAt(0) || user?.email?.charAt(0)}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent
+                                                            side="right"
+                                                            className="flex flex-col gap-1 z-[99999]"
+                                                            sideOffset={5}
+                                                        >
+                                                            <p className="font-medium">{user?.name || 'Anonymous'}</p>
+                                                            <p className="text-xs text-muted-foreground">
+                                                                {user.isOnline ? 'Active now' : 'Offline'}
+                                                            </p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            ) : (
+                                                // Existing Avatar code for non-minimized state
+                                                <Avatar className="h-12 w-12 border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20">
+                                                    <AvatarImage src={user?.photoURL} />
+                                                    <AvatarFallback className="bg-primary/10">
+                                                        {user?.name?.charAt(0) || user?.email?.charAt(0)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                            )}
                                             <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'} ${user.isOnline ? 'animate-pulse' : ''}`} />
                                         </div>
 
                                         {!isMinimized && (
+                                            // Existing user info for non-minimized state
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
                                                     {user?.name || 'Anonymous'}
