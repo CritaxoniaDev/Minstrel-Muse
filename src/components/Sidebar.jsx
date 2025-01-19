@@ -184,10 +184,10 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                         {!isMinimized && <Separator className="my-4" />}
 
                         {user?.role === 'admin' && (
-                            <div className="pt-4">
+                            <>
                                 {!isMinimized && (
                                     <div className="px-3 mb-2">
-                                        <h2 className="text-sm font-semibold text-primary">Admin Dashboard</h2>
+                                        <h2 className="text-sm font-semibold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">Admin Dashboard</h2>
                                     </div>
                                 )}
                                 <div className="space-y-1">
@@ -197,42 +197,30 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                             <Button
                                                 key={index}
                                                 variant="ghost"
-                                                disabled={item.disabled}
                                                 className={cn(
-                                                    "w-full transition-all duration-200",
-                                                    isMinimized ? "px-2 justify-center" : "justify-start gap-2",
+                                                    "w-full transition-all duration-200 group hover:bg-red-500/5",
+                                                    isMinimized ? "px-2 justify-center" : "justify-start",
                                                     window.location.pathname === item.path &&
-                                                    "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-red-500",
-                                                    item.disabled && "opacity-50 cursor-not-allowed hover:bg-transparent"
+                                                    "bg-gradient-to-r from-red-500/10 to-orange-500/10 text-red-500"
                                                 )}
                                                 onClick={() => {
                                                     if (isMinimized) {
                                                         setIsMinimized(false);
-                                                    } else if (!item.disabled) {
+                                                    } else {
                                                         navigate(item.path);
                                                         !isDesktop && setIsOpen(false);
                                                     }
                                                 }}
                                             >
-                                                <Icon className={cn("h-4 w-4", item.disabled && "text-muted-foreground")} />
+                                                <Icon className="h-4 w-4 group-hover:text-red-500 transition-colors" />
                                                 {!isMinimized && (
-                                                    <>
-                                                        <span className="flex-1">{item.label}</span>
-                                                        {item.badge && (
-                                                            <Badge
-                                                                variant={item.disabled ? "outline" : "secondary"}
-                                                                className={cn("ml-auto", item.disabled && "animate-pulse")}
-                                                            >
-                                                                {item.badge}
-                                                            </Badge>
-                                                        )}
-                                                    </>
+                                                    <span className="group-hover:text-red-500 transition-colors">{item.label}</span>
                                                 )}
                                             </Button>
                                         );
                                     })}
                                 </div>
-                            </div>
+                            </>
                         )}
                     </nav>
 
