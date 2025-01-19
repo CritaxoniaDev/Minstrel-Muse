@@ -44,11 +44,53 @@ module.exports = {
 					'0%': { transform: 'translateY(0)' },
 					'100%': { transform: 'translateY(24px)' },
 				},
+				'grid-beam': {
+					'0%': {
+						transform: 'translateX(-100%) translateY(-100%)',
+						opacity: 0
+					},
+					'50%': {
+						opacity: 1
+					},
+					'100%': {
+						transform: 'translateX(100%) translateY(100%)',
+						opacity: 0
+					}
+				},
+				'grid-beam-horizontal': {
+					'0%': {
+						transform: 'translateX(-200%)',
+						opacity: 0
+					},
+					'50%': {
+						opacity: 1
+					},
+					'100%': {
+						transform: 'translateX(200%)',
+						opacity: 0
+					}
+				},
+				'grid-beam-vertical': {
+					'0%': {
+						transform: 'translateY(-200%)',
+						opacity: 0
+					},
+					'50%': {
+						opacity: 1
+					},
+					'100%': {
+						transform: 'translateY(200%)',
+						opacity: 0
+					}
+				}
 			},
 			animation: {
 				marquee: 'marquee 15s linear infinite',
 				'slide-up': 'slide-up 0.3s ease-out',
 				'grid-fade-in': 'grid-fade-in 2s ease-out forwards',
+				'grid-beam': 'grid-beam 3s linear infinite',
+				'grid-beam-horizontal': 'grid-beam-horizontal 8s linear infinite',
+				'grid-beam-vertical': 'grid-beam-vertical 8s linear infinite',
 				'grid-slide-horizontal': 'grid-slide-horizontal 20s linear infinite',
 				'grid-slide-vertical': 'grid-slide-vertical 20s linear infinite',
 			},

@@ -10,23 +10,68 @@ const MainPage = () => {
     return (
         <div className="min-h-screen flex items-center justify-center relative mt-[-6.6rem] overflow-hidden">
             {/* Animated Drawing Grid Background */}
-            <div className="absolute inset-0 -z-10">
-                <div className="absolute inset-0
-                    [background-size:50px_50px]
-                    [mask-image:linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)]
-                    [mask-size:50px_50px]
-                    animate-grid-fade-in">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10" />
-                    <div className="absolute inset-0
-                        bg-[repeating-linear-gradient(to_right,#4f4f4f1a_0px,#4f4f4f1a_1px,transparent_1px,transparent_50px)]
-                        animate-grid-slide-horizontal" />
-                    <div className="absolute inset-0
-                        bg-[repeating-linear-gradient(to_bottom,#4f4f4f1a_0px,#4f4f4f1a_1px,transparent_1px,transparent_50px)]
-                        animate-grid-slide-vertical" />
-                </div>
-                {/* Keep the existing gradient orbs */}
-                <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-purple-500 opacity-20 blur-[100px]" />
-                <div className="absolute left-20 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-blue-500 opacity-20 blur-[100px]" />
+            <div className="absolute inset-0 [background-size:50px_50px] [mask-image:linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] [mask-size:50px_50px] animate-grid-fade-in">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10" />
+
+                {/* Left-to-right horizontal beams */}
+                {[...Array(8)].map((_, i) => (
+                    <div
+                        key={`hl-${i}`}
+                        className="absolute h-[2px] w-[200px] animate-grid-beam-horizontal"
+                        style={{
+                            background: 'linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.8), transparent)',
+                            top: `${Math.floor(Math.random() * 20) * 50}px`,
+                            left: '0',
+                            animationDelay: `${i * 1.5}s`
+                        }}
+                    />
+                ))}
+
+                {/* Right-to-left horizontal beams */}
+                {[...Array(8)].map((_, i) => (
+                    <div
+                        key={`hr-${i}`}
+                        className="absolute h-[2px] w-[200px] animate-grid-beam-horizontal"
+                        style={{
+                            background: 'linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.8), transparent)',
+                            top: `${Math.floor(Math.random() * 20) * 50}px`,
+                            right: '0',
+                            transform: 'rotate(180deg)',
+                            animationDelay: `${i * 1.5}s`
+                        }}
+                    />
+                ))}
+
+                {/* Left side vertical beams */}
+                {[...Array(8)].map((_, i) => (
+                    <div
+                        key={`vl-${i}`}
+                        className="absolute h-[200px] w-[2px] animate-grid-beam-vertical"
+                        style={{
+                            background: 'linear-gradient(180deg, transparent, rgba(59, 130, 246, 0.8), transparent)',
+                            left: `${Math.floor(Math.random() * 10) * 50}px`,
+                            top: '0',
+                            animationDelay: `${i * 1.5}s`
+                        }}
+                    />
+                ))}
+
+                {/* Right side vertical beams */}
+                {[...Array(8)].map((_, i) => (
+                    <div
+                        key={`vr-${i}`}
+                        className="absolute h-[200px] w-[2px] animate-grid-beam-vertical"
+                        style={{
+                            background: 'linear-gradient(180deg, transparent, rgba(59, 130, 246, 0.8), transparent)',
+                            right: `${Math.floor(Math.random() * 10) * 50}px`,
+                            top: '0',
+                            animationDelay: `${i * 1.5}s`
+                        }}
+                    />
+                ))}
+
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(to_right,#4f4f4f1a_0px,#4f4f4f1a_1px,transparent_1px,transparent_50px)] animate-grid-slide-horizontal" />
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(to_bottom,#4f4f4f1a_0px,#4f4f4f1a_1px,transparent_1px,transparent_50px)] animate-grid-slide-vertical" />
             </div>
 
             {/* Animated Circles */}
