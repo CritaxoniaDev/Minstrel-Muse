@@ -130,7 +130,7 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                 alt={user?.displayName}
                                 className={cn(
                                     "rounded-full border-4 border-purple-500/20 transition-transform duration-300 group-hover:scale-105",
-                                    isMinimized ? "h-10 w-10" : "h-18 w-18"
+                                    isMinimized ? "h-10 w-10" : "h-[5.1rem] w-[5.1rem]"
                                 )}
                                 onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
                             />
@@ -254,7 +254,7 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                 )}
 
                                 <div className={cn("mb-16", isMinimized && "flex flex-col items-center gap-2")}>
-                                    {users.slice(0, 3).map((user) => (
+                                    {users.filter(u => u.uid !== user.uid).slice(0, 3).map((user) => (
                                         <div
                                             key={user.uid}
                                             className={cn(

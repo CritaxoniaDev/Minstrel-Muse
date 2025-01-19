@@ -86,7 +86,7 @@ const Auth = () => {
             </video>
             <Card className="mx-auto shadow-2xl w-full max-w-4xl h-[600px] grid md:grid-cols-2 overflow-hidden bg-white/5 backdrop-blur-lg">
                 {/* Left Side - Visual Section */}
-                <div className="relative hidden md:block h-full">
+                <div className="relative tracking-tighter hidden md:block h-full">
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-500 to-purple-700">
                         <div className="absolute inset-0 bg-black/30" />
                         <img
@@ -112,7 +112,7 @@ const Auth = () => {
                 </div>
 
                 {/* Right Side - Auth Form */}
-                <div className="p-12 flex flex-col items-center justify-center min-h-full bg-white">
+                <div className="p-12 tracking-tighter flex flex-col items-center justify-center min-h-full bg-white">
                     <div className="w-full max-w-md mx-auto backdrop-blur-sm">
                         <CardHeader className="space-y-4 px-0 text-center mb-10">
                             <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-gradient">
