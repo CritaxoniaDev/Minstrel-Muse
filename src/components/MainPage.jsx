@@ -63,9 +63,76 @@ const MainPage = () => {
                     <Music2 className="h-24 w-24 text-white bg-gradient-to-r from-purple-600 to-blue-600 p-5 rounded-full relative" />
                 </motion.div>
 
-                <h1 className="text-7xl font-bold tracking-tighter bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                    MinstrelMuse
-                </h1>
+                <div className="relative">
+                    {/* Decorative corner elements */}
+                    <svg className="absolute -left-12 -top-8 w-12 h-12 text-purple-500 animate-pulse opacity-70">
+                        <path d="M2 10 C2 10, 10 10, 10 2" stroke="currentColor" strokeWidth="2" fill="none">
+                            <animate attributeName="d" dur="3s" repeatCount="indefinite"
+                                values="M2 10 C2 10, 10 10, 10 2;M2 10 C2 6, 14 6, 10 2;M2 10 C2 10, 10 10, 10 2" />
+                        </path>
+                    </svg>
+
+                    <svg className="absolute -right-12 -top-8 w-12 h-12 text-blue-500 animate-pulse opacity-70">
+                        <path d="M10 10 C10 10, 2 10, 2 2" stroke="currentColor" strokeWidth="2" fill="none">
+                            <animate attributeName="d" dur="3s" repeatCount="indefinite"
+                                values="M10 10 C10 10, 2 10, 2 2;M10 10 C10 6, -2 6, 2 2;M10 10 C10 10, 2 10, 2 2" />
+                        </path>
+                    </svg>
+
+                    {/* Musical note decorations */}
+                    <div className="absolute -left-16 top-1/2 transform -translate-y-1/2">
+                        <svg className="w-8 h-8 text-purple-400" viewBox="0 0 24 24">
+                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                                fill="currentColor">
+                                <animate attributeName="opacity" values="0.3;0.7;0.3" dur="4s" repeatCount="indefinite" />
+                            </path>
+                        </svg>
+                    </div>
+
+                    <div className="absolute -right-16 top-1/2 transform -translate-y-1/2">
+                        <svg className="w-8 h-8 text-blue-400" viewBox="0 0 24 24">
+                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                                fill="currentColor">
+                                <animate attributeName="opacity" values="0.7;0.3;0.7" dur="4s" repeatCount="indefinite" />
+                            </path>
+                        </svg>
+                    </div>
+
+                    <h1 className="text-7xl font-bold tracking-tighter bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                        MinstrelMuse
+                    </h1>
+
+                    {/* Animated underline */}
+                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-3 w-48 h-1">
+                        <svg className="w-full h-full">
+                            <line x1="0" y1="0" x2="100%" y2="0" stroke="url(#gradient)" strokeWidth="2">
+                                <animate attributeName="stroke-dasharray" values="0 100%;100% 0" dur="3s" repeatCount="indefinite" />
+                            </line>
+                            <defs>
+                                <linearGradient id="gradient" x1="0" y1="0" x2="100%" y2="0">
+                                    <stop offset="0%" stopColor="#9333ea">
+                                        <animate attributeName="offset" values="0;1;0" dur="3s" repeatCount="indefinite" />
+                                    </stop>
+                                    <stop offset="50%" stopColor="#3b82f6">
+                                        <animate attributeName="offset" values="0.5;1.5;0.5" dur="3s" repeatCount="indefinite" />
+                                    </stop>
+                                    <stop offset="100%" stopColor="#9333ea">
+                                        <animate attributeName="offset" values="1;2;1" dur="3s" repeatCount="indefinite" />
+                                    </stop>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    {/* Sparkle effects */}
+                    <div className="absolute -top-6 left-1/4 animate-ping">
+                        <Sparkles className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <div className="absolute -bottom-6 right-1/4 animate-ping delay-300">
+                        <Sparkles className="w-4 h-4 text-blue-400" />
+                    </div>
+                </div>
+
 
                 <p className="text-2xl text-muted-foreground tracking-tighter font-light">
                     Where Poetry Meets Melody in the Digital Age
