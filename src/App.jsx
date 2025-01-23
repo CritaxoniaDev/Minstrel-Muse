@@ -105,21 +105,41 @@ function App() {
           }
           return prev;
         });
-
-        // Only check for end conditions when we're very close to the end
-        if (totalDuration - time <= 0.5) {
-          if (isLooping) {
-            event.target.seekTo(0);
-            setCurrentTime(0);
-          } else {
-            handleSkipForward();
-            clearInterval(interval);
-          }
-        }
       }, 250);
 
       setTimeUpdateInterval(interval);
-      return () => clearInterval(interval);
+    }
+
+    if (event.data === 0) { // Ended
+      if (isLooping) {
+        event.target.seekTo(0);
+        event.target.playVideo();
+        setCurrentTime(0);
+      } else if (queue.length > 0) {
+        const nextTrack = queue[0];
+        const remainingTracks = queue.slice(1);
+        setCurrentTrack(nextTrack);
+        setQueue(remainingTracks);
+        setIsPlaying(true);
+
+        toast({
+          title: "Now Playing",
+          description: `${nextTrack.title}`,
+          duration: 3000,
+        });
+      } else {
+        const audio = new Audio(endSound);
+        audio.play();
+        setHasPlayedEndSound(true);
+        setCurrentTrack(null);
+        setIsPlaying(false);
+
+        toast({
+          title: "Queue Finished",
+          description: "No more tracks in queue",
+          duration: 3000,
+        });
+      }
     }
   };
 
@@ -173,12 +193,11 @@ function App() {
       setCurrentTrack(video);
       setIsPlaying(true);
 
-      // Add remaining tracks to queue
       if (remainingTracks.length > 0) {
-        setQueue(prevQueue => [...remainingTracks]);
+        setQueue(remainingTracks);
         toast({
-          title: "Playlist loaded",
-          description: `Added ${remainingTracks.length} tracks to queue`,
+          title: "Playing from Queue",
+          description: `${video.title} - ${remainingTracks.length} tracks remaining`,
           duration: 3000,
         });
       }
@@ -206,8 +225,9 @@ function App() {
   const handleSkipForward = () => {
     if (queue.length > 0) {
       const nextTrack = queue[0];
+      const remainingTracks = queue.slice(1);
       setCurrentTrack(nextTrack);
-      setQueue(queue.slice(1));
+      setQueue(remainingTracks);
       setIsPlaying(true);
       setHasPlayedEndSound(false);
       toast({
@@ -223,7 +243,7 @@ function App() {
         setCurrentTrack(null);
         setIsPlaying(false);
         toast({
-          title: "Playback Ended",
+          title: "Queue Finished",
           description: "No more tracks in queue",
           duration: 3000,
         });
@@ -541,48 +561,84 @@ function App() {
                       </PopoverTrigger>
                       <PopoverContent className="w-80 p-0" align="end">
                         <div className="p-4 border-b">
-                          <h4 className="font-semibold">Queue</h4>
-                          <p className="text-xs text-muted-foreground">Up next in your queue</p>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold">Queue</h4>
+                              <p className="text-xs text-muted-foreground">Up next in your queue</p>
+                            </div>
+                            {queue.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={clearQueue}
+                                className="text-xs"
+                              >
+                                Clear Queue
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         <div className="max-h-96 overflow-auto">
-                          {queue.map((video, index) => (
-                            <div
-                              key={video.id}
-                              className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
-                            >
-                              <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
-                              <img
-                                src={video.thumbnail}
-                                alt={video.title}
-                                className="w-10 h-10 rounded object-cover"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{video.title}</p>
-                                <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handlePlayPause(video)}
-                                >
-                                  {currentTrack?.id === video.id && isPlaying ? (
-                                    <Pause className="h-4 w-4" />
-                                  ) : (
-                                    <Play className="h-4 w-4" />
-                                  )}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleRemoveFromQueue(index)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
+                          {currentTrack && (
+                            <div className="p-3 bg-accent/50">
+                              <p className="text-xs font-medium mb-2">Now Playing</p>
+                              <div className="flex items-center space-x-3">
+                                <img
+                                  src={currentTrack.thumbnail}
+                                  alt={currentTrack.title}
+                                  className="w-10 h-10 rounded object-cover"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{currentTrack.title}</p>
+                                  <p className="text-xs text-muted-foreground">{currentTrack.channelTitle}</p>
+                                </div>
                               </div>
                             </div>
-                          ))}
+                          )}
+                          {queue.length > 0 ? (
+                            queue.map((video, index) => (
+                              <div
+                                key={video.id}
+                                className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
+                              >
+                                <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
+                                <img
+                                  src={video.thumbnail}
+                                  alt={video.title}
+                                  className="w-10 h-10 rounded object-cover"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{video.title}</p>
+                                  <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      const remainingTracks = queue.slice(index + 1);
+                                      handlePlayPause(video, remainingTracks);
+                                      setQueue(remainingTracks);
+                                    }}
+                                  >
+                                    <Play className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleRemoveFromQueue(index)}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-4 text-center text-sm text-muted-foreground">
+                              Queue is empty
+                            </div>
+                          )}
                         </div>
                       </PopoverContent>
                     </Popover>
