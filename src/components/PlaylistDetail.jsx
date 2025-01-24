@@ -203,204 +203,213 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
 
     return (
         <div className="container mx-auto px-4 py-6">
-            <CardTitle className="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                {playlist.name}
-            </CardTitle>
+            <div className="relative">
+                {/* Hero Section */}
+                <div className="relative h-[300px] rounded-xl overflow-hidden mb-8">
+                    {playlist?.coverImage ? (
+                        <>
+                            <img
+                                src={playlist.coverImage}
+                                alt={playlist.name}
+                                className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+                        </>
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-purple-600/20 to-blue-600/20 flex items-center justify-center">
+                            <Music2 className="w-32 h-32 text-primary/30" />
+                        </div>
+                    )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <Card className="bg-gradient-to-br from-background/80 to-background border-2 border-primary/20">
-                        <CardHeader className="border-b border-primary/10">
-                            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent flex items-center gap-3">
-                                <Plus className="w-6 h-6" />
-                                Add Tracks
+                    {/* Playlist Info Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-8">
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                            {playlist?.name}
+                        </h1>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <Music2 className="w-4 h-4" />
+                            <span>{playlist?.tracks?.length || 0} tracks</span>
+                            <span>•</span>
+                            <span>Created {new Date(playlist?.createdAt).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Search Section */}
+                <Card className="mb-8 border-2 border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                            Add Tracks
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSearch} className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search for tracks..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-10 focus-visible:ring-purple-600"
+                                />
+                            </div>
+                            <Button
+                                type="submit"
+                                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                            >
+                                Search
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                {/* Search Results */}
+                {searchResults.length > 0 && (
+                    <Card className="mb-8 border-2 border-primary/20">
+                        <CardHeader>
+                            <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                Search Results
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="pt-6">
-                            <form onSubmit={handleSearch} className="flex gap-2 mb-6">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search for tracks..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-10 focus-visible:ring-purple-600 bg-background/50"
-                                    />
-                                </div>
-                                <Button
-                                    type="submit"
-                                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:opacity-90"
-                                >
-                                    Search
-                                </Button>
-                            </form>
-
-                            <div className="space-y-3">
+                        <CardContent>
+                            <div className="space-y-2">
                                 {searchResults.map((video) => (
                                     <div
                                         key={video.id}
-                                        className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300 hover:shadow-md hover:scale-[1.01]"
+                                        className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300"
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className="relative group/image">
+                                            <div className="relative">
                                                 <img
                                                     src={video.thumbnail}
                                                     alt={video.title}
-                                                    className="w-12 h-12 rounded-lg object-cover transition-transform duration-300 group-hover/image:scale-105"
+                                                    className="w-16 h-16 rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
                                                 />
-                                                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover/image:opacity-100 transition-opacity" />
+                                                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </div>
-
-                                            <div className="flex flex-col gap-1">
-                                                <p className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                                            <div>
+                                                <p className="font-semibold group-hover:text-primary transition-colors line-clamp-1">
                                                     {video.title}
                                                 </p>
-                                                <p className="text-xs text-muted-foreground group-hover:text-primary/70 transition-colors">
+                                                <p className="text-sm text-muted-foreground">
                                                     {video.channelTitle}
                                                 </p>
                                             </div>
                                         </div>
-
-                                        <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handlePlayTrack(video)}
-                                                className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
-                                            >
-                                                {currentTrack?.id === video.id && isPlaying ? (
-                                                    <Pause className="h-5 w-5" />
-                                                ) : (
-                                                    <Play className="h-5 w-5" />
-                                                )}
-                                            </Button>
-
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleAddToPlaylist(video)}
-                                                className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
-                                            >
-                                                <Plus className="h-5 w-5" />
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            onClick={() => handleAddToPlaylist(video)}
+                                            variant="ghost"
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                        >
+                                            <Plus className="h-5 w-5" />
+                                        </Button>
                                     </div>
                                 ))}
                             </div>
                         </CardContent>
                     </Card>
-                </div>
+                )}
 
-                <div>
-                    <Card className="bg-gradient-to-br from-background/80 to-background border-2 border-primary/20">
-                        <CardHeader className="border-b border-primary/10">
-                            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent flex items-center gap-3">
-                                <Music2 className="w-6 h-6" />
-                                Playlist Tracks
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                            <div className="space-y-3">
-                                {playlist.tracks?.map((track, index) => (
-                                    <div
-                                        key={track.id}
-                                        className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300 hover:shadow-md hover:scale-[1.01] relative"
-                                    >
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-50 pl-2 text-sm font-medium text-primary">
+                {/* Playlist Tracks */}
+                <Card className="border-2 border-primary/20">
+                    <CardHeader>
+                        <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                            Tracks
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {playlist?.tracks?.map((track, index) => (
+                                <div
+                                    key={track.id}
+                                    className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-6 text-sm text-muted-foreground">
                                             {index + 1}
                                         </div>
-
-                                        <div className="flex items-center gap-4 pl-8">
-                                            <div className="relative group/image">
-                                                <img
-                                                    src={track.thumbnail}
-                                                    alt={track.title}
-                                                    className="w-12 h-12 rounded-lg object-cover transition-transform duration-300 group-hover/image:scale-105"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover/image:opacity-100 transition-opacity" />
-                                            </div>
-
-                                            <div className="flex flex-col gap-1">
-                                                <p className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1">
-                                                    {track.title}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground group-hover:text-primary/70 transition-colors">
-                                                    {track.channelTitle}
-                                                </p>
-                                            </div>
+                                        <div className="relative">
+                                            <img
+                                                src={track.thumbnail}
+                                                alt={track.title}
+                                                className="w-16 h-16 rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </div>
-
-                                        <div className="flex items-center gap-3">
-                                            <Drawer>
-                                                <DrawerTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
-                                                    >
-                                                        <ArrowUpDown className="h-5 w-5" />
-                                                    </Button>
-                                                </DrawerTrigger>
-                                                <DrawerContent className="z-[9999] bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-lg border-t-2 border-primary/20">
-                                                    <DrawerHeader className="border-b border-primary/10">
-                                                        <DrawerTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                                            Reorder Track
-                                                        </DrawerTitle>
-                                                        <p className="text-sm text-muted-foreground mt-2">
-                                                            Current Position: {index + 1}
-                                                        </p>
-                                                    </DrawerHeader>
-                                                    <div className="p-6 flex justify-center items-center">
-                                                        <div className={`grid ${playlist.tracks.length <= 4 ? 'grid-cols-4' : 'grid-cols-8'} auto-rows-auto gap-2 place-items-center w-fit mx-auto`}>
-                                                            {Array.from({ length: playlist.tracks.length }, (_, i) => (
-                                                                <Button
-                                                                    key={i}
-                                                                    variant={i === index ? "default" : "outline"}
-                                                                    onClick={() => handleReorderTrack(track.id, i)}
-                                                                    className={`h-10 w-10 rounded-lg transition-all duration-300 ${i === index
-                                                                            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                                                                            : 'hover:bg-gradient-to-r hover:from-purple-600/90 hover:to-blue-600/90 hover:text-white'
-                                                                        }`}
-                                                                >
-                                                                    {i + 1}
-                                                                </Button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-sm text-muted-foreground mb-4 text-center">
-                                                        Click on a number to move "{track.title}" to that position
-                                                    </p>
-                                                </DrawerContent>
-                                            </Drawer>
-
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handlePlayTrack(track)}
-                                                className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
-                                            >
-                                                {currentTrack?.id === track.id && isPlaying ? (
-                                                    <Pause className="h-5 w-5" />
-                                                ) : (
-                                                    <Play className="h-5 w-5" />
-                                                )}
-                                            </Button>
-
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleDeleteTrack(track)}
-                                                className="rounded-full hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
-                                            >
-                                                <X className="h-5 w-5" />
-                                            </Button>
+                                        <div>
+                                            <p className="font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                                                {track.title}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {track.channelTitle}
+                                            </p>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Drawer>
+                                            <DrawerTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                                >
+                                                    <ArrowUpDown className="h-5 w-5" />
+                                                </Button>
+                                            </DrawerTrigger>
+                                            <DrawerContent className="z-[9999] bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-lg border-t-2 border-primary/20">
+                                                <DrawerHeader className="border-b border-primary/10">
+                                                    <DrawerTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                                        Reorder Track
+                                                    </DrawerTitle>
+                                                    <p className="text-sm text-muted-foreground mt-2">
+                                                        Current Position: {index + 1}
+                                                    </p>
+                                                </DrawerHeader>
+                                                <div className="p-6 flex justify-center items-center">
+                                                    <div className={`grid ${playlist.tracks.length <= 4 ? 'grid-cols-4' : 'grid-cols-8'} auto-rows-auto gap-2 place-items-center w-fit mx-auto`}>
+                                                        {Array.from({ length: playlist.tracks.length }, (_, i) => (
+                                                            <Button
+                                                                key={i}
+                                                                variant={i === index ? "default" : "outline"}
+                                                                onClick={() => handleReorderTrack(track.id, i)}
+                                                                className={`h-10 w-10 rounded-lg transition-all duration-300 ${i === index
+                                                                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                                                                    : 'hover:bg-gradient-to-r hover:from-purple-600/90 hover:to-blue-600/90 hover:text-white'
+                                                                    }`}
+                                                            >
+                                                                {i + 1}
+                                                            </Button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mb-4 text-center">
+                                                    Click on a number to move "{track.title}" to that position
+                                                </p>
+                                            </DrawerContent>
+                                        </Drawer>
+                                        <Button
+                                            onClick={() => handlePlayTrack(track)}
+                                            variant="ghost"
+                                            className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                        >
+                                            {currentTrack?.id === track.id && isPlaying ? (
+                                                <Pause className="h-5 w-5" />
+                                            ) : (
+                                                <Play className="h-5 w-5" />
+                                            )}
+                                        </Button>
+                                        <Button
+                                            onClick={() => handleDeleteTrack(track)}
+                                            variant="ghost"
+                                            className="rounded-full hover:bg-destructive hover:text-destructive-foreground"
+                                        >
+                                            <X className="h-5 w-5" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

@@ -35,6 +35,7 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [initialSongs, setInitialSongs] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [playlistImage, setPlaylistImage] = useState(null);
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -61,6 +62,30 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
         fetchPlaylists();
     }, [user]);
 
+    const handlePlaylistImageUpload = (file) => {
+        return new Promise((resolve, reject) => {
+            if (!file) return resolve(null);
+
+            if (file.size > 1048576) {
+                toast({
+                    title: "Image too large",
+                    description: "Please select an image under 1MB",
+                    variant: "destructive",
+                });
+                reject('Image must be less than 1MB');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64String = e.target.result;
+                resolve(base64String);
+            };
+            reader.onerror = (error) => reject(error);
+            reader.readAsDataURL(file);
+        });
+    };
+
     const handleCreatePlaylist = async (e) => {
         e.preventDefault();
 
@@ -84,10 +109,16 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
 
         setIsLoading(true);
         try {
+            let imageData = null;
+            if (playlistImage) {
+                imageData = await handlePlaylistImageUpload(playlistImage);
+            }
+
             const playlistData = {
                 name: newPlaylistName,
                 userId: user.uid,
                 createdAt: new Date().toISOString(),
+                coverImage: imageData, // This will store the base64 string
                 tracks: initialSongs.map(song => ({
                     id: song.id,
                     title: song.title,
@@ -113,6 +144,7 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
             setInitialSongs([]);
             setSearchResults([]);
             setSearchQuery('');
+            setPlaylistImage(null);
             setShowCreateForm(false);
 
         } catch (error) {
@@ -268,6 +300,20 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
                                     onChange={(e) => setNewPlaylistName(e.target.value)}
                                     className="focus-visible:ring-purple-600"
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="playlist-image">Playlist Cover Image</Label>
+                                <Input
+                                    id="playlist-image"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+                                        setPlaylistImage(file);
+                                    }}
+                                    className="focus-visible:ring-purple-600"
+                                />
+                                <p className="text-xs text-muted-foreground">Max size: 1MB</p>
                             </div>
 
                             <Separator />
@@ -425,22 +471,43 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <div className="relative">
+                                {playlist.coverImage ? (
+                                    <div className="relative h-48 w-full">
+                                        <img
+                                            src={playlist.coverImage}
+                                            alt={playlist.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/90" />
+                                    </div>
+                                ) : (
+                                    <div className="h-48 w-full bg-gradient-to-r from-purple-600/5 to-blue-600/5 flex items-center justify-center">
+                                        <Music2 className="w-20 h-20 text-primary/20" />
+                                    </div>
+                                )}
+                            </div>
+
+                            <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                                    <div className="p-2 rounded-full bg-primary/10 backdrop-blur-sm group-hover:bg-primary/20 transition-colors">
                                         <Music2 className="w-6 h-6 text-primary group-hover:text-purple-500 transition-colors" />
                                     </div>
                                     <div>
                                         <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                                             {playlist.name}
                                         </CardTitle>
+                                        <p className="text-sm text-muted-foreground">
+                                            Created {new Date(playlist.createdAt).toLocaleDateString()}
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0 translate-x-4">
+
+                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0 translate-x-4">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="rounded-full bg-purple-600/10 hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
+                                        className="rounded-full bg-purple-600/10 backdrop-blur-sm hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white transition-all duration-300"
                                         onClick={(e) => handlePlayPlaylist(e, playlist)}
                                     >
                                         <Play className="h-5 w-5" />
@@ -450,7 +517,7 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="rounded-full bg-red-600/10 hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
+                                                className="rounded-full bg-red-600/10 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -483,12 +550,13 @@ const Library = ({ user, onPlayPause, onAddToQueue }) => {
                                     </AlertDialog>
                                 </div>
                             </CardHeader>
-                            <CardContent>
+
+                            <CardContent className="relative z-10">
                                 <div className="flex items-center gap-2">
-                                    <div className="h-1 flex-1 bg-primary/10 rounded-full overflow-hidden">
+                                    <div className="h-1.5 flex-1 bg-primary/10 rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-gradient-to-r from-purple-600 to-blue-600 group-hover:animate-pulse"
-                                            style={{ width: `${(playlist.tracks?.length || 0) * 10}%` }}
+                                            style={{ width: `${Math.min((playlist.tracks?.length || 0) * 10, 100)}%` }}
                                         />
                                     </div>
                                     <p className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
