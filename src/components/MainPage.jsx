@@ -1,14 +1,98 @@
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { auth } from '../config/firebase';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Music2, Youtube, Headphones, Radio, Sparkles, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
 
 const MainPage = () => {
     const user = auth.currentUser;
+    const [showCopyright, setShowCopyright] = useState(true);
 
     return (
         <div className="min-h-screen flex items-center justify-center relative mt-[-6.6rem] overflow-hidden">
+            <AnimatePresence>
+                {showCopyright && (
+                    <motion.div
+                        className="fixed tracking-tighter inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                    >
+                        <motion.div
+                            initial={{ y: -20 }}
+                            animate={{ y: 0 }}
+                            exit={{ y: 20 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                        >
+                            <Card className="w-[90%] max-w-[500px] p-6 bg-gradient-to-r from-purple-500/10 to-blue-500/10 backdrop-blur-md border border-purple-500/20">
+                                <CardContent className="space-y-4 text-center relative">
+                                    {/* Animated corner decorations */}
+                                    <div className="absolute -top-2 -left-2 w-4 h-4 border-t-2 border-l-2 border-purple-500/50" />
+                                    <div className="absolute -top-2 -right-2 w-4 h-4 border-t-2 border-r-2 border-blue-500/50" />
+                                    <div className="absolute -bottom-2 -left-2 w-4 h-4 border-b-2 border-l-2 border-blue-500/50" />
+                                    <div className="absolute -bottom-2 -right-2 w-4 h-4 border-b-2 border-r-2 border-purple-500/50" />
+
+                                    {/* Icon row with animations */}
+                                    <motion.div
+                                        className="flex justify-center space-x-8 mb-6"
+                                        initial={{ y: -20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1 }}
+                                        transition={{ duration: 0.5 }}
+                                    >
+                                        <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
+                                            <Youtube className="h-8 w-8 text-red-500" />
+                                        </motion.div>
+                                        <motion.div whileHover={{ scale: 1.1, rotate: -5 }}>
+                                            <Headphones className="h-8 w-8 text-purple-500" />
+                                        </motion.div>
+                                        <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
+                                            <Radio className="h-8 w-8 text-blue-500" />
+                                        </motion.div>
+                                    </motion.div>
+
+                                    {/* Title with gradient and sparkles */}
+                                    <div className="relative">
+                                        <Sparkles className="absolute -left-8 top-1/2 w-4 h-4 text-purple-400 animate-pulse" />
+                                        <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                                            Copyright Notice
+                                        </h2>
+                                        <Sparkles className="absolute -right-8 top-1/2 w-4 h-4 text-blue-400 animate-pulse" />
+                                    </div>
+
+                                    {/* Content with animated gradient underline */}
+                                    <div className="relative">
+                                        <p className="text-black-200 leading-relaxed">
+                                            This application integrates with YouTube and Google Firebase services.
+                                            All content accessed through YouTube is subject to YouTube's Terms of Service
+                                            and copyright policies.
+                                        </p>
+                                        <div className="absolute -bottom-2 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent animate-pulse" />
+                                    </div>
+
+                                    {/* Animated button */}
+                                    <motion.div
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        <Button
+                                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 mt-6 w-full relative group overflow-hidden"
+                                            onClick={() => setShowCopyright(false)}
+                                        >
+                                            <span className="relative z-10 flex items-center justify-center">
+                                                I Understand
+                                                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                            </span>
+                                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        </Button>
+                                    </motion.div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             {/* Animated Drawing Grid Background */}
             <div className="absolute inset-0 [background-size:50px_50px] [mask-image:linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] [mask-size:50px_50px] animate-grid-fade-in">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10" />
@@ -184,12 +268,12 @@ const MainPage = () => {
                 </p>
 
                 <div className="flex items-center justify-center gap-4 pt-8">
-                    <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90">
+                    {/* <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90">
                         Get Started <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                     <Button size="lg" variant="outline" className="backdrop-blur-md bg-opacity-20">
                         Learn More
-                    </Button>
+                    </Button> */}
                 </div>
             </motion.div>
         </div>
