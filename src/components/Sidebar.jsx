@@ -43,8 +43,7 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
     const menuItems = [
         { icon: Home, label: 'Home', path: '/dashboard' },
         { icon: Compass, label: 'Discover', path: '/dashboard/discover' },
-        { icon: Library, label: 'Library', path: '/dashboard/library' },
-        { icon: Settings, label: 'Settings', path: '/dashboard/settings' }
+        { icon: Library, label: 'Library', path: '/dashboard/library' }
     ];
 
     const adminMenuItems = [

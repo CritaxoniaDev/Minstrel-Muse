@@ -9,6 +9,7 @@ import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import axios from 'axios';
 import { getYoutubeApiKey, rotateApiKey } from '../config/youtube-api';
 import { useToast } from "../hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { Slider } from "./ui/slider";
 import { ArrowUpDown } from "lucide-react";
@@ -19,6 +20,7 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
     const [playlist, setPlaylist] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchPlaylist = async () => {
@@ -235,80 +237,84 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
                     </div>
                 </div>
 
-                {/* Search Section */}
-                <Card className="mb-8 border-2 border-primary/20">
-                    <CardHeader>
-                        <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                {/* Add Track Dialog */}
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button
+                            className="mb-8 bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                        >
+                            <Plus className="h-5 w-5 mr-2" />
                             Add Tracks
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleSearch} className="flex gap-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search for tracks..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 focus-visible:ring-purple-600"
-                                />
-                            </div>
-                            <Button
-                                type="submit"
-                                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                            >
-                                Search
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                Add Tracks to Playlist
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <form onSubmit={handleSearch} className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search for tracks..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-10 focus-visible:ring-purple-600"
+                                    />
+                                </div>
+                                <Button
+                                    type="submit"
+                                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                                >
+                                    Search
+                                </Button>
+                            </form>
 
-                {/* Search Results */}
-                {searchResults.length > 0 && (
-                    <Card className="mb-8 border-2 border-primary/20">
-                        <CardHeader>
-                            <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                Search Results
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                {searchResults.map((video) => (
-                                    <div
-                                        key={video.id}
-                                        className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className="relative">
-                                                <img
-                                                    src={video.thumbnail}
-                                                    alt={video.title}
-                                                    className="w-16 h-16 rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold group-hover:text-primary transition-colors line-clamp-1">
-                                                    {video.title}
-                                                </p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {video.channelTitle}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            onClick={() => handleAddToPlaylist(video)}
-                                            variant="ghost"
-                                            className="opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                            {/* Search Results */}
+                            {searchResults.length > 0 && (
+                                <div className="max-h-[400px] overflow-y-auto space-y-2">
+                                    {searchResults.map((video) => (
+                                        <div
+                                            key={video.id}
+                                            className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300"
                                         >
-                                            <Plus className="h-5 w-5" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                                            <div className="flex items-center gap-4">
+                                                <div className="relative">
+                                                    <img
+                                                        src={video.thumbnail}
+                                                        alt={video.title}
+                                                        className="w-16 h-16 rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                                                        {video.title}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {video.channelTitle}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                onClick={() => {
+                                                    handleAddToPlaylist(video);
+                                                    setIsDialogOpen(false);
+                                                }}
+                                                variant="ghost"
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                            >
+                                                <Plus className="h-5 w-5" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
 
                 {/* Playlist Tracks */}
                 <Card className="border-2 border-primary/20">
