@@ -1,52 +1,182 @@
 import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs, doc, updateDoc, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User } from 'lucide-react';
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getYoutubeApiKey, rotateApiKey } from '../../config/youtube-api';
-import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import axios from 'axios';
-import { useMediaQuery } from 'react-responsive';
+import { getYoutubeApiKey, rotateApiKey } from '@/config/youtube-api';
 import {
-    Play,
-    Pause,
-    Music2,
-    Users,
-    Clock,
-    Heart,
-    Search,
-    ChevronLeft,
-    ChevronRight
+    Play, Pause, Music2, Users, Clock, Heart, Search,
+    Mic2, Sparkles, Radio, Flame, Library, Plus, MoreHorizontal,
+    Calendar, TrendingUp, History, Star, Loader2
 } from "lucide-react";
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
-const Dashboard = ({
-    user,
-    currentUser, // Add this prop
-    currentTrack,
-    isPlaying,
-    onPlayPause,
-}) => {
-    // Add responsive breakpoints
-    const isMobile = useMediaQuery({ maxWidth: 767 });
-    const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
-    const isDesktop = useMediaQuery({ minWidth: 1024 });
+const featuredPlaylists = [
+    {
+        id: 1,
+        title: "Today's Top Hits",
+        description: "The hottest tracks right now",
+        coverUrl: "https://source.unsplash.com/random/400x400?music",
+        color: "from-rose-500 to-orange-500"
+    },
+    {
+        id: 2,
+        title: "Discover Weekly",
+        description: "Your personal mixtape",
+        coverUrl: "https://source.unsplash.com/random/400x400?concert",
+        color: "from-blue-500 to-purple-500"
+    },
+    {
+        id: 3,
+        title: "Chill Vibes",
+        description: "Relax and unwind",
+        coverUrl: "https://source.unsplash.com/random/400x400?relax",
+        color: "from-green-500 to-teal-500"
+    },
+    {
+        id: 4,
+        title: "Workout Energy",
+        description: "Power your workout",
+        coverUrl: "https://source.unsplash.com/random/400x400?workout",
+        color: "from-yellow-500 to-red-500"
+    }
+];
+
+const quickLinks = [
+    { icon: Star, label: "Favorites", path: "/favorites" },
+    { icon: History, label: "Recently Played", path: "/history" },
+    { icon: Library, label: "Your Library", path: "/library" },
+    { icon: TrendingUp, label: "Charts", path: "/charts" }
+];
+
+const Dashboard = ({ currentUser, currentTrack, isPlaying, onPlayPause }) => {
+    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [recentlyPlayed, setRecentlyPlayed] = useState([]);
-    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [trendingArtists, setTrendingArtists] = useState([]);
+    const [featuredPlaylists, setFeaturedPlaylists] = useState([]);
+
+    const fetchFeaturedPlaylists = async () => {
+        let attempts = 0;
+        while (attempts < 13) {
+            try {
+                const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+                    params: {
+                        part: 'snippet',
+                        maxResults: 4,
+                        key: getYoutubeApiKey(),
+                        type: 'playlist',
+                        q: 'music playlist hits'
+                    }
+                });
+
+                const playlists = response.data.items.map(item => ({
+                    id: item.id.playlistId,
+                    title: item.snippet.title,
+                    description: item.snippet.description,
+                    coverUrl: item.snippet.thumbnails.high.url,
+                    channelTitle: item.snippet.channelTitle
+                }));
+
+                setFeaturedPlaylists(playlists);
+                break;
+            } catch (error) {
+                if (error?.response?.status === 403 || error?.response?.status === 429) {
+                    rotateApiKey();
+                    attempts++;
+                } else {
+                    console.error('Error fetching playlists:', error);
+                    break;
+                }
+            }
+        }
+    };
+
+    // Add fetchFeaturedPlaylists to your useEffect
+    useEffect(() => {
+        const initializeDashboard = async () => {
+            await Promise.all([
+                fetchYoutubeVideos(),
+                fetchTrendingArtists(),
+                fetchFeaturedPlaylists()
+            ]);
+            setLoading(false);
+        };
+
+        initializeDashboard();
+    }, []);
+
+    const fetchTrendingArtists = async () => {
+        const artistQueries = [
+            'Taylor Swift official',
+            'Ed Sheeran official',
+            'Sarah Geronimo official',
+            'KZ Tandingan official',
+            'Morissette Amon official',
+            'Bruno Mars official',
+            'Ariana Grande official',
+            'Regine Velasquez official'
+        ];
+
+        let attempts = 0;
+        const allArtists = [];
+
+        while (attempts < 13 && allArtists.length < artistQueries.length) {
+            try {
+                const currentQuery = artistQueries[allArtists.length];
+                const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+                    params: {
+                        part: 'snippet',
+                        maxResults: 1,
+                        key: getYoutubeApiKey(),
+                        type: 'channel',
+                        q: currentQuery
+                    }
+                });
+
+                if (response.data.items.length > 0) {
+                    const artist = response.data.items[0];
+                    allArtists.push({
+                        id: artist.id.channelId,
+                        name: artist.snippet.title.replace(' - Topic', '').replace(' Official', ''),
+                        imageUrl: artist.snippet.thumbnails.high.url,
+                        description: artist.snippet.description,
+                        nationality: currentQuery.includes('Sarah') ||
+                            currentQuery.includes('KZ') ||
+                            currentQuery.includes('Morissette') ||
+                            currentQuery.includes('Regine') ? 'Filipino' : 'American'
+                    });
+                }
+            } catch (error) {
+                if (error?.response?.status === 403 || error?.response?.status === 429) {
+                    rotateApiKey();
+                    attempts++;
+                } else {
+                    console.error('Error fetching artists:', error);
+                    break;
+                }
+            }
+        }
+
+        setTrendingArtists(allArtists);
+    };
+
 
     useEffect(() => {
-        console.log('Current user role:', currentUser?.role);
-    }, [currentUser]);
+        const initializeDashboard = async () => {
+            await Promise.all([fetchYoutubeVideos(), fetchTrendingArtists()]);
+            setLoading(false);
+        };
+
+        initializeDashboard();
+    }, []);
 
     const fetchYoutubeVideos = async () => {
         let attempts = 0;
@@ -58,16 +188,16 @@ const Dashboard = ({
                         maxResults: 10,
                         key: getYoutubeApiKey(),
                         type: 'video',
-                        q: 'music trending'
+                        q: 'music hits',
+                        regionCode: 'US'
                     }
                 });
 
                 const videos = response.data.items.map(item => ({
                     id: item.id.videoId,
                     title: item.snippet.title,
-                    thumbnail: item.snippet.thumbnails.default.url,
+                    thumbnail: item.snippet.thumbnails.high.url,
                     channelTitle: item.snippet.channelTitle,
-                    duration: '3:45'
                 }));
 
                 setRecentlyPlayed(videos);
@@ -91,7 +221,6 @@ const Dashboard = ({
                     collection(db, "users"),
                     orderBy("createdAt", "desc")
                 );
-
                 const querySnapshot = await getDocs(usersQuery);
                 const usersList = querySnapshot.docs.map(doc => ({
                     uid: doc.id,
@@ -103,265 +232,193 @@ const Dashboard = ({
             }
         };
 
-        fetchUsers();
+        Promise.all([fetchUsers(), fetchYoutubeVideos()]);
     }, []);
 
-    const handleRoleChange = async (userId, currentRole) => {
-        try {
-            const newRole = currentRole === 'user' ? 'admin' : 'user';
-            const userRef = doc(db, "users", userId);
-            await updateDoc(userRef, {
-                role: newRole
-            });
-
-            setUsers(users.map(user =>
-                user.uid === userId
-                    ? { ...user, role: newRole }
-                    : user
-            ));
-        } catch (error) {
-            console.error("Error updating user role:", error);
-        }
-    };
-
-    useEffect(() => {
-        fetchYoutubeVideos();
-    }, []);
-
-    const decodeHTMLEntities = (text) => {
-        const textarea = document.createElement('textarea');
-        textarea.innerHTML = text;
-        return textarea.value;
-    };
-
-    const getTimeOfDay = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return 'morning';
-        if (hour < 18) return 'afternoon';
-        return 'evening';
-    };
+    if (loading) {
+        return <div className="flex items-center justify-center h-screen">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>;
+    }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-background to-background/80">
-            {/* Hero Welcome Section */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-background p-8 mb-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Left Content - Enhanced */}
-                        <div className="relative z-10 py-8 flex flex-col justify-center">
-                            <div className="relative">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-primary/10 blur-lg"></div>
-                                <h1 className="relative antialiased text-5xl font-bold tracking-tighter bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-gradient-x">
-                                    Welcome back, {currentUser?.displayName || 'Music Lover'}!
-                                    <span className="inline-block animate-wave">👋</span>
-                                </h1>
-                            </div>
-
-                            <p className="mt-6 text-md tracking-tighter text-muted-foreground max-w-xl leading-relaxed backdrop-blur-sm">
-                                Your personal music dashboard is ready. Discover trending tracks, manage your library, and connect with other music enthusiasts.
+        <div className="mb-10 min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background/95">
+            {/* Hero Section */}
+            <div className="relative px-6 pt-8 pb-24 bg-gradient-to-b from-primary/30 via-purple-500/10 to-background backdrop-blur-3xl">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="max-w-7xl mx-auto"
+                >
+                    <div className="flex items-center gap-4 mb-8">
+                        <Avatar className="h-24 w-24 border-4 border-white/10">
+                            <AvatarImage src={currentUser?.photoURL} />
+                            <AvatarFallback>
+                                {currentUser?.displayName?.[0] || 'M'}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h1 className="text-4xl font-bold tracking-tight">
+                                Welcome back, {currentUser?.displayName || 'Music Lover'}!
+                            </h1>
+                            <p className="text-muted-foreground">
+                                Ready to discover some great music?
                             </p>
-
-                            <div className="mt-8 flex gap-4">
-                                <Button
-                                    className="bg-primary hover:bg-primary/90 relative overflow-hidden group px-8 py-4"
-                                    onClick={() => navigate('/dashboard/library')}
-                                >
-                                    <span className="absolute inset-0 w-full h-full transition duration-500 ease-out transform translate-x-full bg-gradient-to-r from-purple-600 to-primary group-hover:-translate-x-0" />
-                                    <span className="relative flex items-center gap-3 text-lg">
-                                        <Music2 className="w-6 h-6 animate-pulse" />
-                                        <span className="font-semibold tracking-tighter">My Library</span>
-                                    </span>
-                                </Button>
-
-                                <Button
-                                    variant="outline"
-                                    className="relative overflow-hidden group border-2 border-primary/20 hover:border-primary/50 px-8 py-4"
-                                    onClick={() => navigate('/dashboard/discover')}
-                                >
-                                    <span className="absolute inset-0 w-full h-full transition duration-500 ease-out transform -translate-x-full bg-gradient-to-r from-background via-primary/20 to-primary/10 group-hover:translate-x-0" />
-                                    <span className="relative flex items-center gap-3 text-lg">
-                                        <Search className="w-6 h-6 group-hover:animate-bounce" />
-                                        <span className="font-semibold tracking-tighter">Discover Music</span>
-                                    </span>
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* Right Content - Enhanced Floating Elements */}
-                        <div className="relative hidden md:flex items-center justify-center perspective-1000">
-                            {/* Floating Headphones with enhanced animation */}
-                            <div className="absolute -top-20 right-0 z-20 animate-float-slow transform hover:scale-110 transition-all duration-700">
-                                <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-500/30 blur-2xl rounded-full"></div>
-                                <img
-                                    src="/resources/headphones.png"
-                                    alt="Headphones"
-                                    className="w-48 h-48 object-contain drop-shadow-2xl transform -rotate-12 hover:rotate-0 transition-all duration-700"
-                                />
-                            </div>
-
-                            <div className="relative w-[700px] h-[600px] animate-float-slower transform rotate-12 hover:rotate-6 transition-transform duration-700 group">
-                                {/* Enhanced background effects */}
-                                <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-purple-500/20 to-transparent rounded-3xl transform -rotate-6 scale-95 blur-xl group-hover:scale-100 transition-all duration-700" />
-                                <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] animate-grid-flow" />
-
-                                <img
-                                    src="/resources/mockup.png"
-                                    alt="Phone Mockup"
-                                    className="w-full h-full object-contain drop-shadow-2xl transform hover:scale-105 transition-transform duration-500"
-                                />
-
-                                {/* Enhanced logo with glow effect */}
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                    <div className="absolute inset-0 bg-primary/20 blur-2xl animate-pulse"></div>
-                                    <img
-                                        src="/images/minstrel-logo.png"
-                                        alt="Minstrel Logo"
-                                        className="relative w-32 h-32 object-contain animate-float drop-shadow-[0_0_25px_rgba(255,255,255,0.7)]"
-                                    />
-                                </div>
-
-                                {/* Enhanced decorative elements */}
-                                <div className="absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-full blur-3xl animate-pulse" />
-                                <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-gradient-to-r from-purple-500/20 to-primary/20 rounded-full blur-3xl animate-pulse-slow" />
-                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Enhanced background grid */}
-                <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] animate-grid-flow opacity-50" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        {quickLinks.map((link) => (
+                            <Button
+                                key={link.path}
+                                variant="ghost"
+                                className="h-auto py-6 flex flex-col items-center gap-2 hover:bg-primary/10"
+                                onClick={() => navigate(link.path)}
+                            >
+                                <link.icon className="h-6 w-6" />
+                                <span>{link.label}</span>
+                            </Button>
+                        ))}
+                    </div>
+                </motion.div>
             </div>
 
-            <div className={`grid gap-4 p-6 px-20 pb-32 ${isMobile ? 'grid-cols-1' :
-                isTablet ? 'grid-cols-2' :
-                    'lg:grid-cols-6'
-                }`}>
-                {/* Stats Cards Row */}
-                <div className={`${isMobile ? 'col-span-1' :
-                    isTablet ? 'col-span-2' :
-                        'col-span-6'
-                    } grid gap-4 ${isMobile ? 'grid-cols-1' :
-                        isTablet ? 'grid-cols-2' :
-                            'lg:grid-cols-4'
-                    }`}>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>
-                                Total Songs
-                            </CardTitle>
-                            <Music2 className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
-                                {recentlyPlayed.length || 0}
-                            </div>
-                            <p className="text-xs text-muted-foreground">+20 from last week</p>
-                        </CardContent>
-                    </Card>
+            {/* Main Content */}
+            <div className="px-6 -mt-16 relative z-10">
+                <div className="max-w-7xl mx-auto space-y-8">
 
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>
-                                Followers
-                            </CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
-                                {users.length}
-                            </div>
-                            <p className="text-xs text-muted-foreground">+18 new followers</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>
-                                Listening Time
-                            </CardTitle>
-                            <Clock className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
-                                432h
-                            </div>
-                            <p className="text-xs text-muted-foreground">+12h this week</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>
-                                Liked Songs
-                            </CardTitle>
-                            <Heart className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
-                                432
-                            </div>
-                            <p className="text-xs text-muted-foreground">+8 new likes</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className={`${isMobile ? 'col-span-1' : isTablet ? 'col-span-2' : 'col-span-6'}`}>
-                    <div className="flex flex-col items-center mb-8 mt-16">
-                        <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                            Recently Played
-                        </h2>
-                        <p className="text-muted-foreground mt-2">Your latest music discoveries</p>
-                    </div>
-
-                    <Carousel
-                        opts={{
-                            align: "center",
-                            loop: true,
-                            slidesToScroll: 1,
-                            containScroll: "trimSnaps",
-                        }}
-                        className="w-full max-w-[90vw] mx-auto"
-                    >
-                        <CarouselContent className="-ml-4 mb-16">
-                            {recentlyPlayed.slice(0, 10).map((video) => (
-                                <CarouselItem key={video.id} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/5">
-                                    <Card className="group relative overflow-hidden rounded-xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                                        <div className="aspect-square relative">
+                    {/* Featured Playlists */}
+                    <section>
+                        <h2 className="text-2xl font-semibold mb-4">Featured Playlists</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {featuredPlaylists.map((playlist) => (
+                                <Card key={playlist.id} className="group hover:bg-primary/5 transition-colors">
+                                    <CardContent className="p-4">
+                                        <div className="aspect-square rounded-lg overflow-hidden mb-3 relative">
                                             <img
-                                                src={video.thumbnail}
-                                                alt={video.title}
-                                                className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                src={playlist.coverUrl}
+                                                alt={playlist.title}
+                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="absolute inset-0 m-auto h-12 w-12 rounded-full bg-primary/90 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 hover:bg-primary"
-                                                onClick={() => onPlayPause(video)}
-                                            >
-                                                {currentTrack?.id === video.id && isPlaying ? (
-                                                    <Pause className="h-6 w-6" />
-                                                ) : (
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Button
+                                                    size="icon"
+                                                    className="absolute bottom-4 right-4 h-12 w-12 rounded-full"
+                                                    onClick={() => onPlayPause(playlist)}
+                                                >
                                                     <Play className="h-6 w-6" />
-                                                )}
-                                            </Button>
-                                            <span className="absolute top-2 right-2 bg-black/75 text-white text-xs px-2 py-1 rounded-full">
-                                                {video.duration}
-                                            </span>
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <div className="p-4">
-                                            <h3 className="font-semibold line-clamp-1 mb-1 group-hover:text-primary transition-colors">
-                                                {decodeHTMLEntities(video.title)}
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground">{decodeHTMLEntities(video.channelTitle)}</p>
-                                        </div>
-                                    </Card>
-                                </CarouselItem>
+                                        <h3 className="font-semibold line-clamp-2">{playlist.title}</h3>
+                                        <p className="text-sm text-muted-foreground line-clamp-1">
+                                            By {playlist.channelTitle}
+                                        </p>
+                                    </CardContent>
+                                </Card>
                             ))}
-                        </CarouselContent>
-                        <CarouselPrevious className="hidden md:flex -left-12" />
-                        <CarouselNext className="hidden md:flex -right-12" />
-                    </Carousel>
+                        </div>
+                    </section>
+
+                    {/* New Releases */}
+                    <section className="mb-16">
+                        <h2 className="text-2xl font-semibold mb-4">New Releases</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {recentlyPlayed.slice(0, 4).map((track) => (
+                                <Card key={track.id} className="group hover:bg-primary/5">
+                                    <CardContent className="p-4">
+                                        <div className="aspect-square rounded-lg overflow-hidden mb-3 relative">
+                                            <img
+                                                src={track.thumbnail}
+                                                alt={track.title}
+                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="absolute inset-0 flex items-center justify-center gap-2">
+                                                    <Button
+                                                        size="icon"
+                                                        className="h-12 w-12 rounded-full"
+                                                        onClick={() => onPlayPause(track)}
+                                                    >
+                                                        {currentTrack?.id === track.id && isPlaying ? (
+                                                            <Pause className="h-6 w-6" />
+                                                        ) : (
+                                                            <Play className="h-6 w-6" />
+                                                        )}
+                                                    </Button>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="secondary"
+                                                        className="h-12 w-12 rounded-full"
+                                                    >
+                                                        <Plus className="h-6 w-6" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h3 className="font-semibold line-clamp-1">{track.title}</h3>
+                                        <p className="text-sm text-muted-foreground line-clamp-1">{track.channelTitle}</p>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Trending Artists */}
+                    <section className="mb-16">
+                        <h2 className="text-2xl font-semibold mb-4">Featured Artists</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {trendingArtists.map((artist) => (
+                                <div key={artist.id} className="text-center group cursor-pointer">
+                                    <Avatar className="h-32 w-32 mx-auto mb-3 group-hover:ring-2 ring-primary transition-all duration-300">
+                                        <AvatarImage src={artist.imageUrl} />
+                                        <AvatarFallback>{artist.name[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <h3 className="font-medium line-clamp-1">{artist.name}</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        {artist.nationality} Artist
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Made For You */}
+                    <section className="mb-16">
+                        <h2 className="text-2xl font-semibold mb-4">Made For You</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {recentlyPlayed.slice(4, 8).map((track) => (
+                                <Card key={track.id} className="group hover:bg-primary/5">
+                                    <CardContent className="p-4">
+                                        <div className="aspect-square rounded-lg overflow-hidden mb-3 relative">
+                                            <img
+                                                src={track.thumbnail}
+                                                alt={track.title}
+                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="absolute bottom-4 left-4">
+                                                    <h3 className="text-white font-semibold">{track.title}</h3>
+                                                    <p className="text-white/80 text-sm">{track.channelTitle}</p>
+                                                </div>
+                                                <Button
+                                                    size="icon"
+                                                    className="absolute bottom-4 right-4 h-12 w-12 rounded-full"
+                                                    onClick={() => onPlayPause(track)}
+                                                >
+                                                    {currentTrack?.id === track.id && isPlaying ? (
+                                                        <Pause className="h-6 w-6" />
+                                                    ) : (
+                                                        <Play className="h-6 w-6" />
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
