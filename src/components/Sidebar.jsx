@@ -33,9 +33,8 @@ const useMediaQuery = (query) => {
     return matches;
 };
 
-const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
+const Sidebar = ({ user, isMinimized, setIsMinimized, isOpen, setIsOpen }) => {
     const navigate = useNavigate();
-    const [isOpen, setIsOpen] = useState(false);
     const isDesktop = useMediaQuery('(min-width: 1024px)');
     const [playlistCount, setPlaylistCount] = useState(0);
     const [users, setUsers] = useState([]);
@@ -90,22 +89,19 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
 
     return (
         <>
-            {!isDesktop && (
-                <Button
-                    variant="ghost"
-                    className="fixed top-4 left-4 z-[9999] lg:hidden"
-                    onClick={() => setIsOpen(!isOpen)}
-                >
-                    <Menu className="h-6 w-6" />
-                </Button>
-            )}
 
             <div className={cn(
                 "fixed left-0 h-screen border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/30 transition-all duration-300 ease-in-out z-[9999]",
-                isMinimized ? "w-20" : "w-64",
+                // For desktop: respect the isMinimized state
+                isDesktop ? (isMinimized ? "w-20" : "w-64") : "w-64",
+                // For mobile: handle slide in/out without minimizing
                 isDesktop ? "translate-x-0" : isOpen ? "translate-x-0" : "-translate-x-full"
             )}>
-                <div className={cn("px-6 py-2 space-y-4", isMinimized && "p-2")}>
+                <div className={cn(
+                    "px-6 py-2 space-y-4",
+                    // Only apply minimized padding on desktop
+                    isDesktop && isMinimized && "p-2"
+                )}>
                     {isDesktop && (
                         <div className={cn(
                             "flex",
@@ -129,18 +125,21 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                 alt={user?.displayName}
                                 className={cn(
                                     "rounded-full border-4 border-purple-500/20 transition-transform duration-300 group-hover:scale-105",
-                                    isMinimized ? "h-10 w-10" : "h-[5.1rem] w-[5.1rem]"
+                                    // Only minimize profile image on desktop
+                                    isDesktop && isMinimized ? "h-10 w-10" : "h-[5.1rem] w-[5.1rem]"
                                 )}
                                 onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
                             />
-                            {!isMinimized && (
+                            {/* Show status badge when not minimized or on mobile */}
+                            {(!isMinimized || !isDesktop) && (
                                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1">
                                     <Music2 className="h-3 w-3" />
                                     {user?.role === 'admin' ? 'Admin' : 'Online'}
                                 </div>
                             )}
                         </div>
-                        {!isMinimized && (
+                        {/* Show user info when not minimized or on mobile */}
+                        {(!isMinimized || !isDesktop) && (
                             <div className="text-center tracking-tighter">
                                 <h3 className="font-semibold text-lg">{user?.displayName}</h3>
                                 <p className="text-sm text-muted-foreground">{user?.email}</p>
@@ -148,7 +147,7 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                         )}
                     </div>
 
-                    {!isMinimized && <Separator className="my-4" />}
+                    {(!isMinimized || !isDesktop) && <Separator className="my-4" />}
 
                     <nav className="space-y-4">
                         <div className="space-y-2">
@@ -160,33 +159,31 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                         variant="ghost"
                                         className={cn(
                                             "w-full transition-all duration-200",
-                                            isMinimized ? "px-2 justify-center" : "justify-start gap-2",
+                                            isDesktop && isMinimized ? "px-2 justify-center" : "justify-start gap-2",
                                             window.location.pathname === item.path &&
                                             "bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-500"
                                         )}
                                         onClick={() => {
-                                            if (isMinimized) {
-                                                setIsMinimized(false);
-                                            } else {
-                                                navigate(item.path);
-                                                !isDesktop && setIsOpen(false);
-                                            }
+                                            navigate(item.path);
+                                            !isDesktop && setIsOpen(false);
                                         }}
                                     >
                                         <Icon className="h-4 w-4" />
-                                        {!isMinimized && item.label}
+                                        {(!isMinimized || !isDesktop) && item.label}
                                     </Button>
                                 );
                             })}
                         </div>
 
-                        {!isMinimized && <Separator className="my-4" />}
+                        {(!isMinimized || !isDesktop) && <Separator className="my-4" />}
 
                         {user?.role === 'admin' && (
                             <>
-                                {!isMinimized && (
+                                {(!isMinimized || !isDesktop) && (
                                     <div className="px-3 mb-2">
-                                        <h2 className="text-sm font-semibold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">Admin Dashboard</h2>
+                                        <h2 className="text-sm font-semibold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
+                                            Admin Dashboard
+                                        </h2>
                                     </div>
                                 )}
                                 <div className="space-y-1">
@@ -198,21 +195,17 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                                 variant="ghost"
                                                 className={cn(
                                                     "w-full transition-all duration-200 group hover:bg-red-500/5",
-                                                    isMinimized ? "px-2 justify-center" : "justify-start",
+                                                    isDesktop && isMinimized ? "px-2 justify-center" : "justify-start",
                                                     window.location.pathname === item.path &&
                                                     "bg-gradient-to-r from-red-500/10 to-orange-500/10 text-red-500"
                                                 )}
                                                 onClick={() => {
-                                                    if (isMinimized) {
-                                                        setIsMinimized(false);
-                                                    } else {
-                                                        navigate(item.path);
-                                                        !isDesktop && setIsOpen(false);
-                                                    }
+                                                    navigate(item.path);
+                                                    !isDesktop && setIsOpen(false);
                                                 }}
                                             >
                                                 <Icon className="h-4 w-4 group-hover:text-red-500 transition-colors" />
-                                                {!isMinimized && (
+                                                {(!isMinimized || !isDesktop) && (
                                                     <span className="group-hover:text-red-500 transition-colors">{item.label}</span>
                                                 )}
                                             </Button>
@@ -223,13 +216,12 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                         )}
                     </nav>
 
-                    {!isMinimized && <Separator className="my-4" />}
+                    {(!isMinimized || !isDesktop) && <Separator className="my-4" />}
 
                     {user?.isApproved && (
                         <div className="flex-1 scrollbar-thin scrollbar-thumb-primary/10 scrollbar-track-transparent hover:scrollbar-thumb-primary/20">
                             <div className="relative">
-                                {!isMinimized ? (
-                                    // Existing full-width view
+                                {(!isMinimized || !isDesktop) ? (
                                     <div className="flex items-center gap-2 px-2 mb-4 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">
                                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                                             <Users className="h-4 w-4 text-primary animate-pulse" />
@@ -244,7 +236,6 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                         </div>
                                     </div>
                                 ) : (
-                                    // Minimized view - just the icon
                                     <div className="flex justify-center mb-4">
                                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                                             <Users className="h-4 w-4 text-primary animate-pulse" />
@@ -252,36 +243,29 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                     </div>
                                 )}
 
-                                <div className={cn("mb-16", isMinimized && "flex flex-col items-center gap-2")}>
+                                <div className={cn("mb-16", isDesktop && isMinimized && "flex flex-col items-center gap-2")}>
                                     {users.filter(u => u.uid !== user.uid).slice(0, 3).map((user) => (
                                         <div
                                             key={user.uid}
                                             className={cn(
                                                 "group transition-all duration-300 cursor-pointer",
-                                                isMinimized ? "p-1" : "flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+                                                isDesktop && isMinimized ? "p-1" : "flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
                                             )}
                                             onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
                                         >
                                             <div className="relative">
-                                                {isMinimized ? (
+                                                {isDesktop && isMinimized ? (
                                                     <TooltipProvider delayDuration={0}>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
-                                                                <Avatar className={cn(
-                                                                    "border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20",
-                                                                    "h-10 w-10"
-                                                                )}>
+                                                                <Avatar className="h-10 w-10 border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20">
                                                                     <AvatarImage src={user?.photoURL} />
                                                                     <AvatarFallback className="bg-primary/10">
                                                                         {user?.name?.charAt(0) || user?.email?.charAt(0)}
                                                                     </AvatarFallback>
                                                                 </Avatar>
                                                             </TooltipTrigger>
-                                                            <TooltipContent
-                                                                side="right"
-                                                                className="flex flex-col gap-1 z-[99999]"
-                                                                sideOffset={5}
-                                                            >
+                                                            <TooltipContent side="right" className="flex flex-col gap-1 z-[99999]" sideOffset={5}>
                                                                 <p className="font-medium">{user?.name || 'Anonymous'}</p>
                                                                 <p className="text-xs text-muted-foreground">
                                                                     {user.isOnline ? 'Active now' : 'Offline'}
@@ -290,7 +274,6 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                 ) : (
-                                                    // Existing Avatar code for non-minimized state
                                                     <Avatar className="h-12 w-12 border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20">
                                                         <AvatarImage src={user?.photoURL} />
                                                         <AvatarFallback className="bg-primary/10">
@@ -301,8 +284,7 @@ const Sidebar = ({ user, isMinimized, setIsMinimized }) => {
                                                 <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'} ${user.isOnline ? 'animate-pulse' : ''}`} />
                                             </div>
 
-                                            {!isMinimized && (
-                                                // Existing user info for non-minimized state
+                                            {(!isMinimized || !isDesktop) && (
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
                                                         {user?.name || 'Anonymous'}

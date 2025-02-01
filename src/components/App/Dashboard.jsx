@@ -15,38 +15,6 @@ import {
     Mic2, Sparkles, Radio, Flame, Library, Plus, MoreHorizontal,
     Calendar, TrendingUp, History, Star, Loader2
 } from "lucide-react";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-
-const featuredPlaylists = [
-    {
-        id: 1,
-        title: "Today's Top Hits",
-        description: "The hottest tracks right now",
-        coverUrl: "https://source.unsplash.com/random/400x400?music",
-        color: "from-rose-500 to-orange-500"
-    },
-    {
-        id: 2,
-        title: "Discover Weekly",
-        description: "Your personal mixtape",
-        coverUrl: "https://source.unsplash.com/random/400x400?concert",
-        color: "from-blue-500 to-purple-500"
-    },
-    {
-        id: 3,
-        title: "Chill Vibes",
-        description: "Relax and unwind",
-        coverUrl: "https://source.unsplash.com/random/400x400?relax",
-        color: "from-green-500 to-teal-500"
-    },
-    {
-        id: 4,
-        title: "Workout Energy",
-        description: "Power your workout",
-        coverUrl: "https://source.unsplash.com/random/400x400?workout",
-        color: "from-yellow-500 to-red-500"
-    }
-];
 
 const quickLinks = [
     { icon: Star, label: "Favorites", path: "/favorites" },

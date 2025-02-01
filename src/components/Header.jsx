@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { LogOut, Search, Music2, User2 } from 'lucide-react';
+import { LogOut, Search, Music2, User2, Menu } from 'lucide-react';
 import { auth } from '../config/firebase';
 import { useTheme } from 'next-themes';
 import { useMediaQuery } from 'react-responsive';
@@ -13,7 +13,7 @@ import { Card } from './ui/card';
 import { cn } from "@/lib/utils";
 import { ScrollArea } from './ui/scroll-area';
 
-const Header = ({ user, onSearchResults }) => {
+const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
     const isMobile = useMediaQuery({ maxWidth: 767 });
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
     const isDesktop = useMediaQuery({ minWidth: 1024 });
@@ -172,11 +172,22 @@ const Header = ({ user, onSearchResults }) => {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto px-4">
                 <div className="flex h-16 items-center justify-between">
-                    <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/dashboard')}>
-                        <div className="relative">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
-                            <div className="relative">
-                                <Music2 className="h-8 w-8 text-white bg-gradient-to-r from-purple-600 to-blue-600 p-1.5 rounded-full" />
+                    <div className="flex items-center gap-3 group">
+                        <div className="relative flex items-center gap-2">
+                            {!isDesktop && (
+                                <Button
+                                    variant="ghost"
+                                    className="p-2 hover:bg-primary/10"
+                                    onClick={() => setIsOpen(!isOpen)}
+                                >
+                                    <Menu className="h-6 w-6" />
+                                </Button>
+                            )}
+                            <div className="relative cursor-pointer" onClick={() => navigate('/dashboard')}>
+                                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
+                                <div className="relative">
+                                    <Music2 className="h-8 w-8 text-white bg-gradient-to-r from-purple-600 to-blue-600 p-1.5 rounded-full" />
+                                </div>
                             </div>
                         </div>
                         {!isMobile && (
