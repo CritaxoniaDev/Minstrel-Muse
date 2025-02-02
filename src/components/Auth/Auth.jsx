@@ -84,7 +84,12 @@ const Auth = () => {
             >
                 <source src="/videos/bg-video.mp4" type="video/mp4" />
             </video>
-            <Card className="mx-auto shadow-2xl w-full max-w-4xl h-[600px] grid md:grid-cols-2 overflow-hidden bg-white/5 backdrop-blur-lg">
+            <Card className={`
+                mx-auto shadow-2xl w-full 
+                ${isMobile ? 'h-[500px] max-w-[95%]' : isTablet ? 'h-[550px] max-w-3xl' : 'h-[600px] max-w-4xl'}
+                grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'} 
+                overflow-hidden bg-white/5 backdrop-blur-lg
+            `}>
                 {/* Left Side - Visual Section */}
                 <div className="relative tracking-tighter hidden md:block h-full">
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-500 to-purple-700">
@@ -112,21 +117,33 @@ const Auth = () => {
                 </div>
 
                 {/* Right Side - Auth Form */}
-                <div className="p-12 tracking-tighter flex flex-col items-center justify-center min-h-full bg-white">
-                    <div className="w-full max-w-md mx-auto backdrop-blur-sm">
-                        <CardHeader className="space-y-4 px-0 text-center mb-10">
-                            <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent animate-gradient">
+                <div className={`
+        tracking-tighter flex flex-col items-center justify-center min-h-full bg-white
+        ${isMobile ? 'p-6' : isTablet ? 'p-8' : 'p-12'}
+    `}>
+                    <div className={`w-full ${isMobile ? 'max-w-[320px]' : 'max-w-md'} mx-auto backdrop-blur-sm`}>
+                        <CardHeader className={`space-y-4 px-0 text-center ${isMobile ? 'mb-6' : 'mb-10'}`}>
+                            <CardTitle className={`
+                    font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 
+                    bg-clip-text text-transparent animate-gradient
+                    ${isMobile ? 'text-3xl' : 'text-4xl'}
+                `}>
                                 Welcome Back
                             </CardTitle>
-                            <CardDescription className="text-base text-gray-600/90 leading-relaxed">
+                            <CardDescription className={`
+                    text-gray-600/90 leading-relaxed
+                    ${isMobile ? 'text-sm' : 'text-base'}
+                `}>
                                 Continue your musical journey with one click
                             </CardDescription>
                         </CardHeader>
 
-                        <CardContent className="space-y-8 px-0">
+                        <CardContent className={`space-y-8 px-0`}>
                             {error && (
                                 <Alert variant="destructive" className="animate-shake shadow-lg border-red-200">
-                                    <AlertDescription className="font-medium">{error}</AlertDescription>
+                                    <AlertDescription className={`font-medium ${isMobile ? 'text-sm' : 'text-base'}`}>
+                                        {error}
+                                    </AlertDescription>
                                 </Alert>
                             )}
 
@@ -134,7 +151,12 @@ const Auth = () => {
                                 variant="outline"
                                 onClick={signInWithGoogle}
                                 disabled={isLoading}
-                                className="w-full h-16 relative overflow-hidden group border-2 hover:border-purple-400 transition-all duration-500 shadow-lg hover:shadow-xl rounded-xl"
+                                className={`
+                        w-full relative overflow-hidden group border-2 
+                        hover:border-purple-400 transition-all duration-500 
+                        shadow-lg hover:shadow-xl rounded-xl
+                        ${isMobile ? 'h-14' : 'h-16'}
+                    `}
                             >
                                 <div className="absolute inset-0 w-3 bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 transition-all duration-500 ease-out group-hover:w-full opacity-90"></div>
                                 <div className="relative flex items-center justify-center gap-4">
@@ -142,13 +164,19 @@ const Auth = () => {
                                         <img
                                             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                                             alt="Google"
-                                            className="w-6 h-6 transform group-hover:scale-110 transition-transform duration-300"
+                                            className={`
+                                    transform group-hover:scale-110 transition-transform duration-300
+                                    ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}
+                                `}
                                         />
                                     </div>
-                                    <span className="text-lg font-semibold group-hover:text-white transition-colors duration-300">
+                                    <span className={`
+                            font-semibold group-hover:text-white transition-colors duration-300
+                            ${isMobile ? 'text-base' : 'text-lg'}
+                        `}>
                                         {isLoading ? (
                                             <div className="flex items-center gap-3">
-                                                <Loader2 className="h-5 w-5 animate-spin" />
+                                                <Loader2 className={`animate-spin ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
                                                 <span>Connecting...</span>
                                             </div>
                                         ) : (
@@ -160,7 +188,9 @@ const Auth = () => {
 
                             <div className="flex items-center justify-center space-x-2 opacity-80">
                                 <div className="h-px w-12 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-                                <span className="text-sm text-gray-500">Secure login powered by Google</span>
+                                <span className={`text-gray-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                                    Secure login powered by Google
+                                </span>
                                 <div className="h-px w-12 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
                             </div>
                         </CardContent>
@@ -168,14 +198,14 @@ const Auth = () => {
 
                     <div className="w-full pt-6 border-t border-gray-200/50 mt-auto">
                         <div className="flex items-center justify-center space-x-3">
-                            <div className="p-2 bg-white/80 rounded-lg shadow-sm">
+                            <div className={`bg-white/80 rounded-lg shadow-sm ${isMobile ? 'p-1.5' : 'p-2'}`}>
                                 <img
                                     src="/images/logo.png"
                                     alt="Adiklaas Logo"
-                                    className="w-6 h-6 rounded-md"
+                                    className={`rounded-md ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`}
                                 />
                             </div>
-                            <span className="text-sm text-gray-600">
+                            <span className={`text-gray-600 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                                 Maintained by <span className="font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Adiklaas</span>
                             </span>
                         </div>

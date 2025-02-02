@@ -174,7 +174,7 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                 <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center gap-3 group">
                         <div className="relative flex items-center gap-2">
-                            {!isDesktop && (
+                            {!isDesktop && user && (
                                 <Button
                                     variant="ghost"
                                     className="p-2 hover:bg-primary/10"
