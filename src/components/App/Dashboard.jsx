@@ -72,74 +72,8 @@ const Dashboard = ({ currentUser, currentTrack, isPlaying, onPlayPause }) => {
         const initializeDashboard = async () => {
             await Promise.all([
                 fetchYoutubeVideos(),
-                fetchTrendingArtists(),
                 fetchFeaturedPlaylists()
             ]);
-            setLoading(false);
-        };
-
-        initializeDashboard();
-    }, []);
-
-    const fetchTrendingArtists = async () => {
-        const artistQueries = [
-            'Taylor Swift official',
-            'Ed Sheeran official',
-            'Sarah Geronimo official',
-            'KZ Tandingan official',
-            'Morissette Amon official',
-            'Bruno Mars official',
-            'Ariana Grande official',
-            'Regine Velasquez official'
-        ];
-
-        let attempts = 0;
-        const allArtists = [];
-
-        while (attempts < 13 && allArtists.length < artistQueries.length) {
-            try {
-                const currentQuery = artistQueries[allArtists.length];
-                const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
-                    params: {
-                        part: 'snippet',
-                        maxResults: 1,
-                        key: getYoutubeApiKey(),
-                        type: 'channel',
-                        q: currentQuery
-                    }
-                });
-
-                if (response.data.items.length > 0) {
-                    const artist = response.data.items[0];
-                    allArtists.push({
-                        id: artist.id.channelId,
-                        name: artist.snippet.title.replace(' - Topic', '').replace(' Official', ''),
-                        imageUrl: artist.snippet.thumbnails.high.url,
-                        description: artist.snippet.description,
-                        nationality: currentQuery.includes('Sarah') ||
-                            currentQuery.includes('KZ') ||
-                            currentQuery.includes('Morissette') ||
-                            currentQuery.includes('Regine') ? 'Filipino' : 'American'
-                    });
-                }
-            } catch (error) {
-                if (error?.response?.status === 403 || error?.response?.status === 429) {
-                    rotateApiKey();
-                    attempts++;
-                } else {
-                    console.error('Error fetching artists:', error);
-                    break;
-                }
-            }
-        }
-
-        setTrendingArtists(allArtists);
-    };
-
-
-    useEffect(() => {
-        const initializeDashboard = async () => {
-            await Promise.all([fetchYoutubeVideos(), fetchTrendingArtists()]);
             setLoading(false);
         };
 
@@ -328,25 +262,6 @@ const Dashboard = ({ currentUser, currentTrack, isPlaying, onPlayPause }) => {
                                         <p className="text-sm text-muted-foreground line-clamp-1">{track.channelTitle}</p>
                                     </CardContent>
                                 </Card>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* Trending Artists */}
-                    <section className="mb-16">
-                        <h2 className="text-2xl font-semibold mb-4">Featured Artists</h2>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {trendingArtists.map((artist) => (
-                                <div key={artist.id} className="text-center group cursor-pointer">
-                                    <Avatar className="h-32 w-32 mx-auto mb-3 group-hover:ring-2 ring-primary transition-all duration-300">
-                                        <AvatarImage src={artist.imageUrl} />
-                                        <AvatarFallback>{artist.name[0]}</AvatarFallback>
-                                    </Avatar>
-                                    <h3 className="font-medium line-clamp-1">{artist.name}</h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        {artist.nationality} Artist
-                                    </p>
-                                </div>
                             ))}
                         </div>
                     </section>

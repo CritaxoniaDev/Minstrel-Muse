@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Plus, Sparkles, Flame, Radio, Music, Disc, Wand2, Headphones, Piano, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMediaQuery } from 'react-responsive';
 import { Skeleton } from "@/components/ui/skeleton";
 import axios from 'axios';
 import { getYoutubeApiKey, rotateApiKey } from '@/config/youtube-api';
@@ -17,67 +18,86 @@ const genres = [
     { id: 6, name: "Classical", query: "classical music", icon: Piano, color: "from-emerald-500 to-teal-500" }
 ];
 
-const TrackSkeleton = () => (
-    <div className="rounded-lg overflow-hidden">
+const TrackSkeleton = () => {
+    const isMobile = useMediaQuery({ maxWidth: 767 });
+    
+    return (
+      <div className="rounded-lg overflow-hidden">
         <Skeleton className="aspect-video w-full" />
-        <div className="p-4">
-            <Skeleton className="h-4 w-3/4 mb-2" />
-            <Skeleton className="h-3 w-1/2" />
+        <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
+          <Skeleton className={`${isMobile ? 'h-3' : 'h-4'} w-3/4 mb-2`} />
+          <Skeleton className={`${isMobile ? 'h-2' : 'h-3'} w-1/2`} />
         </div>
-    </div>
-);
+      </div>
+    );
+  };
+  
 
-const TrackCard = ({ track, onPlayPause, onAddToQueue, currentTrack, isPlaying }) => (
-    <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        whileHover={{ y: -5 }}
-        className="group relative overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-xl"
-    >
-        <div className="aspect-video relative">
-            <img
-                src={track.thumbnail}
-                alt={track.title}
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute inset-0 flex items-center justify-center gap-2">
-                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                        <Button
-                            size="icon"
-                            className="h-12 w-12 rounded-full"
-                            onClick={() => onPlayPause(track)}
-                        >
-                            {currentTrack?.id === track.id && isPlaying ? (
-                                <Pause className="h-6 w-6" />
-                            ) : (
-                                <Play className="h-6 w-6" />
-                            )}
-                        </Button>
-                    </motion.div>
-                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                        <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-12 w-12 rounded-full"
-                            onClick={() => onAddToQueue(track)}
-                        >
-                            <Plus className="h-6 w-6" />
-                        </Button>
-                    </motion.div>
+const TrackCard = ({ track, onPlayPause, onAddToQueue, currentTrack, isPlaying }) => {
+    const isMobile = useMediaQuery({ maxWidth: 767 });
+    const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            whileHover={{ y: -5 }}
+            className="group relative overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-xl"
+        >
+            <div className="aspect-video relative">
+                <img
+                    src={track.thumbnail}
+                    alt={track.title}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute inset-0 flex items-center justify-center gap-2">
+                        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                            <Button
+                                size="icon"
+                                className={`${isMobile ? 'h-10 w-10' : 'h-12 w-12'} rounded-full`}
+                                onClick={() => onPlayPause(track)}
+                            >
+                                {currentTrack?.id === track.id && isPlaying ? (
+                                    <Pause className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
+                                ) : (
+                                    <Play className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
+                                )}
+                            </Button>
+                        </motion.div>
+                        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                            <Button
+                                size="icon"
+                                variant="secondary"
+                                className={`${isMobile ? 'h-10 w-10' : 'h-12 w-12'} rounded-full`}
+                                onClick={() => onAddToQueue(track)}
+                            >
+                                <Plus className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
+                            </Button>
+                        </motion.div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <motion.div className="p-4" whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}>
-            <h3 className="font-semibold line-clamp-1">{track.title}</h3>
-            <p className="text-sm text-muted-foreground">{track.channelTitle}</p>
+            <motion.div
+                className={`${isMobile ? 'p-3' : 'p-4'}`}
+                whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
+            >
+                <h3 className={`font-semibold line-clamp-1 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                    {track.title}
+                </h3>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>
+                    {track.channelTitle}
+                </p>
+            </motion.div>
         </motion.div>
-    </motion.div>
-);
+    );
+};
 
 const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
     const { toast } = useToast();
+    const isMobile = useMediaQuery({ maxWidth: 767 });
+    const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
     const [trendingTracks, setTrendingTracks] = useState([]);
     const [genreTracks, setGenreTracks] = useState([]);
     const [selectedGenre, setSelectedGenre] = useState(genres[0]);
@@ -147,44 +167,44 @@ const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
     };
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="container mx-auto px-4 py-6 pb-32"
+            className={`container mx-auto px-2 md:px-4 py-4 md:py-6 pb-24 md:pb-32`}
         >
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-blue-600 to-violet-600 p-12 mb-8"
+                className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-r from-purple-600 via-blue-600 to-violet-600 p-6 md:p-12 mb-4 md:mb-8"
             >
-                <motion.div 
+                <motion.div
                     className="relative z-10"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <h1 className="text-5xl font-bold text-white mb-6 flex items-center gap-4">
+                    <h1 className={`${isMobile ? 'text-3xl' : 'text-5xl'} font-bold text-white mb-4 md:mb-6 flex items-center gap-2 md:gap-4`}>
                         Discover New Music
                         <motion.span
                             animate={{ rotate: [0, 10, -10, 0] }}
                             transition={{ repeat: Infinity, duration: 2 }}
                         >
-                            <Sparkles className="h-10 w-10 text-yellow-300" />
+                            <Sparkles className={`${isMobile ? 'h-6 w-6' : 'h-10 w-10'} text-yellow-300`} />
                         </motion.span>
                     </h1>
-                    <p className="text-xl text-white/90 max-w-2xl leading-relaxed">
+                    <p className={`${isMobile ? 'text-base' : 'text-xl'} text-white/90 max-w-2xl leading-relaxed`}>
                         Explore a world of endless musical possibilities. From chart-topping hits to hidden gems,
                         your next favorite song is just a click away.
                     </p>
                 </motion.div>
-                
-                <motion.div 
-                    className="absolute right-0 top-0 w-1/2 h-full opacity-10"
-                    animate={{ 
+
+                <motion.div
+                    className={`absolute right-0 top-0 ${isMobile ? 'w-1/3' : 'w-1/2'} h-full opacity-10`}
+                    animate={{
                         rotate: [0, 5, -5, 0],
                         scale: [1, 1.1, 1]
                     }}
-                    transition={{ 
+                    transition={{
                         duration: 10,
                         repeat: Infinity
                     }}
@@ -193,22 +213,22 @@ const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
                 </motion.div>
             </motion.div>
 
-            <Card className="mb-8">
-                <CardHeader>
+            <Card className="mb-4 md:mb-8">
+                <CardHeader className={`${isMobile ? 'p-4' : 'p-6'}`}>
                     <CardTitle className="flex items-center gap-2">
-                        <Flame className="h-5 w-5 text-red-500" />
+                        <Flame className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-red-500`} />
                         Trending Now
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
                     {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                             {[...Array(8)].map((_, i) => (
                                 <TrackSkeleton key={i} />
                             ))}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                             <AnimatePresence mode="popLayout">
                                 {trendingTracks.map((track) => (
                                     <TrackCard
@@ -227,27 +247,28 @@ const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
             </Card>
 
             <Card>
-                <CardHeader>
+                <CardHeader className={`${isMobile ? 'p-4' : 'p-6'}`}>
                     <CardTitle>Browse by Genre</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <motion.div className="flex gap-2 overflow-x-auto pb-4 mb-6">
+                <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
+                    <motion.div className="flex gap-2 overflow-x-auto pb-4 mb-4 md:mb-6 scrollbar-hide">
                         {genres.map((genre) => (
                             <motion.button
                                 key={genre.id}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 className={`
-                                    px-6 py-3 rounded-full font-medium
-                                    ${selectedGenre.id === genre.id 
-                                        ? `bg-gradient-to-r ${genre.color} text-white shadow-lg` 
+                                    ${isMobile ? 'px-4 py-2 text-sm' : 'px-6 py-3'} 
+                                    rounded-full font-medium whitespace-nowrap
+                                    ${selectedGenre.id === genre.id
+                                        ? `bg-gradient-to-r ${genre.color} text-white shadow-lg`
                                         : 'bg-white/10 hover:bg-white/20 text-gray-700 dark:text-gray-200'}
                                     transition-all duration-300
                                 `}
                                 onClick={() => handleGenreChange(genre)}
                             >
                                 <div className="flex items-center gap-2">
-                                    <genre.icon className="h-4 w-4" />
+                                    <genre.icon className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                                     <span>{genre.name}</span>
                                 </div>
                             </motion.button>
@@ -255,13 +276,13 @@ const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
                     </motion.div>
 
                     {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                             {[...Array(8)].map((_, i) => (
                                 <TrackSkeleton key={i} />
                             ))}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                             <AnimatePresence mode="popLayout">
                                 {genreTracks.map((track) => (
                                     <TrackCard
