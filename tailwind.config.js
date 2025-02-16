@@ -82,7 +82,20 @@ module.exports = {
 						transform: 'translateY(200%)',
 						opacity: 0
 					}
+				},
+				'gradient-x': {
+					'0%, 100%': {
+						'background-size': '200% 200%',
+						'background-position': 'left center'
+					},
+					'50%': {
+						'background-size': '200% 200%',
+						'background-position': 'right center'
+					},
 				}
+			},
+			scale: {
+				'102': '1.02',
 			},
 			animation: {
 				marquee: 'marquee 15s linear infinite',
@@ -94,6 +107,7 @@ module.exports = {
 				'grid-slide-horizontal': 'grid-slide-horizontal 20s linear infinite',
 				'grid-slide-vertical': 'grid-slide-vertical 20s linear infinite',
 			},
+			'gradient-x': 'gradient-x 15s ease infinite',
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',

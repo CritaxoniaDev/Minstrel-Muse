@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/config/firebase';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,34 @@ const Profile = () => {
     const [profileUser, setProfileUser] = useState(null);
     const [userPlaylists, setUserPlaylists] = useState([]);
     const [favoriteSongs, setFavoriteSongs] = useState([]);
+    const [isEditing, setIsEditing] = useState(false);
+    const [bio, setBio] = useState('');
+
+    const handleEditClick = async () => {
+        const userDoc = await getDoc(doc(db, "users", userId));
+        if (userDoc.exists()) {
+            setBio(userDoc.data().bio || '');
+        }
+        setIsEditing(true);
+    };
+
+
+    const handleUpdateProfile = async () => {
+        try {
+            await updateDoc(doc(db, "users", userId), {
+                bio: bio
+            });
+            setIsEditing(false);
+            window.location.reload(); // Reload after saving
+        } catch (error) {
+            console.error("Error updating profile:", error);
+        }
+    };
 
     useEffect(() => {
         const fetchUserData = async () => {
             if (!userId) return;
 
-            // Fetch user profile
             const userDoc = await getDoc(doc(db, "users", userId));
             if (userDoc.exists()) {
                 setProfileUser({
@@ -28,7 +50,6 @@ const Profile = () => {
                 });
             }
 
-            // Fetch user playlists
             const playlistsQuery = query(
                 collection(db, "playlists"),
                 where("userId", "==", userId)
@@ -40,7 +61,6 @@ const Profile = () => {
             }));
             setUserPlaylists(playlists);
 
-            // Fetch favorite songs
             const favoritesQuery = query(
                 collection(db, "favorites"),
                 where("userId", "==", userId)
@@ -63,141 +83,188 @@ const Profile = () => {
     );
 
     return (
-        <div className="container mx-auto p-6 max-w-4xl pb-40">
-            <Button
-                variant="ghost"
-                className="mb-4"
-                onClick={() => navigate('/dashboard')}
-            >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-            </Button>
+        <div className="min-h-screen bg-gray-100 dark:bg-black">
+            <div className="container mx-auto p-4">
+                {/* Cover Photo Section */}
+                <div className="relative rounded-t-xl overflow-hidden">
+                    <div className="h-[300px] bg-gradient-to-r from-blue-400/80 to-purple-400/80 via-indigo-400/80">
+                        <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
+                    </div>
 
-            <Card className="w-full">
-                <div className="h-48 bg-gradient-to-r from-purple-600 to-blue-600 relative">
-                    <div className="absolute -bottom-16 left-6">
-                        <Avatar className="h-32 w-32 border-4 border-white shadow-lg">
-                            <AvatarImage src={profileUser.photoURL} />
-                            <AvatarFallback className="bg-gradient-to-r from-purple-400 to-blue-400 text-white text-2xl">
-                                {profileUser.displayName?.[0]?.toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
+                    <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
+                        <div className="flex items-end gap-6">
+                            <Avatar className="h-40 w-40 border-4 border-white dark:border-gray-800 shadow-xl">
+                                <AvatarImage src={profileUser.photoURL} />
+                                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-3xl">
+                                    {profileUser.displayName?.[0]?.toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="mb-4 text-gray-900 dark:text-white">
+                                <h1 className="text-3xl font-bold shadow-sm">
+                                    {profileUser.name || profileUser.displayName}
+                                </h1>
+                                <p className="opacity-90">{profileUser.email}</p>
+                                {isEditing ? (
+                                    <div className="mt-2 flex gap-2">
+                                        <textarea
+                                            value={bio}
+                                            onChange={(e) => setBio(e.target.value)}
+                                            className="w-full p-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 text-sm"
+                                            placeholder="Write your bio..."
+                                            rows={2}
+                                        />
+                                        <div className="flex flex-col gap-2">
+                                            <Button
+                                                size="sm"
+                                                onClick={handleUpdateProfile}
+                                                className="bg-green-500 hover:bg-green-600 text-white"
+                                            >
+                                                Save
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => setIsEditing(false)}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="mt-2 max-w-md text-sm">
+                                        {profileUser.bio || "No bio yet"}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {!isEditing && (
+                            <Button
+                                variant="outline"
+                                className="bg-white/10 backdrop-blur-sm border-white/20 text-gray-900 dark:text-white hover:bg-white/20 transition-colors"
+                                onClick={handleEditClick}
+                            >
+                                Edit Profile
+                            </Button>
+                        )}
                     </div>
                 </div>
 
-                <CardContent className="pt-20">
-                    <div className="flex justify-between items-start mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold">{profileUser.name || profileUser.displayName || 'User'}</h2>
-                            <p className="text-muted-foreground">{profileUser.email}</p>
-                            <p className="text-sm text-muted-foreground">Role: {profileUser.role || 'User'}</p>
-                        </div>
-                    </div>
-
-                    <Tabs defaultValue="overview" className="mt-6">
-                        <TabsList>
-                            <TabsTrigger value="overview">Overview</TabsTrigger>
-                            <TabsTrigger value="playlists">Playlists</TabsTrigger>
-                            <TabsTrigger value="favorites">Favorites</TabsTrigger>
+                {/* Main Content */}
+                <div className="bg-white dark:bg-gray-800 rounded-b-xl shadow-lg">
+                    <Tabs defaultValue="overview" className="p-6">
+                        <TabsList className="flex gap-4 border-b border-gray-200 dark:border-gray-700 mb-6">
+                            <TabsTrigger
+                                value="overview"
+                                className="pb-4 text-lg font-medium border-b-2 border-transparent data-[state=active]:border-blue-500"
+                            >
+                                Overview
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="playlists"
+                                className="pb-4 text-lg font-medium border-b-2 border-transparent data-[state=active]:border-blue-500"
+                            >
+                                Playlists
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="favorites"
+                                className="pb-4 text-lg font-medium border-b-2 border-transparent data-[state=active]:border-blue-500"
+                            >
+                                Favorites
+                            </TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value="overview" className="space-y-6">
-                            <div className="grid gap-4">
-                                <div className="flex items-center gap-2">
-                                    <User className="h-4 w-4 text-muted-foreground" />
-                                    <span>Google Account</span>
+                        <TabsContent value="overview">
+                            <div className="grid md:grid-cols-3 gap-8">
+                                <div className="p-6 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <div className="p-3 rounded-full bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
+                                            <User className="h-6 w-6 text-blue-500" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                                                {new Date(profileUser.createdAt).getFullYear()}
+                                            </h3>
+                                            <p className="text-sm text-muted-foreground">Member since</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Music className="h-4 w-4 text-muted-foreground" />
-                                    <span>{userPlaylists.length} Playlists</span>
+
+                                <div className="p-6 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <div className="p-3 rounded-full bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
+                                            <Music className="h-6 w-6 text-purple-500" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
+                                                {userPlaylists.length}
+                                            </h3>
+                                            <p className="text-sm text-muted-foreground">Playlists Created</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <span>{favoriteSongs.length} Favorite Songs</span>
+
+                                <div className="p-6 bg-gradient-to-br from-pink-50/50 to-rose-50/50 dark:from-pink-950/20 dark:to-rose-950/20 rounded-2xl hover:shadow-lg transition-all duration-300 group">
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <div className="p-3 rounded-full bg-pink-500/10 group-hover:bg-pink-500/20 transition-colors">
+                                            <Calendar className="h-6 w-6 text-pink-500" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-pink-400 bg-clip-text text-transparent">
+                                                {favoriteSongs.length}
+                                            </h3>
+                                            <p className="text-sm text-muted-foreground">Songs Favorited</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </TabsContent>
 
                         <TabsContent value="playlists">
                             <div className="grid gap-4">
-                                {userPlaylists.length > 0 ? (
-                                    userPlaylists.map(playlist => (
-                                        <div key={playlist.id}
-                                            className="rounded-lg bg-accent/50 hover:bg-accent/70 transition-colors"
-                                        >
-                                            <div
-                                                className="flex items-center justify-between p-4 cursor-pointer"
-                                                onClick={() => navigate(`/dashboard/playlist/${playlist.id}`)}
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <Music className="h-5 w-5 text-primary" />
-                                                    <div>
-                                                        <h3 className="font-medium">{playlist.name}</h3>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {playlist.tracks?.length || 0} tracks
-                                                        </p>
-                                                    </div>
+                                {userPlaylists.map(playlist => (
+                                    <Card key={playlist.id} className="hover:shadow-md transition-shadow">
+                                        <CardContent className="p-6">
+                                            <div className="flex items-center gap-4 cursor-pointer"
+                                                onClick={() => navigate(`/dashboard/playlist/${playlist.id}`)}>
+                                                <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
+                                                    <Music className="h-6 w-6 text-blue-500" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-semibold">{playlist.name}</h3>
+                                                    <p className="text-gray-500 dark:text-gray-400">
+                                                        {playlist.tracks?.length || 0} tracks
+                                                    </p>
                                                 </div>
                                             </div>
-
-                                            {/* First 3 Tracks */}
-                                            <div className="px-4 pb-4">
-                                                {playlist.tracks?.slice(0, 3).map((track, index) => (
-                                                    <div
-                                                        key={track.id || index}
-                                                        className="flex items-center gap-3 py-2 px-4 hover:bg-accent/80 rounded-md cursor-pointer"
-                                                    >
-                                                        <span className="text-sm text-muted-foreground w-6">
-                                                            {index + 1}
-                                                        </span>
-                                                        <div className="flex-1">
-                                                            <p className="font-medium text-sm">{track.title}</p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {track.channelTitle}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                {playlist.tracks?.length > 3 && (
-                                                    <p className="text-sm text-muted-foreground text-center pt-2">
-                                                        +{playlist.tracks.length - 3} more tracks
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-muted-foreground">No playlists created yet.</p>
-                                )}
+                                        </CardContent>
+                                    </Card>
+                                ))}
                             </div>
                         </TabsContent>
 
                         <TabsContent value="favorites">
                             <div className="grid gap-4">
-                                {favoriteSongs.length > 0 ? (
-                                    favoriteSongs.map(song => (
-                                        <div key={song.id}
-                                            className="flex items-center justify-between p-4 rounded-lg bg-accent/50 hover:bg-accent transition-colors cursor-pointer"
-                                        >
+                                {favoriteSongs.map(song => (
+                                    <Card key={song.id} className="hover:shadow-md transition-shadow">
+                                        <CardContent className="p-6">
                                             <div className="flex items-center gap-4">
-                                                <Music className="h-5 w-5 text-primary" />
+                                                <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
+                                                    <Music className="h-6 w-6 text-purple-500" />
+                                                </div>
                                                 <div>
-                                                    <h3 className="font-medium">{song.title}</h3>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {song.artist}
-                                                    </p>
+                                                    <h3 className="text-lg font-semibold">{song.title}</h3>
+                                                    <p className="text-gray-500 dark:text-gray-400">{song.artist}</p>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-muted-foreground">No favorite songs added yet.</p>
-                                )}
+                                        </CardContent>
+                                    </Card>
+                                ))}
                             </div>
                         </TabsContent>
                     </Tabs>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 };
