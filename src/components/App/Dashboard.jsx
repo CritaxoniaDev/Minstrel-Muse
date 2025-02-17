@@ -15,6 +15,7 @@ import {
     Mic2, Sparkles, Radio, Flame, Library, Plus, MoreHorizontal,
     Calendar, TrendingUp, History, Star, Loader2
 } from "lucide-react";
+import Footer from '@/components/footer';
 
 const quickLinks = [
     { icon: Star, label: "Favorites", path: "/favorites" },
@@ -144,7 +145,7 @@ const Dashboard = ({ currentUser, currentTrack, isPlaying, onPlayPause }) => {
     }
 
     return (
-        <div className="mb-10 min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background/95">
+        <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background/95">
             {/* Hero Section */}
             <div className="relative px-6 pt-8 pb-24 bg-gradient-to-b from-primary/30 via-purple-500/10 to-background backdrop-blur-3xl">
                 <motion.div
@@ -186,7 +187,7 @@ const Dashboard = ({ currentUser, currentTrack, isPlaying, onPlayPause }) => {
             </div>
 
             {/* Main Content */}
-            <div className="px-6 -mt-16 relative z-10">
+            <div className="px-6 -mt-16 mb-20 relative z-10">
                 <div className="max-w-7xl mx-auto space-y-8">
 
                     {/* Featured Playlists */}
@@ -304,6 +305,7 @@ const Dashboard = ({ currentUser, currentTrack, isPlaying, onPlayPause }) => {
                     </section>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

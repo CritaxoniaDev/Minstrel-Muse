@@ -16,8 +16,13 @@ const Profile = () => {
     const [favoriteSongs, setFavoriteSongs] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [bio, setBio] = useState('');
+    const currentUser = auth.currentUser;
+    const isOwnProfile = currentUser?.uid === userId;
 
+    // Update the handleEditClick function
     const handleEditClick = async () => {
+        if (!isOwnProfile) return;
+
         const userDoc = await getDoc(doc(db, "users", userId));
         if (userDoc.exists()) {
             setBio(userDoc.data().bio || '');
@@ -25,14 +30,16 @@ const Profile = () => {
         setIsEditing(true);
     };
 
-
+    // Update the handleUpdateProfile function
     const handleUpdateProfile = async () => {
+        if (!isOwnProfile) return;
+
         try {
             await updateDoc(doc(db, "users", userId), {
                 bio: bio
             });
             setIsEditing(false);
-            window.location.reload(); // Reload after saving
+            window.location.reload();
         } catch (error) {
             console.error("Error updating profile:", error);
         }
@@ -138,7 +145,7 @@ const Profile = () => {
                             </div>
                         </div>
 
-                        {!isEditing && (
+                        {!isEditing && isOwnProfile && (
                             <Button
                                 variant="outline"
                                 className="bg-white/10 backdrop-blur-sm border-white/20 text-gray-900 dark:text-white hover:bg-white/20 transition-colors"
