@@ -13,6 +13,7 @@ import { useMediaQuery } from 'react-responsive';
 import { ThemeProvider } from 'next-themes';
 import { useLocation } from 'react-router-dom';
 import Auth from './components/Auth/Auth';
+import MainPageMinstrelHub from './components/MainPage-MinstrelHub';
 import Dashboard from './components/App/Dashboard';
 import FullPlayerView from './components/FullPlayerView';
 import AdminDashboard from '@/Admin/AdminDashboard';
@@ -346,6 +347,7 @@ function App() {
         <Routes>
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
+          <Route path="/minstrelhub" element={<MainPageMinstrelHub />} />
 
           {!user ? (
             <Route path="*" element={<Navigate to="/" />} />

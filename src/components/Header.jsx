@@ -12,6 +12,7 @@ import { getYoutubeApiKey, rotateApiKey } from '../config/youtube-api';
 import { Card } from './ui/card';
 import { cn } from "@/lib/utils";
 import { ScrollArea } from './ui/scroll-area';
+import { useLocation } from 'react-router-dom';
 
 const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
     const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -23,6 +24,8 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const searchRef = useRef(null);
+    const location = useLocation();
+    const isMinstrelhub = location.pathname === '/minstrelhub';
 
     const decodeHTMLEntities = (text) => {
         const textarea = document.createElement('textarea');
@@ -177,22 +180,31 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                             {!isDesktop && user && (
                                 <Button
                                     variant="ghost"
-                                    className="p-2 hover:bg-primary/10"
+                                    className={`p-2 ${location.pathname === '/minstrelhub' ? 'hover:bg-white/10' : 'hover:bg-primary/10'}`}
                                     onClick={() => setIsOpen(!isOpen)}
                                 >
                                     <Menu className="h-6 w-6" />
                                 </Button>
                             )}
                             <div className="relative cursor-pointer" onClick={() => navigate('/dashboard')}>
-                                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
+                                <div className={`absolute -inset-1 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-200 ${location.pathname === '/minstrelhub'
+                                    ? 'bg-white'
+                                    : 'bg-gradient-to-r from-purple-600 to-blue-600'
+                                    }`}></div>
                                 <div className="relative">
-                                    <Music2 className="h-8 w-8 text-white bg-gradient-to-r from-purple-600 to-blue-600 p-1.5 rounded-full" />
+                                    <Music2 className={`h-8 w-8 p-1.5 rounded-full ${location.pathname === '/minstrelhub'
+                                        ? 'text-black bg-white'
+                                        : 'text-white bg-gradient-to-r from-purple-600 to-blue-600'
+                                        }`} />
                                 </div>
                             </div>
                         </div>
                         {!isMobile && (
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent group-hover:scale-105 transition-transform">
-                                MinstrelMuse
+                            <h1 className={`text-xl font-bold group-hover:scale-105 transition-transform ${location.pathname === '/minstrelhub'
+                                ? 'text-foreground'
+                                : 'bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent'
+                                }`}>
+                                {location.pathname === '/minstrelhub' ? 'MinstrelHub' : 'MinstrelMuse'}
                             </h1>
                         )}
                     </div>
@@ -266,28 +278,51 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                             variant="ghost"
                             size="icon"
                             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                            className="rounded-full hover:bg-purple-100 dark:hover:bg-purple-900 transition-colors"
+                            className={`rounded-full transition-colors ${location.pathname === '/minstrelhub'
+                                    ? 'hover:bg-white/10'
+                                    : 'hover:bg-purple-100 dark:hover:bg-purple-900'
+                                }`}
                         >
                             {theme === 'dark' ? (
-                                <Sun className="h-5 w-5 text-yellow-500" />
+                                <Sun className={`h-5 w-5 ${location.pathname === '/minstrelhub'
+                                        ? 'text-white'
+                                        : 'text-foreground'
+                                    }`} />
                             ) : (
-                                <Moon className="h-5 w-5 text-purple-600" />
+                                <Moon className={`h-5 w-5 ${location.pathname === '/minstrelhub'
+                                        ? 'text-black'
+                                        : 'text-foreground'
+                                    }`} />
                             )}
                         </Button>
                         {!user ? (
-                            <Button
-                                variant="default"
-                                className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                                onClick={() => navigate('/login')}
-                            >
-                                {!isMobile && "Login"}
-                                <User2 className={cn("h-4 w-4", !isMobile && "ml-2")} />
-                            </Button>
+                            <>
+                                {location.pathname !== '/minstrelhub' && (
+                                    <Button
+                                        variant="default"
+                                        className="rounded-sm bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                                        onClick={() => navigate('/login')}
+                                    >
+                                        {!isMobile && "Login"}
+                                        <User2 className={cn("h-4 w-4", !isMobile && "ml-2")} />
+                                    </Button>
+                                )}
+                                {location.pathname === '/minstrelhub' && (
+                                    <Button
+                                        variant="default"
+                                        className="rounded-sm bg-white text-black hover:bg-zinc-200 shadow-lg hover:shadow-xl transition-all duration-300"
+                                        onClick={() => navigate('/login')}
+                                    >
+                                        {!isMobile && "Join MinstrelHub"}
+                                        <User2 className={cn("h-4 w-4", !isMobile && "ml-2")} />
+                                    </Button>
+                                )}
+                            </>
                         ) : (
                             <Button
                                 variant="default"
                                 onClick={handleSignOut}
-                                className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                                className="rounded-sm bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                             >
                                 <LogOut className="h-4 w-4" />
                                 {!isMobile && <span className="ml-2">Sign Out</span>}
