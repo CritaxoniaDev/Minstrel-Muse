@@ -13,7 +13,6 @@ import { useMediaQuery } from 'react-responsive';
 import { ThemeProvider } from 'next-themes';
 import { useLocation } from 'react-router-dom';
 import Auth from './components/Auth/Auth';
-import MainPageMinstrelHub from './components/MainPage-MinstrelHub';
 import Dashboard from './components/App/Dashboard';
 import FullPlayerView from './components/FullPlayerView';
 import AdminDashboard from '@/Admin/AdminDashboard';
@@ -22,6 +21,7 @@ import Layout from './components/Layout/layout';
 import Profile from './components/Profile/Profile';
 import Discover from './components/Discover';
 import SearchResults from './components/SearchResults';
+import CreatePost from './components/CreatePost';
 import UserManagement from './Admin/UserManagement';
 import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
@@ -347,7 +347,6 @@ function App() {
         <Routes>
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
-          <Route path="/minstrelhub" element={<MainPageMinstrelHub />} />
 
           {!user ? (
             <Route path="*" element={<Navigate to="/" />} />
@@ -380,6 +379,7 @@ function App() {
                   playlists={playlists}
                 />
               } />
+              <Route path="/dashboard/create-post" element={<CreatePost currentUser={user} />} />
               <Route path="/dashboard/player" element={
                 <FullPlayerView
                   currentTrack={currentTrack}

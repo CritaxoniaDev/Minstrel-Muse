@@ -10,7 +10,7 @@ const Footer = () => {
                     <div className="flex items-center gap-2 text-2xl font-bold">
                         <Music2 className="h-8 w-8 text-primary" />
                         <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                            YouPiFy
+                            MinstrelMuse
                         </span>
                     </div>
                 </div>

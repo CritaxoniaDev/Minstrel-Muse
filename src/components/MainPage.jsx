@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { auth } from '../config/firebase';
 import { useMediaQuery } from 'react-responsive';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link } from 'react-router-dom';
 import { Music2, Youtube, Headphones, Radio, Sparkles, ArrowRight } from "lucide-react";
 
 const MainPage = () => {
+    const user = auth.currentUser;
     const [showCopyright, setShowCopyright] = useState(true);
 
     const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -14,11 +15,11 @@ const MainPage = () => {
     const isDesktop = useMediaQuery({ minWidth: 1024 });
 
     return (
-        <div className="min-h-screen flex items-center justify-center relative mt-[-6.6rem] overflow-hidden bg-background">
+        <div className="min-h-screen flex items-center justify-center relative mt-[-6.6rem] overflow-hidden bg-white">
             <AnimatePresence>
                 {showCopyright && (
                     <motion.div
-                        className="fixed tracking-tighter inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+                        className="fixed tracking-tighter inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
@@ -36,7 +37,7 @@ const MainPage = () => {
                                 ${isMobile ? 'max-w-[95%]' : isTablet ? 'max-w-[600px]' : 'max-w-[500px]'}
                                 ${isMobile ? 'p-4' : 'p-6'}
                                 mx-auto
-                                bg-card
+                                bg-white
                                 border border-purple-500/20
                             `}>
                                 <CardContent className="space-y-4 text-center relative">
@@ -75,7 +76,7 @@ const MainPage = () => {
                                     </div>
 
                                     <div className="relative">
-                                        <p className={`text-foreground leading-relaxed ${isMobile ? 'text-sm' : 'text-base'}`}>
+                                        <p className={`text-black-200 leading-relaxed ${isMobile ? 'text-sm' : 'text-base'}`}>
                                             This application integrates with YouTube and Google Firebase services.
                                             All content accessed through YouTube is subject to YouTube's Terms of Service
                                             and copyright policies.
@@ -107,7 +108,7 @@ const MainPage = () => {
                 )}
             </AnimatePresence>
 
-            <div className="absolute inset-0 bg-background" />
+            <div className="absolute inset-0 bg-white" />
 
             <motion.div
                 className="text-center z-10 space-y-4 md:space-y-6 p-4 md:p-8 rounded-2xl"
@@ -140,21 +141,6 @@ const MainPage = () => {
                 <p className="text-lg md:text-2xl text-muted-foreground tracking-tighter font-light">
                     Where Poetry Meets Melody in the Digital Age
                 </p>
-
-                <div className="flex items-center justify-center gap-4 pt-8">
-                    <Link to="/minstrelhub">
-                        <Button
-                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 group relative overflow-hidden"
-                            size="lg"
-                        >
-                            <span className="relative z-10 flex items-center justify-center">
-                                Join MinstrelHub
-                                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </Button>
-                    </Link>
-                </div>
 
                 <div className="flex items-center justify-center gap-4 pt-8">
                 </div>
