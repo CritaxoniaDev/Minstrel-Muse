@@ -460,7 +460,7 @@ function App() {
             />
             {currentTrack && !isPlayerPage && (
               <div className={cn(
-                "fixed bottom-0 left-0 right-0 border-t z-[9999] bg-background p-4 animate-slide-up transition-[margin] duration-300 ease-in-out",
+                "fixed bottom-0 left-0 right-0 border-t z-50 bg-background p-4 animate-slide-up transition-[margin] duration-300 ease-in-out",
                 isDesktop ? (isMinimized ? "ml-20" : "ml-64") : "",
                 !isDesktop && sidebarOpen ? "ml-64" : ""
               )}>              
