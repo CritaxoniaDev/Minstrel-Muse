@@ -2,10 +2,7 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { useState } from 'react';
 
-const Layout = ({ user, children, onSearchResults }) => {
-    const [isMinimized, setIsMinimized] = useState(true);
-    const [isOpen, setIsOpen] = useState(false);
-
+const Layout = ({ user, children, onSearchResults, isMinimized, setIsMinimized, isOpen, setIsOpen }) => {
     return (
         <div className="relative min-h-screen">
             <Header 
@@ -30,6 +27,7 @@ const Layout = ({ user, children, onSearchResults }) => {
         </div>
     );
 };
+
 
 
 export default Layout;

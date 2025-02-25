@@ -53,6 +53,7 @@ function App() {
   const [hasPlayedEndSound, setHasPlayedEndSound] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
   const [isFullPlayerVisible, setIsFullPlayerVisible] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const isPlayerPage = location.pathname === '/dashboard/player';
@@ -343,6 +344,8 @@ function App() {
         onSearchResults={setSearchResults}
         isMinimized={isMinimized}
         setIsMinimized={setIsMinimized}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
       >
         <Routes>
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
@@ -457,9 +460,10 @@ function App() {
             />
             {currentTrack && !isPlayerPage && (
               <div className={cn(
-                "fixed bottom-0 left-0 right-0 border-t z-[9998] bg-background p-4 z-50 animate-slide-up",
-                isDesktop ? (isMinimized ? "ml-20" : "ml-64") : ""
-              )}>
+                "fixed bottom-0 left-0 right-0 border-t z-[9999] bg-background p-4 animate-slide-up transition-[margin] duration-300 ease-in-out",
+                isDesktop ? (isMinimized ? "ml-20" : "ml-64") : "",
+                !isDesktop && sidebarOpen ? "ml-64" : ""
+              )}>              
                 <div className="flex max-w-7xl mx-auto items-center">
                   <div
                     className="flex items-center space-x-4 w-1/4 cursor-pointer"
