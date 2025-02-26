@@ -10,14 +10,34 @@ import { formatDistanceToNow } from 'date-fns';
 import { db } from '@/config/firebase';
 import { Badge } from "@/components/ui/badge";
 import {
-    Heart, MessageCircle, Share2, Repeat2, Music2,
-    Image, Smile, Calendar, Play, Pause
+    Music2, Users, Heart, Image, MessageCircle, Share2, Smile, Repeat2
 } from "lucide-react";
-import { Separator } from '@radix-ui/react-dropdown-menu';
 
-const Dashboard = ({ currentUser, currentTrack, onPlayPause, isPlaying }) => {
+const Dashboard = ({ currentUser }) => {
     const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
+    const [users, setUsers] = useState([]);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const usersQuery = query(
+                    collection(db, "users"),
+                    orderBy("createdAt", "desc")
+                );
+                const querySnapshot = await getDocs(usersQuery);
+                const usersList = querySnapshot.docs.map(doc => ({
+                    uid: doc.id,
+                    ...doc.data()
+                }));
+                setUsers(usersList);
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            }
+        };
+
+        fetchUsers();
+    }, []);
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -262,20 +282,57 @@ const Dashboard = ({ currentUser, currentTrack, onPlayPause, isPlaying }) => {
                     <div className="sticky top-4 space-y-4">
                         <Card>
                             <CardHeader>
-                                <h3 className="font-semibold">Trending Now</h3>
+                                <div className="flex items-center gap-2">
+                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <Users className="h-4 w-4 text-primary animate-pulse" />
+                                    </div>
+                                    <div className="flex items-center justify-between w-full">
+                                        <h3 className="font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                                            Active Users
+                                        </h3>
+                                        <span className="text-xs text-muted-foreground">
+                                            {users.length} online
+                                        </span>
+                                    </div>
+                                </div>
                             </CardHeader>
                             <CardContent className="p-4">
-                                {["#NewMusic", "#NowPlaying", "#MusicLife", "#SpotifyWrapped", "#LiveMusic"].map((topic, index) => (
-                                    <div key={topic} className="py-2 px-3 hover:bg-muted rounded-lg cursor-pointer transition-colors">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="font-medium">{topic}</p>
-                                                <p className="text-sm text-muted-foreground">{1200 - (index * 100)}K posts</p>
-                                            </div>
-                                            <Badge variant="secondary" className="bg-primary/5">Trending</Badge>
+                                {users.filter(u => u.uid !== currentUser.uid).slice(0, 5).map((user) => (
+                                    <div
+                                        key={user.uid}
+                                        className="group transition-all duration-300 cursor-pointer flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 mb-2"
+                                        onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
+                                    >
+                                        <div className="relative">
+                                            <Avatar className="h-12 w-12 border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20">
+                                                <AvatarImage src={user?.photoURL} />
+                                                <AvatarFallback className="bg-primary/10">
+                                                    {user?.name?.charAt(0) || user?.email?.charAt(0)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'} ${user.isOnline ? 'animate-pulse' : ''}`} />
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                                                {user?.name || 'Anonymous'}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground group-hover:text-primary/70">
+                                                {user.isOnline ? 'Active now' : 'Offline'}
+                                            </p>
                                         </div>
                                     </div>
                                 ))}
+
+                                {users.length > 5 && (
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full mt-2 hover:bg-primary/5"
+                                        onClick={() => navigate('/dashboard/users')}
+                                    >
+                                        See More Users
+                                    </Button>
+                                )}
                             </CardContent>
                         </Card>
 

@@ -58,6 +58,29 @@ function App() {
   const location = useLocation();
   const isPlayerPage = location.pathname === '/dashboard/player';
   const [isMinimized, setIsMinimized] = useState(true);
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const usersQuery = query(
+          collection(db, "users"),
+          orderBy("createdAt", "desc")
+        );
+        const querySnapshot = await getDocs(usersQuery);
+        const usersList = querySnapshot.docs.map(doc => ({
+          uid: doc.id,
+          ...doc.data()
+        }));
+        setUsers(usersList);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
 
   const handleLoopToggle = () => {
     setIsLooping(!isLooping);
@@ -323,11 +346,21 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  const ProtectedRoute = ({ children }) => {
-    if (!user) {
-      return <Navigate to="/" replace />;
+  const handleCancelTrack = () => {
+    if (player) {
+      player.stopVideo();
     }
-    return children;
+    setCurrentTrack(null);
+    setIsPlaying(false);
+    setQueue([]);
+    setCurrentTime(0);
+    setDuration(0);
+
+    toast({
+      title: "Playback Stopped",
+      description: "Current track and queue cleared",
+      duration: 3000,
+    });
   };
 
   const decodeHTMLEntities = (text) => {
@@ -369,6 +402,7 @@ function App() {
                   onVolumeChange={handleVolumeChange}
                   queue={queue}
                   currentUser={user}
+                  users={users}  // Add this line
                 />
               } />
               <Route path="/dashboard/profile/:userId" element={<Profile />} />
@@ -463,7 +497,7 @@ function App() {
                 "fixed bottom-0 left-0 right-0 border-t z-50 bg-background p-4 animate-slide-up transition-[margin] duration-300 ease-in-out",
                 isDesktop ? (isMinimized ? "ml-20" : "ml-64") : "",
                 !isDesktop && sidebarOpen ? "ml-64" : ""
-              )}>              
+              )}>
                 <div className="flex max-w-7xl mx-auto items-center">
                   <div
                     className="flex items-center space-x-4 w-1/4 cursor-pointer"
@@ -559,6 +593,15 @@ function App() {
                       className="w-24"
                       onValueChange={(value) => handleVolumeChange(value[0])}
                     />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleCancelTrack}
+                      className="hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="ghost" size="icon" className="hover:bg-accent">
