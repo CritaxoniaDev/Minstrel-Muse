@@ -26,6 +26,7 @@ import UserManagement from './Admin/UserManagement';
 import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
 import MainPage from './components/MainPage';
+import Users from './components/Users/Users';
 import Library from './components/Library';
 import PlaylistDetail from './components/PlaylistDetail';
 import NotFound from './components/Error/404';
@@ -405,7 +406,8 @@ function App() {
                   users={users}  // Add this line
                 />
               } />
-              <Route path="/dashboard/profile/:userId" element={<Profile />} />
+              <Route path="/dashboard/profile/:userId" element={<Profile onPlayPause={handlePlayPause} />} />
+              <Route path="/dashboard/users" element={<Users />} />
               <Route path="/dashboard/search" element={
                 <SearchResults
                   results={searchResults}

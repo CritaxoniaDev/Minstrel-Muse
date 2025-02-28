@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { Play, Pause, Plus, Music2, SearchX, ListPlus } from "lucide-react";
+import { Play, Pause, Plus, Music2, SearchX, ListPlus, Heart } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -7,8 +7,8 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useMediaQuery } from 'react-responsive';
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, collection } from 'firebase/firestore';
+import { db, auth } from '../config/firebase';
 import { useToast } from '../hooks/use-toast';
 
 const decodeHTMLEntities = (text) => {
@@ -23,12 +23,59 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
     const isDesktop = useMediaQuery({ minWidth: 1024 });
 
+    const handleFavorite = async (video, e) => {
+        e.stopPropagation();
+        try {
+            const favoriteTrack = {
+                id: video.id,
+                title: video.title,
+                thumbnail: video.thumbnail,
+                channelTitle: video.channelTitle,
+                addedAt: new Date().toISOString()
+            };
+
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            const userDoc = await getDoc(userRef);
+            const favorites = userDoc.data().favorites || [];
+
+            const isAlreadyFavorite = favorites.some(track => track.id === video.id);
+
+            if (isAlreadyFavorite) {
+                await updateDoc(userRef, {
+                    favorites: arrayRemove(favoriteTrack)
+                });
+                toast({
+                    title: "Removed from favorites",
+                    description: "Track removed from your favorites",
+                    duration: 3000,
+                });
+            } else {
+                await updateDoc(userRef, {
+                    favorites: arrayUnion(favoriteTrack)
+                });
+                toast({
+                    title: "Added to favorites",
+                    description: "Track added to your favorites",
+                    duration: 3000,
+                });
+            }
+        } catch (error) {
+            console.error("Error updating favorites:", error);
+            toast({
+                title: "Error",
+                description: "Failed to update favorites",
+                variant: "destructive",
+                duration: 3000,
+            });
+        }
+    };
+
     const handleAddToPlaylist = async (video, playlistId) => {
         try {
             // Get current playlist data
             const playlistDoc = await getDoc(doc(db, "playlists", playlistId));
             const playlistData = playlistDoc.data();
-    
+
             // Check if song already exists
             if (playlistData.tracks?.some(track => track.id === video.id)) {
                 toast({
@@ -38,7 +85,7 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
                 });
                 return;
             }
-    
+
             // Create new track object
             const newTrack = {
                 id: video.id,
@@ -47,12 +94,12 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
                 channelTitle: video.channelTitle,
                 addedAt: new Date().toISOString()
             };
-    
+
             // Update playlist with new track
             await updateDoc(doc(db, "playlists", playlistId), {
                 tracks: arrayUnion(newTrack)
             });
-    
+
             toast({
                 title: "Added to playlist",
                 description: "Song has been added to your playlist successfully",
@@ -67,7 +114,7 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
                 duration: 3000,
             });
         }
-    };    
+    };
 
     return (
         <div className={`container mx-auto ${isMobile ? 'px-2' : 'px-4'} ${isMobile ? 'py-4' : 'py-6'} pb-24`}>
@@ -123,6 +170,18 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
                                 </div>
 
                                 <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
+                                    <Button
+                                        variant="ghost"
+                                        size={isMobile ? "sm" : "icon"}
+                                        className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                        onClick={(e) => handleFavorite(video, e)}
+                                    >
+                                        <Heart
+                                            className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} 
+                                        ${video.isFavorite ? 'fill-current text-red-500' : ''}`}
+                                        />
+                                    </Button>
+
                                     <Button
                                         variant="ghost"
                                         size={isMobile ? "sm" : "icon"}

@@ -6,9 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Music, User, ArrowLeft } from 'lucide-react';
+import { Calendar, Music, User, ArrowLeft, Play, Plus, Heart } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 
-const Profile = () => {
+const Profile = ({ onPlayPause }) => {
     const { userId } = useParams();
     const navigate = useNavigate();
     const [profileUser, setProfileUser] = useState(null);
@@ -18,6 +19,16 @@ const Profile = () => {
     const [bio, setBio] = useState('');
     const currentUser = auth.currentUser;
     const isOwnProfile = currentUser?.uid === userId;
+
+    const handlePlayTrack = (song) => {
+        const trackToPlay = {
+            id: song.id,
+            title: song.title,
+            thumbnail: song.thumbnail,
+            channelTitle: song.channelTitle
+        };
+        onPlayPause(trackToPlay);
+    };
 
     // Update the handleEditClick function
     const handleEditClick = async () => {
@@ -51,10 +62,13 @@ const Profile = () => {
 
             const userDoc = await getDoc(doc(db, "users", userId));
             if (userDoc.exists()) {
+                const userData = userDoc.data();
                 setProfileUser({
                     id: userDoc.id,
-                    ...userDoc.data()
+                    ...userData
                 });
+                // Set favorites from user document
+                setFavoriteSongs(userData.favorites || []);
             }
 
             const playlistsQuery = query(
@@ -67,17 +81,6 @@ const Profile = () => {
                 ...doc.data()
             }));
             setUserPlaylists(playlists);
-
-            const favoritesQuery = query(
-                collection(db, "favorites"),
-                where("userId", "==", userId)
-            );
-            const favoritesSnapshot = await getDocs(favoritesQuery);
-            const favorites = favoritesSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setFavoriteSongs(favorites);
         };
 
         fetchUserData();
@@ -233,7 +236,7 @@ const Profile = () => {
                                     <Card key={playlist.id} className="hover:shadow-md transition-shadow">
                                         <CardContent className="p-6">
                                             <div className="flex items-center gap-4 cursor-pointer"
-                                                onClick={() => navigate(`/dashboard/playlist/${playlist.id}`)}>
+                                                onClick={() => navigate(`/dashboard/library/${playlist.id}`)}>
                                                 <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
                                                     <Music className="h-6 w-6 text-blue-500" />
                                                 </div>
@@ -251,22 +254,85 @@ const Profile = () => {
                         </TabsContent>
 
                         <TabsContent value="favorites">
-                            <div className="grid gap-4">
+                            <div className="space-y-4">
                                 {favoriteSongs.map(song => (
-                                    <Card key={song.id} className="hover:shadow-md transition-shadow">
-                                        <CardContent className="p-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
-                                                    <Music className="h-6 w-6 text-purple-500" />
+                                    <Card
+                                        key={song.id}
+                                        className="group hover:shadow-xl transition-all duration-300 border-primary/10 hover:border-primary/20"
+                                    >
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center gap-6">
+                                                <div className="relative">
+                                                    <img
+                                                        src={song.thumbnail}
+                                                        alt={song.title}
+                                                        className="h-20 w-20 rounded-xl object-cover group-hover:scale-105 transition-transform duration-300 shadow-lg"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute inset-0 m-auto opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 hover:bg-black/40 text-white w-10 h-10 rounded-full"
+                                                        onClick={() => handlePlayTrack(song)}
+                                                    >
+                                                        <Play className="h-5 w-5" />
+                                                    </Button>
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-lg font-semibold">{song.title}</h3>
-                                                    <p className="text-gray-500 dark:text-gray-400">{song.artist}</p>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-lg font-semibold truncate group-hover:text-primary transition-colors">
+                                                        {song.title}
+                                                    </h3>
+                                                    <p className="text-sm text-muted-foreground truncate">
+                                                        {song.channelTitle}
+                                                    </p>
+                                                    <div className="flex items-center gap-2 mt-2">
+                                                        <Badge variant="secondary" className="bg-primary/5">
+                                                            Added {new Date(song.addedAt).toLocaleDateString()}
+                                                        </Badge>
+                                                        <Badge variant="outline" className="bg-primary/5">
+                                                            {song.duration || "3:30"}
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="rounded-full hover:bg-primary/10 hover:text-primary"
+                                                        onClick={() => handleAddToQueue(song)}
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="rounded-full hover:bg-red-500/10 hover:text-red-500"
+                                                        onClick={() => handleRemoveFromFavorites(song.id)}
+                                                    >
+                                                        <Heart className="h-4 w-4 fill-current" />
+                                                    </Button>
                                                 </div>
                                             </div>
                                         </CardContent>
                                     </Card>
                                 ))}
+
+                                {favoriteSongs.length === 0 && (
+                                    <div className="text-center p-12 bg-card rounded-xl border shadow-xl">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 blur-xl opacity-10 animate-pulse" />
+                                            <Music className="h-16 w-16 mx-auto text-primary mb-4 relative z-10" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                            No favorites yet
+                                        </h3>
+                                        <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                                            Start adding songs to your favorites while exploring music
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </TabsContent>
                     </Tabs>
