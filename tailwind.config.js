@@ -16,6 +16,10 @@ module.exports = {
 				]
 			},
 			keyframes: {
+				'slide-in-right': {
+					'0%': { transform: 'translateX(100%)' },
+					'100%': { transform: 'translateX(0)' }
+				},
 				marquee: {
 					'0%': {
 						transform: 'translateX(0%)'
@@ -99,6 +103,7 @@ module.exports = {
 			},
 			animation: {
 				marquee: 'marquee 15s linear infinite',
+				'slide-in-right': 'slide-in-right 0.3s ease-out',
 				'slide-up': 'slide-up 0.3s ease-out',
 				'grid-fade-in': 'grid-fade-in 2s ease-out forwards',
 				'grid-beam': 'grid-beam 3s linear infinite',

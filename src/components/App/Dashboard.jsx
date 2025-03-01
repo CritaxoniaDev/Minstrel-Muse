@@ -7,16 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
+import { useMediaQuery } from 'react-responsive';
+import { cn } from '@/lib/utils';
 import { db } from '@/config/firebase';
 import { Badge } from "@/components/ui/badge";
 import {
     Music2, Users, Heart, Image, MessageCircle, Share2, Smile, Repeat2
 } from "lucide-react";
 
-const Dashboard = ({ currentUser }) => {
+const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
     const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
     const [users, setUsers] = useState([]);
+    const isMobile = useMediaQuery({ maxWidth: 767 });
+    const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
+    const isDesktop = useMediaQuery({ minWidth: 1024 });
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -57,45 +62,64 @@ const Dashboard = ({ currentUser }) => {
 
     return (
         <div className="min-h-screen bg-background mb-20">
-            <div className="container mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-12 gap-6">
-
+            <div className={cn(
+                "container mx-auto px-4 py-6 grid grid-cols-1 gap-6",
+                isDesktop ? "md:grid-cols-12" : "md:grid-cols-1",
+                currentTrack && !isPlayerPage && isDesktop ? "mr-80" : ""
+            )}>
                 {/* Left Column - Stats */}
-                <div className="md:col-span-3 space-y-4">
-                    <Card className="sticky top-4">
+                <div className={cn(
+                    "space-y-4",
+                    isDesktop ? "md:col-span-3" : "w-full",
+                    currentTrack && !isPlayerPage && !isDesktop ? "hidden" : ""
+                )}>
+                    <Card className={cn(
+                        "sticky",
+                        isMobile ? "relative" : "top-20"
+                    )}>
                         <CardHeader>
                             <h3 className="font-semibold">Your Music Stats</h3>
                         </CardHeader>
                         <CardContent className="p-4 space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="text-center p-3 bg-primary/5 rounded-lg">
+                            <div className={cn(
+                                "grid gap-4",
+                                isMobile ? "grid-cols-2" : isTablet ? "grid-cols-2" : "grid-cols-2"
+                            )}>
+                                <div className="text-center p-3 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
                                     <h4 className="text-2xl font-bold text-primary">247</h4>
                                     <p className="text-sm text-muted-foreground">Playlists</p>
                                 </div>
-                                <div className="text-center p-3 bg-primary/5 rounded-lg">
+                                <div className="text-center p-3 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
                                     <h4 className="text-2xl font-bold text-primary">1.2K</h4>
                                     <p className="text-sm text-muted-foreground">Favorites</p>
                                 </div>
-                                <div className="text-center p-3 bg-primary/5 rounded-lg">
+                                <div className="text-center p-3 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
                                     <h4 className="text-2xl font-bold text-primary">48h</h4>
                                     <p className="text-sm text-muted-foreground">Listened</p>
                                 </div>
-                                <div className="text-center p-3 bg-primary/5 rounded-lg">
+                                <div className="text-center p-3 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
                                     <h4 className="text-2xl font-bold text-primary">183</h4>
                                     <p className="text-sm text-muted-foreground">Following</p>
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
+                            <div className={cn(
+                                "space-y-3",
+                                isMobile ? "hidden" : "block"
+                            )}>
                                 <h4 className="font-medium">Recent Activity</h4>
                                 {[1, 2, 3].map((activity) => (
-                                    <div key={activity} className="flex items-center space-x-3 p-2 hover:bg-muted rounded-lg">
-                                        <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-                                        <p className="text-sm">Added new song to Summer Vibes</p>
+                                    <div key={activity} className="flex items-center space-x-3 p-2 hover:bg-muted rounded-lg cursor-pointer group">
+                                        <div className="h-2 w-2 bg-primary rounded-full animate-pulse group-hover:bg-primary/80" />
+                                        <p className="text-sm group-hover:text-primary transition-colors">Added new song to Summer Vibes</p>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="space-y-3">
+                            <div className={cn(
+                                "space-y-3",
+                                isMobile ? "hidden" : "block"
+                            )}>
                                 <h4 className="font-medium">Top Genres</h4>
                                 <div className="space-y-2">
                                     {[
@@ -108,7 +132,7 @@ const Dashboard = ({ currentUser }) => {
                                                 <span>{item.genre}</span>
                                                 <span className="text-muted-foreground">{item.percentage}</span>
                                             </div>
-                                            <div className="h-2 bg-muted rounded-full">
+                                            <div className="h-2 bg-muted rounded-full overflow-hidden">
                                                 <div
                                                     className="h-full bg-primary rounded-full transition-all duration-500"
                                                     style={{ width: item.percentage }}
@@ -123,8 +147,11 @@ const Dashboard = ({ currentUser }) => {
                 </div>
 
                 {/* Main Content */}
-                <main className="md:col-span-6 space-y-6">
-                    {/* Post Creation Card */}
+                <main className={cn(
+                    "space-y-6",
+                    isDesktop ? "md:col-span-6" : "w-full",
+                    currentTrack && !isPlayerPage && !isDesktop ? "col-span-12" : ""
+                )}>
                     <Card>
                         <CardContent className="p-4">
                             <div className="flex space-x-4">
@@ -164,7 +191,6 @@ const Dashboard = ({ currentUser }) => {
                         </CardContent>
                     </Card>
 
-                    {/* Feed Tabs */}
                     <Tabs defaultValue="foryou">
                         <TabsList className="w-full">
                             <TabsTrigger value="foryou" className="flex-1">For You</TabsTrigger>
@@ -173,7 +199,6 @@ const Dashboard = ({ currentUser }) => {
                         </TabsList>
 
                         <TabsContent value="foryou" className="space-y-4 mt-4">
-                            {/* Welcome Post */}
                             <Card className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-primary/20">
                                 <CardContent className="p-6">
                                     <div className="flex space-x-4">
@@ -219,7 +244,6 @@ const Dashboard = ({ currentUser }) => {
                                 </CardContent>
                             </Card>
 
-                            {/* Regular Posts */}
                             {posts.map((post) => (
                                 <Card key={post.id} className="hover:bg-muted/50 transition-colors">
                                     <CardContent className="p-4">
@@ -277,8 +301,11 @@ const Dashboard = ({ currentUser }) => {
                     </Tabs>
                 </main>
 
-                {/* Right Column - Trending & Suggestions */}
-                <div className="md:col-span-3">
+                {/* Right Column */}
+                <div className={cn(
+                    "md:col-span-3",
+                    currentTrack && !isPlayerPage && !isDesktop ? "hidden" : ""
+                )}>
                     <div className="sticky top-4 space-y-4">
                         <Card>
                             <CardHeader>

@@ -126,7 +126,7 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
             </div>
 
             {results.length === 0 ? (
-                <div className={`bg-card rounded-xl ${isMobile ? 'p-6' : 'p-12'} border shadow-xl flex flex-col items-center justify-center text-center`}>
+                <div className={`bg-card rounded-sm ${isMobile ? 'p-6' : 'p-12'} border shadow-xl flex flex-col items-center justify-center text-center`}>
                     <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 blur-xl opacity-50 animate-pulse" />
                         <SearchX className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} relative z-10 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text`} />
@@ -139,7 +139,7 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
                     </p>
                 </div>
             ) : (
-                <div className={`bg-card rounded-xl ${isMobile ? 'p-3' : 'p-6'} border shadow-xl`}>
+                <div className={`bg-card rounded-sm ${isMobile ? 'p-3' : 'p-6'} border shadow-xl`}>
                     {results.map((video) => (
                         <div
                             key={video.id}

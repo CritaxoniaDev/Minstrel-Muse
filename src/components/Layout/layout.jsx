@@ -1,8 +1,8 @@
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
-const Layout = ({ user, children, onSearchResults, isMinimized, setIsMinimized, isOpen, setIsOpen }) => {
+const Layout = ({ user, children, currentTrack, onSearchResults, isMinimized, setIsMinimized, isOpen, setIsOpen }) => {
     return (
         <div className="relative min-h-screen">
             <Header 
@@ -21,13 +21,18 @@ const Layout = ({ user, children, onSearchResults, isMinimized, setIsMinimized, 
                     setIsOpen={setIsOpen}
                 />
             )}
-            <main className={`${user ? (isMinimized ? 'lg:ml-20' : 'lg:ml-64') : 'mt-10'} relative min-h-screen transition-all duration-300`}>
-                {children}
+            <main className={cn(
+                "relative min-h-screen transition-all duration-300",
+                user ? (isMinimized ? 'lg:ml-20' : 'lg:ml-64') : 'mt-10',
+                currentTrack ? 'lg:mr-80' : '',
+                "px-4 md:px-6 lg:px-8"
+            )}>
+                <div className="max-w-7xl mx-auto">
+                    {children}
+                </div>
             </main>
         </div>
     );
 };
-
-
 
 export default Layout;
