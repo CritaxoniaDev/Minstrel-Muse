@@ -1,43 +1,72 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, where } from 'firebase/firestore';
 import { db, auth } from '@/config/firebase';
 import { Search, Users as UsersIcon, Shield, Clock, UserCheck } from 'lucide-react';
 
 const Users = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
+    const [userPlaylists, setUserPlaylists] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
-    const currentUser = auth.currentUser;
+    const [filteredUsers, setFilteredUsers] = useState([]);
 
     useEffect(() => {
         const fetchUsers = async () => {
-            const usersQuery = query(
-                collection(db, "users"),
-                orderBy("createdAt", "desc")
-            );
-            const querySnapshot = await getDocs(usersQuery);
-            const usersList = querySnapshot.docs.map(doc => ({
-                uid: doc.id,
-                ...doc.data()
-            }));
-            setUsers(usersList);
+            try {
+                const usersQuery = query(
+                    collection(db, "users"),
+                    orderBy("createdAt", "desc")
+                );
+                const querySnapshot = await getDocs(usersQuery);
+                const usersList = querySnapshot.docs.map(doc => ({
+                    uid: doc.id,
+                    ...doc.data()
+                }));
+                setUsers(usersList);
+                setFilteredUsers(usersList);
+            } catch (error) {
+                console.error("Error fetching users:", error);
+            }
         };
 
         fetchUsers();
     }, []);
 
-    const filteredUsers = users.filter(user =>
-        user.uid !== currentUser?.uid &&
-        (user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user?.email?.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    useEffect(() => {
+        const fetchUserPlaylists = async () => {
+            const playlistPromises = filteredUsers.map(async (user) => {
+                const q = query(
+                    collection(db, "playlists"),
+                    where("userId", "==", user.uid)
+                );
+                const querySnapshot = await getDocs(q);
+                return {
+                    userId: user.uid,
+                    playlists: querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                };
+            });
+
+            const results = await Promise.all(playlistPromises);
+            const playlistsMap = results.reduce((acc, curr) => {
+                acc[curr.userId] = curr.playlists;
+                return acc;
+            }, {});
+
+            setUserPlaylists(playlistsMap);
+        };
+
+        if (filteredUsers.length > 0) {
+            fetchUserPlaylists();
+        }
+    }, [filteredUsers]);
 
     return (
         <div className="container mx-auto p-6 max-w-7xl">
@@ -79,50 +108,61 @@ const Users = () => {
                     </TabsList>
 
                     <TabsContent value="all" className="mt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {filteredUsers.map((user) => (
                                 <Card
                                     key={user.uid}
-                                    className="group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                                    className="group hover:shadow-xl hover:scale-102 transition-all duration-300 cursor-pointer border border-border/50 hover:border-primary/20 backdrop-blur-sm"
                                     onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
                                 >
-                                    <CardContent className="p-6">
-                                        <div className="flex items-center gap-4">
+                                    <CardContent className="p-6 flex flex-col space-y-4">
+                                        <div className="flex items-start justify-between gap-4">
                                             <div className="relative">
-                                                <Avatar className="h-16 w-16 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
-                                                    <AvatarImage src={user.photoURL} />
-                                                    <AvatarFallback className="bg-primary/10">
+                                                <Avatar className="h-16 w-16 ring-2 ring-offset-2 ring-offset-background ring-primary/20 group-hover:ring-primary/40 transition-all duration-300">
+                                                    <AvatarImage src={user.photoURL} className="object-cover" />
+                                                    <AvatarFallback className="bg-primary/10 font-medium">
                                                         {user?.name?.charAt(0) || user?.email?.charAt(0)}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <span
-                                                    className={`absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-background 
-                                                    ${user.isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}
+                                                    className={cn(
+                                                        "absolute bottom-0 right-0 h-4 w-4 rounded-full border-2 border-background",
+                                                        user.isOnline
+                                                            ? "bg-green-500 animate-pulse shadow-glow"
+                                                            : "bg-gray-400"
+                                                    )}
                                                 />
                                             </div>
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-semibold">{user.name || 'Anonymous'}</h3>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <h3 className="font-semibold text-lg truncate">
+                                                        {user.name || 'Anonymous'}
+                                                    </h3>
                                                     {user.role === 'admin' && (
-                                                        <Badge variant="secondary" className="flex items-center gap-1">
+                                                        <Badge variant="secondary" className="flex items-center gap-1 bg-primary/10">
                                                             <Shield className="h-3 w-3" />
                                                             Admin
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">{user.email}</p>
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <Badge variant="outline" className="bg-primary/5">
-                                                        {user.playlists?.length || 0} Playlists
-                                                    </Badge>
-                                                    <Badge variant="outline" className="bg-primary/5">
-                                                        {user.followers?.length || 0} Followers
-                                                    </Badge>
-                                                </div>
+                                                <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                                             </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 mt-2">
+                                            <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10 transition-colors">
+                                                {userPlaylists[user.uid]?.length || 0} Playlists
+                                            </Badge>
+                                            <Badge variant="outline" className="bg-primary/5 hover:bg-primary/10 transition-colors">
+                                                {user.followers?.length || 0} Followers
+                                            </Badge>
+                                        </div>
+
+                                        <div className="pt-2 flex justify-end">
                                             <Button
-                                                variant="ghost"
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                                variant="outline"
+                                                size="sm"
+                                                className="opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-primary hover:text-white"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     // Add follow logic here

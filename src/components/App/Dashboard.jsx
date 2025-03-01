@@ -63,99 +63,25 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
     return (
         <div className="min-h-screen bg-background mb-20">
             <div className={cn(
-                "container mx-auto px-4 py-6 grid grid-cols-1 gap-6",
-                isDesktop ? "md:grid-cols-12" : "md:grid-cols-1",
-                currentTrack && !isPlayerPage && isDesktop ? "mr-80" : ""
+                "container mx-auto px-4 py-6 grid gap-6",
+                "grid-cols-1",
+                "md:grid-cols-2",
+                "lg:grid-cols-8",
+                currentTrack && !isPlayerPage && "lg:mr-80"
             )}>
-                {/* Left Column - Stats */}
-                <div className={cn(
-                    "space-y-4",
-                    isDesktop ? "md:col-span-3" : "w-full",
-                    currentTrack && !isPlayerPage && !isDesktop ? "hidden" : ""
-                )}>
-                    <Card className={cn(
-                        "sticky",
-                        isMobile ? "relative" : "top-20"
-                    )}>
-                        <CardHeader>
-                            <h3 className="font-semibold">Your Music Stats</h3>
-                        </CardHeader>
-                        <CardContent className="p-4 space-y-4">
-                            <div className={cn(
-                                "grid gap-4",
-                                isMobile ? "grid-cols-2" : isTablet ? "grid-cols-2" : "grid-cols-2"
-                            )}>
-                                <div className="text-center p-3 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
-                                    <h4 className="text-2xl font-bold text-primary">247</h4>
-                                    <p className="text-sm text-muted-foreground">Playlists</p>
-                                </div>
-                                <div className="text-center p-3 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
-                                    <h4 className="text-2xl font-bold text-primary">1.2K</h4>
-                                    <p className="text-sm text-muted-foreground">Favorites</p>
-                                </div>
-                                <div className="text-center p-3 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
-                                    <h4 className="text-2xl font-bold text-primary">48h</h4>
-                                    <p className="text-sm text-muted-foreground">Listened</p>
-                                </div>
-                                <div className="text-center p-3 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors">
-                                    <h4 className="text-2xl font-bold text-primary">183</h4>
-                                    <p className="text-sm text-muted-foreground">Following</p>
-                                </div>
-                            </div>
-
-                            <div className={cn(
-                                "space-y-3",
-                                isMobile ? "hidden" : "block"
-                            )}>
-                                <h4 className="font-medium">Recent Activity</h4>
-                                {[1, 2, 3].map((activity) => (
-                                    <div key={activity} className="flex items-center space-x-3 p-2 hover:bg-muted rounded-lg cursor-pointer group">
-                                        <div className="h-2 w-2 bg-primary rounded-full animate-pulse group-hover:bg-primary/80" />
-                                        <p className="text-sm group-hover:text-primary transition-colors">Added new song to Summer Vibes</p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className={cn(
-                                "space-y-3",
-                                isMobile ? "hidden" : "block"
-                            )}>
-                                <h4 className="font-medium">Top Genres</h4>
-                                <div className="space-y-2">
-                                    {[
-                                        { genre: "Pop", percentage: "75%" },
-                                        { genre: "Rock", percentage: "60%" },
-                                        { genre: "Hip Hop", percentage: "45%" }
-                                    ].map((item) => (
-                                        <div key={item.genre} className="space-y-1">
-                                            <div className="flex justify-between text-sm">
-                                                <span>{item.genre}</span>
-                                                <span className="text-muted-foreground">{item.percentage}</span>
-                                            </div>
-                                            <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-primary rounded-full transition-all duration-500"
-                                                    style={{ width: item.percentage }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Main Content */}
                 <main className={cn(
                     "space-y-6",
-                    isDesktop ? "md:col-span-6" : "w-full",
-                    currentTrack && !isPlayerPage && !isDesktop ? "col-span-12" : ""
+                    "col-span-1",
+                    "md:col-span-1",
+                    "lg:col-span-5 lg:col-start-2",
+                    "px-0",
+                    "md:px-4",
+                    "lg:px-6"
                 )}>
-                    <Card>
-                        <CardContent className="p-4">
+                    <Card className="transform transition-all duration-300 hover:shadow-lg">
+                        <CardContent className="p-4 md:p-6">
                             <div className="flex space-x-4">
-                                <Avatar>
+                                <Avatar className="h-10 w-10 md:h-12 md:w-12">
                                     <AvatarImage src={currentUser?.photoURL} />
                                     <AvatarFallback>{currentUser?.displayName?.[0]}</AvatarFallback>
                                 </Avatar>
@@ -164,23 +90,23 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                         placeholder="Share what you're listening to..."
                                         className="bg-muted"
                                     />
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex space-x-2">
-                                            <Button variant="outline" size="sm" disabled>
+                                    <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-2">
+                                        <div className="flex flex-wrap md:flex-nowrap gap-2">
+                                            <Button variant="outline" size="sm" className="flex-shrink-0" disabled>
                                                 <Image className="h-4 w-4 mr-2" />
                                                 Photo
                                             </Button>
-                                            <Button variant="outline" size="sm" disabled>
+                                            <Button variant="outline" size="sm" className="flex-shrink-0" disabled>
                                                 <Music2 className="h-4 w-4 mr-2" />
                                                 Music
                                             </Button>
-                                            <Button variant="outline" size="sm" disabled>
+                                            <Button variant="outline" size="sm" className="flex-shrink-0" disabled>
                                                 <Smile className="h-4 w-4 mr-2" />
                                                 Feeling
                                             </Button>
                                         </div>
                                         <Button
-                                            className="bg-primary hover:bg-primary/90"
+                                            className="bg-primary hover:bg-primary/90 w-full md:w-auto"
                                             onClick={() => navigate('/dashboard/create-post')}
                                         >
                                             Create Post
@@ -191,15 +117,15 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                         </CardContent>
                     </Card>
 
-                    <Tabs defaultValue="foryou">
-                        <TabsList className="w-full">
-                            <TabsTrigger value="foryou" className="flex-1">For You</TabsTrigger>
-                            <TabsTrigger value="following" className="flex-1">Following</TabsTrigger>
-                            <TabsTrigger value="trending" className="flex-1">Trending</TabsTrigger>
+                    <Tabs defaultValue="foryou" className="w-full">
+                        <TabsList className="w-full grid grid-cols-3">
+                            <TabsTrigger value="foryou">For You</TabsTrigger>
+                            <TabsTrigger value="following">Following</TabsTrigger>
+                            <TabsTrigger value="trending">Trending</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="foryou" className="space-y-4 mt-4">
-                            <Card className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-primary/20">
+                            <Card className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border-primary/20 transform transition-all duration-300 hover:shadow-xl">
                                 <CardContent className="p-6">
                                     <div className="flex space-x-4">
                                         <Avatar className="h-12 w-12 ring-2 ring-primary/20">
@@ -244,70 +170,71 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                 </CardContent>
                             </Card>
 
-                            {posts.map((post) => (
-                                <Card key={post.id} className="hover:bg-muted/50 transition-colors">
-                                    <CardContent className="p-4">
-                                        <div className="flex space-x-4">
-                                            <Avatar>
-                                                <AvatarImage src={post.userPhoto} />
-                                                <AvatarFallback>{post.userName?.[0]}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1 space-y-2">
-                                                <div className="flex items-center space-x-2">
-                                                    <h4 className="font-semibold">{post.userName}</h4>
-                                                    {post.music && (
-                                                        <>
-                                                            <span className="text-sm text-muted-foreground">is listening to</span>
-                                                            <span className="text-sm font-medium text-primary">{post.music.title}</span>
-                                                        </>
-                                                    )}
-                                                    <span className="text-sm text-muted-foreground">
-                                                        · {formatDistanceToNow(post.createdAt, { addSuffix: true })}
-                                                    </span>
-                                                </div>
-
-                                                <p>{post.content}</p>
-
-                                                {post.image && (
-                                                    <div className="mt-3 rounded-lg overflow-hidden">
-                                                        <img src={post.image} alt="Post" className="w-full object-cover max-h-96" />
+                            <div className="grid gap-4">
+                                {posts.map((post) => (
+                                    <Card key={post.id} className="hover:bg-muted/50 transition-all duration-300 hover:shadow-lg">
+                                        <CardContent className="p-4">
+                                            <div className="flex space-x-4">
+                                                <Avatar>
+                                                    <AvatarImage src={post.userPhoto} />
+                                                    <AvatarFallback>{post.userName?.[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="flex items-center space-x-2">
+                                                        <h4 className="font-semibold">{post.userName}</h4>
+                                                        {post.music && (
+                                                            <>
+                                                                <span className="text-sm text-muted-foreground">is listening to</span>
+                                                                <span className="text-sm font-medium text-primary">{post.music.title}</span>
+                                                            </>
+                                                        )}
+                                                        <span className="text-sm text-muted-foreground">
+                                                            · {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                                                        </span>
                                                     </div>
-                                                )}
-
-                                                <div className="flex space-x-6 mt-4">
-                                                    <Button variant="ghost" size="sm">
-                                                        <Heart className="h-4 w-4 mr-2" />
-                                                        {post.likes || 0}
-                                                    </Button>
-                                                    <Button variant="ghost" size="sm">
-                                                        <MessageCircle className="h-4 w-4 mr-2" />
-                                                        {post.comments || 0}
-                                                    </Button>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Repeat2 className="h-4 w-4 mr-2" />
-                                                        {post.shares || 0}
-                                                    </Button>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Share2 className="h-4 w-4 mr-2" />
-                                                        Share
-                                                    </Button>
+                                                    <p>{post.content}</p>
+                                                    {post.image && (
+                                                        <div className="mt-3 rounded-lg overflow-hidden">
+                                                            <img src={post.image} alt="Post" className="w-full object-cover max-h-96" />
+                                                        </div>
+                                                    )}
+                                                    <div className="flex space-x-6 mt-4">
+                                                        <Button variant="ghost" size="sm">
+                                                            <Heart className="h-4 w-4 mr-2" />
+                                                            {post.likes || 0}
+                                                        </Button>
+                                                        <Button variant="ghost" size="sm">
+                                                            <MessageCircle className="h-4 w-4 mr-2" />
+                                                            {post.comments || 0}
+                                                        </Button>
+                                                        <Button variant="ghost" size="sm">
+                                                            <Repeat2 className="h-4 w-4 mr-2" />
+                                                            {post.shares || 0}
+                                                        </Button>
+                                                        <Button variant="ghost" size="sm">
+                                                            <Share2 className="h-4 w-4 mr-2" />
+                                                            Share
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
                         </TabsContent>
                     </Tabs>
                 </main>
 
-                {/* Right Column */}
                 <div className={cn(
-                    "md:col-span-3",
-                    currentTrack && !isPlayerPage && !isDesktop ? "hidden" : ""
+                    "col-span-1",
+                    "md:col-span-1",
+                    "lg:col-span-2",
+                    currentTrack && !isPlayerPage && !isDesktop ? "hidden" : "",
+                    "order-first md:order-last"
                 )}>
-                    <div className="sticky top-4 space-y-4">
-                        <Card>
+                    <div className="sticky top-20 space-y-4">
+                        <Card className="transform transition-all duration-300 hover:shadow-lg">
                             <CardHeader>
                                 <div className="flex items-center gap-2">
                                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -339,7 +266,6 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                             </Avatar>
                                             <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'} ${user.isOnline ? 'animate-pulse' : ''}`} />
                                         </div>
-
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
                                                 {user?.name || 'Anonymous'}
@@ -350,7 +276,6 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                         </div>
                                     </div>
                                 ))}
-
                                 {users.length > 5 && (
                                     <Button
                                         variant="ghost"
@@ -360,31 +285,6 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                         See More Users
                                     </Button>
                                 )}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <h3 className="font-semibold">Suggested Artists</h3>
-                            </CardHeader>
-                            <CardContent className="p-4 space-y-4">
-                                {[1, 2, 3].map((artist) => (
-                                    <div key={artist} className="flex items-center justify-between group hover:bg-muted p-2 rounded-lg transition-colors">
-                                        <div className="flex items-center space-x-3">
-                                            <Avatar>
-                                                <AvatarImage src={`https://api.dicebear.com/6.x/avatars/svg?seed=artist${artist}`} />
-                                                <AvatarFallback>AR</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-medium">Artist Name</p>
-                                                <p className="text-sm text-muted-foreground">1.2M followers</p>
-                                            </div>
-                                        </div>
-                                        <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-white transition-colors">
-                                            Follow
-                                        </Button>
-                                    </div>
-                                ))}
                             </CardContent>
                         </Card>
                     </div>

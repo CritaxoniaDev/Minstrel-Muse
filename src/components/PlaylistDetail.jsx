@@ -21,6 +21,22 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isOwner, setIsOwner] = useState(false);
+
+    useEffect(() => {
+        const fetchPlaylist = async () => {
+            const docRef = doc(db, "playlists", id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const playlistData = { id: docSnap.id, ...docSnap.data() };
+                setPlaylist(playlistData);
+                // Set isOwner based on playlist ownership
+                setIsOwner(playlistData.userId === user?.uid);
+            }
+        };
+
+        fetchPlaylist();
+    }, [id, user]);
 
     useEffect(() => {
         const fetchPlaylist = async () => {
@@ -238,83 +254,85 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
                 </div>
 
                 {/* Add Track Dialog */}
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button
-                            className="mb-8 bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                        >
-                            <Plus className="h-5 w-5 mr-2" />
-                            Add Tracks
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px]">
-                        <DialogHeader>
-                            <DialogTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                Add Tracks to Playlist
-                            </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            <form onSubmit={handleSearch} className="flex gap-2">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search for tracks..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-10 focus-visible:ring-purple-600"
-                                    />
-                                </div>
-                                <Button
-                                    type="submit"
-                                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
-                                >
-                                    Search
-                                </Button>
-                            </form>
+                {isOwner && (
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                className="mb-8 bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                            >
+                                <Plus className="h-5 w-5 mr-2" />
+                                Add Tracks
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[600px]">
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                    Add Tracks to Playlist
+                                </DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                                <form onSubmit={handleSearch} className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search for tracks..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-10 focus-visible:ring-purple-600"
+                                        />
+                                    </div>
+                                    <Button
+                                        type="submit"
+                                        className="bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                                    >
+                                        Search
+                                    </Button>
+                                </form>
 
-                            {/* Search Results */}
-                            {searchResults.length > 0 && (
-                                <div className="max-h-[400px] overflow-y-auto space-y-2">
-                                    {searchResults.map((video) => (
-                                        <div
-                                            key={video.id}
-                                            className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300"
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className="relative">
-                                                    <img
-                                                        src={video.thumbnail}
-                                                        alt={video.title}
-                                                        className="w-16 h-16 rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold group-hover:text-primary transition-colors line-clamp-1">
-                                                        {video.title}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {video.channelTitle}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <Button
-                                                onClick={() => {
-                                                    handleAddToPlaylist(video);
-                                                    setIsDialogOpen(false);
-                                                }}
-                                                variant="ghost"
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                {/* Search Results */}
+                                {searchResults.length > 0 && (
+                                    <div className="max-h-[400px] overflow-y-auto space-y-2">
+                                        {searchResults.map((video) => (
+                                            <div
+                                                key={video.id}
+                                                className="group flex items-center justify-between p-3 hover:bg-accent/50 rounded-xl transition-all duration-300"
                                             >
-                                                <Plus className="h-5 w-5" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="relative">
+                                                        <img
+                                                            src={video.thumbnail}
+                                                            alt={video.title}
+                                                            className="w-16 h-16 rounded-lg object-cover transition-transform duration-300 group-hover:scale-105"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold group-hover:text-primary transition-colors line-clamp-1">
+                                                            {video.title}
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {video.channelTitle}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    onClick={() => {
+                                                        handleAddToPlaylist(video);
+                                                        setIsDialogOpen(false);
+                                                    }}
+                                                    variant="ghost"
+                                                    className="opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                                >
+                                                    <Plus className="h-5 w-5" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                )}
 
                 {/* Playlist Tracks */}
                 <Card className="border-2 border-primary/20">
@@ -352,46 +370,48 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Drawer>
-                                            <DrawerTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
-                                                >
-                                                    <ArrowUpDown className="h-5 w-5" />
-                                                </Button>
-                                            </DrawerTrigger>
-                                            <DrawerContent className="z-[9999] bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-lg border-t-2 border-primary/20">
-                                                <DrawerHeader className="border-b border-primary/10">
-                                                    <DrawerTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                                                        Reorder Track
-                                                    </DrawerTitle>
-                                                    <p className="text-sm text-muted-foreground mt-2">
-                                                        Current Position: {index + 1}
-                                                    </p>
-                                                </DrawerHeader>
-                                                <div className="p-6 flex justify-center items-center">
-                                                    <div className={`grid ${playlist.tracks.length <= 4 ? 'grid-cols-4' : 'grid-cols-8'} auto-rows-auto gap-2 place-items-center w-fit mx-auto`}>
-                                                        {Array.from({ length: playlist.tracks.length }, (_, i) => (
-                                                            <Button
-                                                                key={i}
-                                                                variant={i === index ? "default" : "outline"}
-                                                                onClick={() => handleReorderTrack(track.id, i)}
-                                                                className={`h-10 w-10 rounded-lg transition-all duration-300 ${i === index
-                                                                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                                                                    : 'hover:bg-gradient-to-r hover:from-purple-600/90 hover:to-blue-600/90 hover:text-white'
-                                                                    }`}
-                                                            >
-                                                                {i + 1}
-                                                            </Button>
-                                                        ))}
+                                        {isOwner && (
+                                            <Drawer>
+                                                <DrawerTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="rounded-full hover:bg-gradient-to-r from-purple-600 to-blue-600 hover:text-white"
+                                                    >
+                                                        <ArrowUpDown className="h-5 w-5" />
+                                                    </Button>
+                                                </DrawerTrigger>
+                                                <DrawerContent className="z-[9999] bg-gradient-to-br from-background/95 to-background/90 backdrop-blur-lg border-t-2 border-primary/20">
+                                                    <DrawerHeader className="border-b border-primary/10">
+                                                        <DrawerTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                                            Reorder Track
+                                                        </DrawerTitle>
+                                                        <p className="text-sm text-muted-foreground mt-2">
+                                                            Current Position: {index + 1}
+                                                        </p>
+                                                    </DrawerHeader>
+                                                    <div className="p-6 flex justify-center items-center">
+                                                        <div className={`grid ${playlist.tracks.length <= 4 ? 'grid-cols-4' : 'grid-cols-8'} auto-rows-auto gap-2 place-items-center w-fit mx-auto`}>
+                                                            {Array.from({ length: playlist.tracks.length }, (_, i) => (
+                                                                <Button
+                                                                    key={i}
+                                                                    variant={i === index ? "default" : "outline"}
+                                                                    onClick={() => handleReorderTrack(track.id, i)}
+                                                                    className={`h-10 w-10 rounded-lg transition-all duration-300 ${i === index
+                                                                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                                                                        : 'hover:bg-gradient-to-r hover:from-purple-600/90 hover:to-blue-600/90 hover:text-white'
+                                                                        }`}
+                                                                >
+                                                                    {i + 1}
+                                                                </Button>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <p className="text-sm text-muted-foreground mb-4 text-center">
-                                                    Click on a number to move "{track.title}" to that position
-                                                </p>
-                                            </DrawerContent>
-                                        </Drawer>
+                                                    <p className="text-sm text-muted-foreground mb-4 text-center">
+                                                        Click on a number to move "{track.title}" to that position
+                                                    </p>
+                                                </DrawerContent>
+                                            </Drawer>
+                                        )}
                                         <Button
                                             onClick={() => handlePlayTrack(track)}
                                             variant="ghost"
@@ -403,13 +423,15 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
                                                 <Play className="h-5 w-5" />
                                             )}
                                         </Button>
-                                        <Button
-                                            onClick={() => handleDeleteTrack(track)}
-                                            variant="ghost"
-                                            className="rounded-full hover:bg-destructive hover:text-destructive-foreground"
-                                        >
-                                            <X className="h-5 w-5" />
-                                        </Button>
+                                        {isOwner && (
+                                            <Button
+                                                onClick={() => handleDeleteTrack(track)}
+                                                variant="ghost"
+                                                className="rounded-full hover:bg-destructive hover:text-destructive-foreground"
+                                            >
+                                                <X className="h-5 w-5" />
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
