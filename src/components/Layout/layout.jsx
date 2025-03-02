@@ -2,8 +2,7 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { useState } from 'react';
 
-const Layout = ({ user, children, onSearchResults }) => {
-    const [isMinimized, setIsMinimized] = useState(true);
+const Layout = ({ user, children, onSearchResults, isMinimized, setIsMinimized }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (

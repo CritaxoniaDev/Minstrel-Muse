@@ -404,6 +404,8 @@ function App() {
                   queue={queue}
                   currentUser={user}
                   users={users}  // Add this line
+                  sidebarOpen={sidebarOpen}
+                  setSidebarOpen={setSidebarOpen}
                 />
               } />
               <Route path="/dashboard/profile/:userId" element={<Profile onPlayPause={handlePlayPause} />} />
@@ -496,10 +498,10 @@ function App() {
             />
             {currentTrack && !isPlayerPage && (
               <div className={cn(
-                "fixed bottom-0 left-0 right-0 border-t z-50 bg-background p-4 animate-slide-up transition-[margin] duration-300 ease-in-out",
+                "fixed bottom-0 left-0 right-0 border-t z-[50] bg-background p-4 animate-slide-up transition-[margin] duration-300 ease-in-out",
                 isDesktop ? (isMinimized ? "ml-20" : "ml-64") : "",
                 !isDesktop && sidebarOpen ? "ml-64" : ""
-              )}>
+              )}>    
                 <div className="flex max-w-7xl mx-auto items-center">
                   <div
                     className="flex items-center space-x-4 w-1/4 cursor-pointer"

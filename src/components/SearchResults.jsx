@@ -7,7 +7,7 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useMediaQuery } from 'react-responsive';
-import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, collection } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../config/firebase';
 import { useToast } from '../hooks/use-toast';
 
@@ -117,7 +117,7 @@ const SearchResults = ({ results, currentTrack, isPlaying, onPlayPause, onAddToQ
     };
 
     return (
-        <div className={`container mx-auto ${isMobile ? 'px-2' : 'px-4'} ${isMobile ? 'py-4' : 'py-6'} pb-24`}>
+        <div className={`container mx-auto ${isMobile ? 'px-2' : 'px-18'} ${isMobile ? 'py-4' : 'py-6'} pb-24`}>
             <div className="flex items-center gap-2 mb-6">
                 <Music2 className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-primary`} />
                 <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent`}>
