@@ -76,14 +76,6 @@ const Auth = () => {
 
     return (
         <>
-            <video
-                autoPlay
-                loop
-                muted
-                className="video-background"
-            >
-                <source src="/videos/bg-video.mp4" type="video/mp4" />
-            </video>
             <Card className={`
                 mx-auto shadow-2xl w-full 
                 ${isMobile ? 'h-[500px] max-w-[95%]' : isTablet ? 'h-[550px] max-w-3xl' : 'h-[600px] max-w-4xl'}
