@@ -6,13 +6,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { collection, query, orderBy, getDocs, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format, differenceInDays } from 'date-fns';
 import { useMediaQuery } from 'react-responsive';
 import { cn } from '@/lib/utils';
 import { db } from '@/config/firebase';
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-    Music2, Users, Heart, Image, MessageCircle, Share2, Smile, Repeat2
+    Music2, Users, Heart, Image, MessageCircle, Share2, Smile, Repeat2, Sparkles, Flame, ThumbsUp
 } from "lucide-react";
 
 const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
@@ -24,39 +24,50 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
     const isDesktop = useMediaQuery({ minWidth: 1024 });
     const [loading, setLoading] = useState(true);
     const [likedPosts, setLikedPosts] = useState([]);
+    const [activeReactionPost, setActiveReactionPost] = useState(null);
 
-    const handleLike = async (post) => {
+    const [reactions, setReactions] = useState({
+        rose: [],
+        slay: [],
+        wow: [],
+        pensive: []
+    });
+
+    const handleReaction = async (post, reactionType) => {
         try {
             const postRef = doc(db, "posts", post.id);
-            const currentLikes = post.likes || [];
-            const isLiked = currentLikes.includes(currentUser.uid);
+            const currentReactions = post[reactionType] || [];
+            const isReacted = currentReactions.includes(currentUser.uid);
 
-            if (isLiked) {
+            if (isReacted) {
                 await updateDoc(postRef, {
-                    likes: currentLikes.filter(id => id !== currentUser.uid),
-                    likeCount: (post.likeCount || 0) - 1
+                    [reactionType]: currentReactions.filter(id => id !== currentUser.uid),
+                    [`${reactionType}Count`]: (post[`${reactionType}Count`] || 0) - 1
                 });
             } else {
                 await updateDoc(postRef, {
-                    likes: [...currentLikes, currentUser.uid],
-                    likeCount: (post.likeCount || 0) + 1
+                    [reactionType]: [...currentReactions, currentUser.uid],
+                    [`${reactionType}Count`]: (post[`${reactionType}Count`] || 0) + 1
                 });
             }
 
-            // Update local state to reflect changes
             const updatedPosts = posts.map(p => {
                 if (p.id === post.id) {
                     return {
                         ...p,
-                        likes: isLiked ? currentLikes.filter(id => id !== currentUser.uid) : [...currentLikes, currentUser.uid],
-                        likeCount: isLiked ? (p.likeCount || 0) - 1 : (p.likeCount || 0) + 1
+                        [reactionType]: isReacted ?
+                            currentReactions.filter(id => id !== currentUser.uid) :
+                            [...currentReactions, currentUser.uid],
+                        [`${reactionType}Count`]: isReacted ?
+                            (p[`${reactionType}Count`] || 0) - 1 :
+                            (p[`${reactionType}Count`] || 0) + 1
                     };
                 }
                 return p;
             });
             setPosts(updatedPosts);
         } catch (error) {
-            console.error("Error updating like:", error);
+            console.error("Error updating reaction:", error);
         }
     };
 
@@ -90,29 +101,35 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                 const postsRef = collection(db, "posts");
                 const q = query(postsRef, orderBy("createdAt", "desc"));
                 const querySnapshot = await getDocs(q);
-                
+
                 const postsData = await Promise.all(querySnapshot.docs.map(async doc => {
                     const postData = doc.data();
                     const userDoc = users.find(user => user.uid === postData.userId);
-                    
+
                     return {
                         id: doc.id,
                         ...postData,
-                        likes: postData.likes || [],  // Initialize empty array if undefined
-                        likeCount: postData.likeCount || 0,
+                        rose: postData.rose || [],
+                        slay: postData.slay || [],
+                        wow: postData.wow || [],
+                        pensive: postData.pensive || [],
+                        roseCount: postData.roseCount || 0,
+                        slayCount: postData.slayCount || 0,
+                        wowCount: postData.wowCount || 0,
+                        pensiveCount: postData.pensiveCount || 0,
                         createdAt: postData.createdAt?.toDate(),
                         userName: userDoc?.name || 'Anonymous',
                         userPhoto: userDoc?.photoURL,
                         email: userDoc?.email
                     };
                 }));
-                
+
                 setPosts(postsData);
             } catch (error) {
                 console.error("Error fetching posts:", error);
             }
         };
-    
+
         if (users.length > 0) {
             fetchPosts();
         }
@@ -264,7 +281,9 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                     <span className="text-xs text-muted-foreground">@{post.email?.split('@')[0]}</span>
                                                                     <span className="text-muted-foreground">·</span>
                                                                     <span className="text-xs text-muted-foreground hover:underline cursor-pointer">
-                                                                        {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                                                                        {differenceInDays(new Date(), post.createdAt) > 7
+                                                                            ? format(post.createdAt, 'MMMM dd')
+                                                                            : formatDistanceToNow(post.createdAt, { addSuffix: true })}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -290,27 +309,79 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                             )}
 
                                                             <div className="flex items-center space-x-4 pt-2 border-t border-border/50">
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className={cn(
-                                                                        "h-8 px-2 group transition-colors",
-                                                                        post.likes?.includes(currentUser.uid)
-                                                                            ? "text-red-500 bg-red-500/10"
-                                                                            : "hover:text-red-500 hover:bg-red-500/10"
-                                                                    )}
-                                                                    onClick={() => handleLike(post)}
+                                                                <div className="relative group"
+                                                                    onMouseEnter={() => setActiveReactionPost(post.id)}
+                                                                    onMouseLeave={() => setActiveReactionPost(null)}
                                                                 >
-                                                                    <Heart
-                                                                        className={cn(
-                                                                            "h-4 w-4 mr-1",
-                                                                            post.likes?.includes(currentUser.uid)
-                                                                                ? "fill-red-500"
-                                                                                : "group-hover:fill-red-500"
-                                                                        )}
-                                                                    />
-                                                                    <span className="text-sm">{post.likeCount || 0}</span>
-                                                                </Button>
+                                                                    <div className="flex items-center">
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="h-8 px-2 group transition-colors relative"
+                                                                            onClick={() => handleReaction(post, 'pensive')}
+                                                                        >
+                                                                            <div className="flex -space-x-1 mr-2">
+                                                                                {(post.wow?.includes(currentUser.uid) ||
+                                                                                    post.love?.includes(currentUser.uid) ||
+                                                                                    post.slay?.includes(currentUser.uid) ||
+                                                                                    post.pensive?.includes(currentUser.uid)) ? (
+                                                                                    <>
+                                                                                        {post.wow?.includes(currentUser.uid) && (
+                                                                                            <Flame className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                                                                                        )}
+                                                                                        {post.love?.includes(currentUser.uid) && (
+                                                                                            <Heart className="h-4 w-4 text-pink-500 fill-pink-500" />
+                                                                                        )}
+                                                                                        {post.slay?.includes(currentUser.uid) && (
+                                                                                            <Sparkles className="h-4 w-4 text-purple-500 fill-purple-500" />
+                                                                                        )}
+                                                                                    </>
+                                                                                ) : (
+                                                                                    <ThumbsUp className={cn(
+                                                                                        "h-4 w-4",
+                                                                                        post.pensive?.includes(currentUser.uid)
+                                                                                            ? "text-blue-500 fill-blue-500"
+                                                                                            : "group-hover:text-blue-500"
+                                                                                    )} />
+                                                                                )}
+                                                                            </div>
+                                                                            <span className="text-sm">
+                                                                                {(post.wowCount || 0) + (post.loveCount || 0) + (post.slayCount || 0) + (post.pensiveCount || 0)}
+                                                                            </span>
+                                                                        </Button>
+                                                                    </div>
+
+                                                                    {activeReactionPost === post.id && (
+                                                                        <div className="absolute -top-12 left-0 flex items-center gap-1 bg-background/95 backdrop-blur-sm p-2 rounded-full shadow-lg border border-border/50 transition-all duration-200">
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                className="h-8 w-8 p-0 hover:bg-pink-500/10 hover:text-pink-500"
+                                                                                onClick={() => handleReaction(post, 'love')}
+                                                                            >
+                                                                                <Heart className={cn("h-4 w-4", post.love?.includes(currentUser.uid) && "fill-pink-500 text-pink-500")} />
+                                                                            </Button>
+
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                className="h-8 w-8 p-0 hover:bg-yellow-500/10 hover:text-yellow-500"
+                                                                                onClick={() => handleReaction(post, 'wow')}
+                                                                            >
+                                                                                <Flame className={cn("h-4 w-4", post.wow?.includes(currentUser.uid) && "fill-yellow-500 text-yellow-500")} />
+                                                                            </Button>
+
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                className="h-8 w-8 p-0 hover:bg-purple-500/10 hover:text-purple-500"
+                                                                                onClick={() => handleReaction(post, 'slay')}
+                                                                            >
+                                                                                <Sparkles className={cn("h-4 w-4", post.slay?.includes(currentUser.uid) && "fill-purple-500 text-purple-500")} />
+                                                                            </Button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
 
                                                                 <Button
                                                                     variant="ghost"
