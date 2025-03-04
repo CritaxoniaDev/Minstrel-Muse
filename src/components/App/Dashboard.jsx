@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import { useMediaQuery } from 'react-responsive';
 import { cn } from '@/lib/utils';
 import { db } from '@/config/firebase';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import {
     Music2, Users, Heart, Image, MessageCircle, Share2, Smile, Repeat2
 } from "lucide-react";
@@ -24,6 +23,42 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
     const isDesktop = useMediaQuery({ minWidth: 1024 });
     const [loading, setLoading] = useState(true);
+    const [likedPosts, setLikedPosts] = useState([]);
+
+    const handleLike = async (post) => {
+        try {
+            const postRef = doc(db, "posts", post.id);
+            const currentLikes = post.likes || [];
+            const isLiked = currentLikes.includes(currentUser.uid);
+
+            if (isLiked) {
+                await updateDoc(postRef, {
+                    likes: currentLikes.filter(id => id !== currentUser.uid),
+                    likeCount: (post.likeCount || 0) - 1
+                });
+            } else {
+                await updateDoc(postRef, {
+                    likes: [...currentLikes, currentUser.uid],
+                    likeCount: (post.likeCount || 0) + 1
+                });
+            }
+
+            // Update local state to reflect changes
+            const updatedPosts = posts.map(p => {
+                if (p.id === post.id) {
+                    return {
+                        ...p,
+                        likes: isLiked ? currentLikes.filter(id => id !== currentUser.uid) : [...currentLikes, currentUser.uid],
+                        likeCount: isLiked ? (p.likeCount || 0) - 1 : (p.likeCount || 0) + 1
+                    };
+                }
+                return p;
+            });
+            setPosts(updatedPosts);
+        } catch (error) {
+            console.error("Error updating like:", error);
+        }
+    };
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -39,7 +74,7 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                     ...doc.data()
                 }));
                 setUsers(usersList);
-                setTimeout(() => setLoading(false), 1500); // 1.5s delay
+                setTimeout(() => setLoading(false), 1500);
             } catch (error) {
                 console.error("Error fetching users:", error);
                 setLoading(false);
@@ -51,19 +86,37 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
 
     useEffect(() => {
         const fetchPosts = async () => {
-            const postsRef = collection(db, "posts");
-            const q = query(postsRef, orderBy("createdAt", "desc"));
-            const querySnapshot = await getDocs(q);
-            const postsData = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                createdAt: doc.data().createdAt?.toDate()
-            }));
-            setPosts(postsData);
+            try {
+                const postsRef = collection(db, "posts");
+                const q = query(postsRef, orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                const postsData = await Promise.all(querySnapshot.docs.map(async doc => {
+                    const postData = doc.data();
+                    const userDoc = users.find(user => user.uid === postData.userId);
+                    
+                    return {
+                        id: doc.id,
+                        ...postData,
+                        likes: postData.likes || [],  // Initialize empty array if undefined
+                        likeCount: postData.likeCount || 0,
+                        createdAt: postData.createdAt?.toDate(),
+                        userName: userDoc?.name || 'Anonymous',
+                        userPhoto: userDoc?.photoURL,
+                        email: userDoc?.email
+                    };
+                }));
+                
+                setPosts(postsData);
+            } catch (error) {
+                console.error("Error fetching posts:", error);
+            }
         };
-
-        fetchPosts();
-    }, []);
+    
+        if (users.length > 0) {
+            fetchPosts();
+        }
+    }, [users]);
 
     const PostSkeleton = () => (
         <Card className="border-dashed border border-border/50">
@@ -191,91 +244,115 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                 {loading ? (
                                     Array(3).fill(0).map((_, i) => <PostSkeleton key={i} />)
                                 ) : (
-                                    posts.map((post, index) => (
-                                        <Card
-                                            key={post.id}
-                                            className={cn(
-                                                "overflow-hidden border",
-                                                index === 0
-                                                    ? "border-t border-l border-r border-border dark:border-border/70"
-                                                    : "border-l border-r border-border dark:border-border/70"
-                                            )}
-                                        >
-                                            <CardContent className="p-3">
-                                                <div className="flex space-x-2">
-                                                    <Avatar className="h-8 w-8 ring-1 ring-primary/20 hover:ring-primary/40 transition-colors">
-                                                        <AvatarImage src={post.userPhoto} />
-                                                        <AvatarFallback className="bg-primary/10">{post.userName?.[0]}</AvatarFallback>
-                                                    </Avatar>
+                                    <>
+                                        {posts.map((post, index) => (
+                                            <Card
+                                                key={post.id}
+                                                className="overflow-hidden border-l border-r border-border dark:border-border/70"
+                                            >
+                                                <CardContent className="p-3">
+                                                    <div className="flex space-x-2">
+                                                        <Avatar className="h-8 w-8 ring-1 ring-primary/20 hover:ring-primary/40 transition-colors">
+                                                            <AvatarImage src={post.userPhoto} />
+                                                            <AvatarFallback className="bg-primary/10">{post.userName?.[0]}</AvatarFallback>
+                                                        </Avatar>
 
-                                                    <div className="flex-1 space-y-2">
-                                                        <div className="flex items-center flex-wrap gap-1">
-                                                            <h4 className="font-semibold text-base hover:text-primary transition-colors">{post.userName}</h4>
-                                                            {post.music && (
-                                                                <>
-                                                                    <span className="text-xs text-muted-foreground">is listening to</span>
-                                                                    <span className="text-xs font-medium bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">{post.music.title}</span>
-                                                                </>
-                                                            )}
-                                                            <span className="text-xs text-muted-foreground ml-auto">
-                                                                {formatDistanceToNow(post.createdAt, { addSuffix: true })}
-                                                            </span>
-                                                        </div>
-
-                                                        <p className="text-sm leading-relaxed">{post.content}</p>
-
-                                                        {post.image && (
-                                                            <div className="mt-2 rounded-sm overflow-hidden ring-1 ring-primary/10">
-                                                                <img
-                                                                    src={post.image}
-                                                                    alt="Post"
-                                                                    className="w-full object-cover max-h-60"
-                                                                />
+                                                        <div className="flex-1 space-y-2">
+                                                            <div className="flex items-center flex-wrap gap-1">
+                                                                <div className="flex items-center gap-1 group">
+                                                                    <h4 className="font-semibold text-base hover:text-primary transition-colors">{post.userName}</h4>
+                                                                    <span className="text-xs text-muted-foreground">@{post.email?.split('@')[0]}</span>
+                                                                    <span className="text-muted-foreground">·</span>
+                                                                    <span className="text-xs text-muted-foreground hover:underline cursor-pointer">
+                                                                        {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                        )}
 
-                                                        <div className="flex items-center space-x-4 pt-2 border-t border-border/50">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 px-2 hover:text-primary hover:bg-primary/10"
-                                                            >
-                                                                <Heart className="h-4 w-4 mr-1" />
-                                                                <span className="text-sm">{post.likes || 0}</span>
-                                                            </Button>
+                                                            {post.music && (
+                                                                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 w-fit px-2 py-1 rounded-full">
+                                                                    <Music2 className="h-3 w-3" />
+                                                                    <span>Listening to</span>
+                                                                    <span className="font-medium bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">{post.music.title}</span>
+                                                                </div>
+                                                            )}
 
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 px-2 hover:text-primary hover:bg-primary/10"
-                                                            >
-                                                                <MessageCircle className="h-4 w-4 mr-1" />
-                                                                <span className="text-sm">{post.comments || 0}</span>
-                                                            </Button>
+                                                            <p className="text-sm leading-relaxed">{post.content}</p>
 
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 px-2 hover:text-primary hover:bg-primary/10"
-                                                            >
-                                                                <Repeat2 className="h-4 w-4 mr-1" />
-                                                                <span className="text-sm">{post.shares || 0}</span>
-                                                            </Button>
+                                                            {post.image && (
+                                                                <div className="mt-2 overflow-hidden flex justify-center items-center">
+                                                                    <img
+                                                                        src={post.image}
+                                                                        alt="Post"
+                                                                        className="h-[300px] object-cover"
+                                                                    />
+                                                                </div>
+                                                            )}
 
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 px-2 hover:text-primary hover:bg-primary/10 ml-auto"
-                                                            >
-                                                                <Share2 className="h-4 w-4 mr-1" />
-                                                                <span className="text-sm">Share</span>
-                                                            </Button>
+                                                            <div className="flex items-center space-x-4 pt-2 border-t border-border/50">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className={cn(
+                                                                        "h-8 px-2 group transition-colors",
+                                                                        post.likes?.includes(currentUser.uid)
+                                                                            ? "text-red-500 bg-red-500/10"
+                                                                            : "hover:text-red-500 hover:bg-red-500/10"
+                                                                    )}
+                                                                    onClick={() => handleLike(post)}
+                                                                >
+                                                                    <Heart
+                                                                        className={cn(
+                                                                            "h-4 w-4 mr-1",
+                                                                            post.likes?.includes(currentUser.uid)
+                                                                                ? "fill-red-500"
+                                                                                : "group-hover:fill-red-500"
+                                                                        )}
+                                                                    />
+                                                                    <span className="text-sm">{post.likeCount || 0}</span>
+                                                                </Button>
+
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 px-2 hover:text-blue-500 hover:bg-blue-500/10 group transition-colors"
+                                                                >
+                                                                    <MessageCircle className="h-4 w-4 mr-1 group-hover:fill-blue-500" />
+                                                                    <span className="text-sm">{post.comments || 0}</span>
+                                                                </Button>
+
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 px-2 hover:text-green-500 hover:bg-green-500/10 group transition-colors"
+                                                                >
+                                                                    <Repeat2 className="h-4 w-4 mr-1 group-hover:fill-green-500" />
+                                                                    <span className="text-sm">{post.shares || 0}</span>
+                                                                </Button>
+
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 px-2 hover:text-primary hover:bg-primary/10 group transition-colors ml-auto"
+                                                                >
+                                                                    <Share2 className="h-4 w-4 mr-1 group-hover:fill-primary" />
+                                                                    <span className="text-sm">Share</span>
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                        <div className="text-center py-8 space-y-3">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <span className="h-[1px] w-12 bg-border"></span>
+                                                <span className="text-muted-foreground text-sm font-medium">You've reached the end! ✨</span>
+                                                <span className="h-[1px] w-12 bg-border"></span>
+                                            </div>
+                                            <div className="text-xs text-muted-foreground/80">Check back later for more updates</div>
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         </TabsContent>

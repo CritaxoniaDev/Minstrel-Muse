@@ -709,7 +709,7 @@ function App() {
 export default function Root() {
   return (
     <Router>
-      <App />
+      <App className="tracking-tighter" />
     </Router>
   );
 }

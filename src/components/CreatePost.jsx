@@ -26,10 +26,10 @@ const CreatePost = ({ currentUser }) => {
     const { toast } = useToast();
 
     const handlePost = async () => {
-        if (!content.trim() && !selectedMusic && !imagePreview) {
+        if (!content.trim()) {
             toast({
                 title: "Empty Post",
-                description: "Add some content, music, or image to share",
+                description: "Add some content to share",
                 variant: "destructive",
             });
             return;
