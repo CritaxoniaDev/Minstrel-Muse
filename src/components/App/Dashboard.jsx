@@ -12,6 +12,7 @@ import { useMediaQuery } from 'react-responsive';
 import { cn } from '@/lib/utils';
 import { db } from '@/config/firebase';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import {
     Music2, Users, Heart, Image, MessageCircle, Share2, Smile, Repeat2, Sparkles, Flame, ThumbsUp
 } from "lucide-react";
@@ -27,6 +28,18 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
     const [activeReactionPost, setActiveReactionPost] = useState(null);
     const [commentingPost, setCommentingPost] = useState(null);
     const [commentText, setCommentText] = useState('');
+    const [shareUrl, setShareUrl] = useState('');
+    const { toast } = useToast();
+
+    const handleShare = (postId) => {
+        const shareableLink = `https://minstrelmuse.vercel.app/shared/${postId}`;
+        navigator.clipboard.writeText(shareableLink);
+        
+        toast({
+            title: "Link copied!",
+            description: "Share link has been copied to clipboard",
+        });
+    };
 
     const handleComment = async (post) => {
         try {
@@ -446,6 +459,7 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                     variant="ghost"
                                                                     size="sm"
                                                                     className="h-8 px-2 hover:text-primary hover:bg-primary/10 group transition-colors ml-auto"
+                                                                    onClick={() => handleShare(post.id)}
                                                                 >
                                                                     <Share2 className="h-4 w-4 mr-1 group-hover:fill-primary" />
                                                                     <span className="text-sm">Share</span>
