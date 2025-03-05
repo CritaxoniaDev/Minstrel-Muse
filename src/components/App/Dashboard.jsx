@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { v4 as uuidv4 } from 'uuid';
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { collection, query, orderBy, getDocs, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, updateDoc, doc, arrayUnion, arrayRemove, Timestamp } from 'firebase/firestore';
 import { formatDistanceToNow, format, differenceInDays } from 'date-fns';
 import { useMediaQuery } from 'react-responsive';
 import { cn } from '@/lib/utils';
@@ -23,15 +24,46 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
     const isDesktop = useMediaQuery({ minWidth: 1024 });
     const [loading, setLoading] = useState(true);
-    const [likedPosts, setLikedPosts] = useState([]);
     const [activeReactionPost, setActiveReactionPost] = useState(null);
+    const [commentingPost, setCommentingPost] = useState(null);
+    const [commentText, setCommentText] = useState('');
 
-    const [reactions, setReactions] = useState({
-        rose: [],
-        slay: [],
-        wow: [],
-        pensive: []
-    });
+    const handleComment = async (post) => {
+        try {
+            const postRef = doc(db, "posts", post.id);
+            const newComment = {
+                id: uuidv4(), // You'll need to import { v4 as uuidv4 } from 'uuid'
+                userId: currentUser.uid,
+                userName: currentUser.displayName,
+                userPhoto: currentUser.photoURL,
+                content: commentText,
+                createdAt: Timestamp.now()
+            };
+
+            await updateDoc(postRef, {
+                comments: arrayUnion(newComment),
+                commentCount: (post.commentCount || 0) + 1
+            });
+
+            // Update local state
+            const updatedPosts = posts.map(p => {
+                if (p.id === post.id) {
+                    return {
+                        ...p,
+                        comments: [...(p.comments || []), newComment],
+                        commentCount: (p.commentCount || 0) + 1
+                    };
+                }
+                return p;
+            });
+
+            setPosts(updatedPosts);
+            setCommentText('');
+            setCommentingPost(null);
+        } catch (error) {
+            console.error("Error adding comment:", error);
+        }
+    };
 
     const handleReaction = async (post, reactionType) => {
         try {
@@ -109,6 +141,8 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                     return {
                         id: doc.id,
                         ...postData,
+                        comments: Array.isArray(postData.comments) ? postData.comments : [],
+                        commentCount: postData.commentCount || 0,
                         rose: postData.rose || [],
                         slay: postData.slay || [],
                         wow: postData.wow || [],
@@ -321,29 +355,35 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                             onClick={() => handleReaction(post, 'pensive')}
                                                                         >
                                                                             <div className="flex -space-x-1 mr-2">
-                                                                                {(post.wow?.includes(currentUser.uid) ||
-                                                                                    post.love?.includes(currentUser.uid) ||
-                                                                                    post.slay?.includes(currentUser.uid) ||
-                                                                                    post.pensive?.includes(currentUser.uid)) ? (
-                                                                                    <>
-                                                                                        {post.wow?.includes(currentUser.uid) && (
-                                                                                            <Flame className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                                                                                        )}
-                                                                                        {post.love?.includes(currentUser.uid) && (
-                                                                                            <Heart className="h-4 w-4 text-pink-500 fill-pink-500" />
-                                                                                        )}
-                                                                                        {post.slay?.includes(currentUser.uid) && (
-                                                                                            <Sparkles className="h-4 w-4 text-purple-500 fill-purple-500" />
-                                                                                        )}
-                                                                                    </>
-                                                                                ) : (
-                                                                                    <ThumbsUp className={cn(
-                                                                                        "h-4 w-4",
-                                                                                        post.pensive?.includes(currentUser.uid)
-                                                                                            ? "text-blue-500 fill-blue-500"
-                                                                                            : "group-hover:text-blue-500"
-                                                                                    )} />
-                                                                                )}
+                                                                                {(() => {
+                                                                                    // Get the most used reaction for this specific post
+                                                                                    const postReactions = [
+                                                                                        { type: 'wow', count: post.wowCount || 0, icon: <Flame className="h-4 w-4 text-yellow-500 fill-yellow-500" /> },
+                                                                                        { type: 'love', count: post.loveCount || 0, icon: <Heart className="h-4 w-4 text-pink-500 fill-pink-500" /> },
+                                                                                        { type: 'slay', count: post.slayCount || 0, icon: <Sparkles className="h-4 w-4 text-purple-500 fill-purple-500" /> },
+                                                                                        { type: 'pensive', count: post.pensiveCount || 0, icon: <ThumbsUp className="h-4 w-4 text-blue-500 fill-blue-500" /> }
+                                                                                    ];
+
+                                                                                    const mostUsedReaction = postReactions.sort((a, b) => b.count - a.count)[0];
+                                                                                    const otherReactions = postReactions.filter(r => r.type !== mostUsedReaction.type);
+
+                                                                                    return (
+                                                                                        <>
+                                                                                            {mostUsedReaction.count > 0 ? mostUsedReaction.icon : (
+                                                                                                <ThumbsUp className={cn(
+                                                                                                    "h-4 w-4",
+                                                                                                    post.pensive?.includes(currentUser.uid)
+                                                                                                        ? "text-blue-500 fill-blue-500"
+                                                                                                        : "group-hover:text-blue-500"
+                                                                                                )} />
+                                                                                            )}
+
+                                                                                            {otherReactions.map(reaction => (
+                                                                                                post[reaction.type]?.includes(currentUser.uid) && reaction.icon
+                                                                                            ))}
+                                                                                        </>
+                                                                                    );
+                                                                                })()}
                                                                             </div>
                                                                             <span className="text-sm">
                                                                                 {(post.wowCount || 0) + (post.loveCount || 0) + (post.slayCount || 0) + (post.pensiveCount || 0)}
@@ -387,9 +427,10 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                     variant="ghost"
                                                                     size="sm"
                                                                     className="h-8 px-2 hover:text-blue-500 hover:bg-blue-500/10 group transition-colors"
+                                                                    onClick={() => setCommentingPost(post.id)}
                                                                 >
                                                                     <MessageCircle className="h-4 w-4 mr-1 group-hover:fill-blue-500" />
-                                                                    <span className="text-sm">{post.comments || 0}</span>
+                                                                    <span className="text-sm">{post.commentCount || 0}</span>
                                                                 </Button>
 
                                                                 <Button
@@ -410,6 +451,54 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                     <span className="text-sm">Share</span>
                                                                 </Button>
                                                             </div>
+                                                            {commentingPost === post.id && (
+                                                                <div className="mt-3 px-2 space-y-3">
+                                                                    {/* Existing comments */}
+                                                                    <div className="space-y-3">
+                                                                        {post.comments?.map((comment) => (
+                                                                            <div key={comment.id} className="flex items-start gap-2 pl-8">
+                                                                                <Avatar className="h-5 w-5">
+                                                                                    <AvatarImage src={comment.userPhoto} />
+                                                                                    <AvatarFallback>{comment.userName?.[0]}</AvatarFallback>
+                                                                                </Avatar>
+                                                                                <div className="flex-1">
+                                                                                    <div className="flex items-center gap-1.5">
+                                                                                        <span className="font-medium text-xs">{comment.userName}</span>
+                                                                                        <span className="text-xs text-muted-foreground">
+                                                                                            {formatDistanceToNow(comment.createdAt?.toDate(), { addSuffix: true })}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <p className="text-xs mt-0.5">{comment.content}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+
+                                                                    {/* New comment input always at bottom */}
+                                                                    <div className="flex items-center gap-2 border-t border-border/50 pt-3">
+                                                                        <Avatar className="h-6 w-6">
+                                                                            <AvatarImage src={currentUser?.photoURL} />
+                                                                            <AvatarFallback>{currentUser?.displayName?.[0]}</AvatarFallback>
+                                                                        </Avatar>
+                                                                        <div className="flex-1 flex items-center gap-2">
+                                                                            <Input
+                                                                                value={commentText}
+                                                                                onChange={(e) => setCommentText(e.target.value)}
+                                                                                placeholder="Write a comment..."
+                                                                                className="flex-1 h-8 text-sm bg-muted/50"
+                                                                            />
+                                                                            <Button
+                                                                                size="sm"
+                                                                                className="h-8"
+                                                                                onClick={() => handleComment(post)}
+                                                                                disabled={!commentText.trim()}
+                                                                            >
+                                                                                Post
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </CardContent>
