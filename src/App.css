@@ -1,12 +1,11 @@
-@import '@fontsource/inter';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html {
-  font-family: 'Inter', sans-serif;
+:root {
+  font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.025em;
 }
-
 /* Add this at the end of your App.css file */
 ::-webkit-scrollbar {
   width: 8px;
@@ -223,14 +222,4 @@ html {
   animation: float 6s ease-in-out infinite;
   animation-delay: 1s;
 }
-
-
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-} 
+ 

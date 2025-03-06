@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
-import '@fontsource/geist-sans'
+import '@fontsource/public-sans'
 
 // Add CSS import
 import './index.css'
