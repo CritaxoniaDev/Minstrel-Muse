@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { db } from '@/config/firebase';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
 import {
     Music2, Users, Heart, Image, MessageCircle, Share2, Smile, Repeat2, Sparkles, Flame, ThumbsUp
 } from "lucide-react";
@@ -29,12 +30,18 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
     const [commentingPost, setCommentingPost] = useState(null);
     const [commentText, setCommentText] = useState('');
     const [shareUrl, setShareUrl] = useState('');
+    const [showCommentEmojiPicker, setShowCommentEmojiPicker] = useState(null);
     const { toast } = useToast();
+
+    const handleCommentEmojiSelect = (emoji) => {
+        setCommentText(commentText + emoji.native);
+        setShowCommentEmojiPicker(null);
+    };
 
     const handleShare = (postId) => {
         const shareableLink = `https://minstrelmuse.vercel.app/shared/${postId}`;
         navigator.clipboard.writeText(shareableLink);
-        
+
         toast({
             title: "Link copied!",
             description: "Share link has been copied to clipboard",
@@ -205,30 +212,15 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
         </Card>
     );
 
-    // User skeleton component
-    const UserSkeleton = () => (
-        <div className="flex items-center gap-3 p-3">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <div className="flex-1">
-                <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-3 w-16" />
-            </div>
-        </div>
-    );
-
     return (
-        <div className="min-h-screen bg-background mb-20">
+        <div className="min-h-screen bg-background mb-10">
             <div className={cn(
-                "container mx-auto px-4 py-6 grid gap-6",
-                "grid-cols-1",
-                "md:grid-cols-2",
-                "lg:grid-cols-8"
+                "container mx-auto px-4 py-6",
+                "max-w-3xl", // Added max width
+                "flex flex-col items-center" // Center alignment
             )}>
                 <main className={cn(
-                    "space-y-6",
-                    "col-span-1",
-                    "md:col-span-1",
-                    "lg:col-span-5 lg:col-start-2",
+                    "space-y-6 w-full", // Full width within container
                     "px-0",
                     "md:px-4",
                     "lg:px-2",
@@ -236,7 +228,7 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
 
                     {loading ? (
                         <Card className="transform transition-all duration-300">
-                            <CardContent className="p-4 md:p-6">
+                            <CardContent className="p-4">
                                 <div className="flex space-x-4">
                                     <Skeleton className="h-10 w-10 md:h-12 md:w-12 rounded-full" />
                                     <div className="flex-1 space-y-4">
@@ -295,11 +287,11 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                     )}
 
                     <Tabs defaultValue="foryou" className="w-full">
-                        <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-sm border-b border-border/40 mt-6">
-                            <TabsList className="w-full grid grid-cols-3">
-                                <TabsTrigger value="foryou">For You</TabsTrigger>
-                                <TabsTrigger value="following">Following</TabsTrigger>
-                                <TabsTrigger value="trending">Trending</TabsTrigger>
+                        <div className="sticky top-16 bg-white z-30 border-gray-300 mt-6 shadow-sm">
+                            <TabsList className="w-full grid grid-cols-3 px-2">
+                                <TabsTrigger value="foryou" className="text-sm">For You</TabsTrigger>
+                                <TabsTrigger value="following" className="text-sm">Following</TabsTrigger>
+                                <TabsTrigger value="trending" className="text-sm">Trending</TabsTrigger>
                             </TabsList>
                         </div>
 
@@ -312,7 +304,7 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                         {posts.map((post, index) => (
                                             <Card
                                                 key={post.id}
-                                                className="overflow-hidden border-l border-r border-border dark:border-border/70"
+                                                className="overflow-hidden border-l border-r border-gray-300 dark:border-border/90"
                                             >
                                                 <CardContent className="p-3">
                                                     <div className="flex space-x-2">
@@ -494,13 +486,23 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                             <AvatarImage src={currentUser?.photoURL} />
                                                                             <AvatarFallback>{currentUser?.displayName?.[0]}</AvatarFallback>
                                                                         </Avatar>
-                                                                        <div className="flex-1 flex items-center gap-2">
-                                                                            <Input
-                                                                                value={commentText}
-                                                                                onChange={(e) => setCommentText(e.target.value)}
-                                                                                placeholder="Write a comment..."
-                                                                                className="flex-1 h-8 text-sm bg-muted/50"
-                                                                            />
+                                                                        <div className="flex-1 flex items-center gap-2 relative">
+                                                                            <div className="flex-1 relative">
+                                                                                <Input
+                                                                                    value={commentText}
+                                                                                    onChange={(e) => setCommentText(e.target.value)}
+                                                                                    placeholder="Write a comment..."
+                                                                                    className="flex-1 h-8 text-sm bg-muted/50 pr-8"
+                                                                                />
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="sm"
+                                                                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                                                                                    onClick={() => setShowCommentEmojiPicker(post.id)}
+                                                                                >
+                                                                                    <Smile className="h-4 w-4 text-muted-foreground" />
+                                                                                </Button>
+                                                                            </div>
                                                                             <Button
                                                                                 size="sm"
                                                                                 className="h-8"
@@ -509,6 +511,15 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                             >
                                                                                 Post
                                                                             </Button>
+                                                                            {showCommentEmojiPicker === post.id && (
+                                                                                <div className="absolute right-0 bottom-full mb-2 z-50">
+                                                                                    <EmojiPicker
+                                                                                        onEmojiSelect={handleCommentEmojiSelect}
+                                                                                        theme="light"
+                                                                                        className="border border-border shadow-lg"
+                                                                                    />
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -530,76 +541,48 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                 )}
                             </div>
                         </TabsContent>
+
+                        <TabsContent value="following" className="pt-8">
+                            <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
+                                <div className="relative">
+                                    <Users className="h-16 w-16 text-primary/20" />
+                                    <Sparkles className="h-6 w-6 text-primary absolute -top-2 -right-2 animate-pulse" />
+                                </div>
+                                <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                                    Following Feed Coming Soon!
+                                </h3>
+                                <p className="text-muted-foreground max-w-sm">
+                                    We're working on something special! Soon you'll be able to customize your feed with posts from people you follow.
+                                </p>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground/80">
+                                    <span className="h-[1px] w-8 bg-border"></span>
+                                    <span>Stay tuned for updates</span>
+                                    <span className="h-[1px] w-8 bg-border"></span>
+                                </div>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="trending" className="pt-8">
+                            <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
+                                <div className="relative">
+                                    <Flame className="h-16 w-16 text-primary/20" />
+                                    <Sparkles className="h-6 w-6 text-primary absolute -top-2 -right-2 animate-pulse" />
+                                </div>
+                                <h3 className="text-xl font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                                    Trending Section Coming Soon!
+                                </h3>
+                                <p className="text-muted-foreground max-w-sm">
+                                    Get ready to discover what's hot! We're crafting a space to showcase the most popular and trending content.
+                                </p>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground/80">
+                                    <span className="h-[1px] w-8 bg-border"></span>
+                                    <span>Coming in next update</span>
+                                    <span className="h-[1px] w-8 bg-border"></span>
+                                </div>
+                            </div>
+                        </TabsContent>
                     </Tabs>
                 </main>
-
-                <div className={cn(
-                    "col-span-1",
-                    "md:col-span-1",
-                    "lg:col-span-2",
-                    currentTrack && !isPlayerPage && !isDesktop ? "hidden" : "",
-                    "order-first md:order-last"
-                )}>
-                    <div className="sticky top-20 space-y-4">
-                        <Card className="transform transition-all duration-300 hover:shadow-lg">
-                            <CardHeader>
-                                <div className="flex items-center gap-2">
-                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <Users className="h-4 w-4 text-primary animate-pulse" />
-                                    </div>
-                                    <div className="flex items-center justify-between w-full">
-                                        <h3 className="font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                                            Active Users
-                                        </h3>
-                                        <span className="text-xs text-muted-foreground">
-                                            {users.length} online
-                                        </span>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-4">
-                                {loading ? (
-                                    Array(5).fill(0).map((_, i) => <UserSkeleton key={i} />)
-                                ) : (
-                                    users.filter(u => u.uid !== currentUser.uid).slice(0, 5).map((user) => (
-                                        <div
-                                            key={user.uid}
-                                            className="group transition-all duration-300 cursor-pointer flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 border border-transparent hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 mb-2"
-                                            onClick={() => navigate(`/dashboard/profile/${user.uid}`)}
-                                        >
-                                            <div className="relative">
-                                                <Avatar className="h-12 w-12 border-2 border-primary/20 group-hover:border-primary/40 transition-colors ring-2 ring-offset-2 ring-offset-background ring-transparent group-hover:ring-primary/20">
-                                                    <AvatarImage src={user?.photoURL} />
-                                                    <AvatarFallback className="bg-primary/10">
-                                                        {user?.name?.charAt(0) || user?.email?.charAt(0)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'} ${user.isOnline ? 'animate-pulse' : ''}`} />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-                                                    {user?.name || 'Anonymous'}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground group-hover:text-primary/70">
-                                                    {user.isOnline ? 'Active now' : 'Offline'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                                {users.length > 5 && (
-                                    <Button
-                                        variant="ghost"
-                                        className="w-full mt-2 hover:bg-primary/5"
-                                        onClick={() => navigate('/dashboard/users')}
-                                    >
-                                        See More Users
-                                    </Button>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
             </div>
         </div>
     );

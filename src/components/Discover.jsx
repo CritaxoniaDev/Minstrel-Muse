@@ -20,18 +20,18 @@ const genres = [
 
 const TrackSkeleton = () => {
     const isMobile = useMediaQuery({ maxWidth: 767 });
-    
+
     return (
-      <div className="rounded-lg overflow-hidden">
-        <Skeleton className="aspect-video w-full" />
-        <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
-          <Skeleton className={`${isMobile ? 'h-3' : 'h-4'} w-3/4 mb-2`} />
-          <Skeleton className={`${isMobile ? 'h-2' : 'h-3'} w-1/2`} />
+        <div className="rounded-lg overflow-hidden">
+            <Skeleton className="aspect-video w-full" />
+            <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
+                <Skeleton className={`${isMobile ? 'h-3' : 'h-4'} w-3/4 mb-2`} />
+                <Skeleton className={`${isMobile ? 'h-2' : 'h-3'} w-1/2`} />
+            </div>
         </div>
-      </div>
     );
-  };
-  
+};
+
 
 const TrackCard = ({ track, onPlayPause, onAddToQueue, currentTrack, isPlaying }) => {
     const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -43,7 +43,7 @@ const TrackCard = ({ track, onPlayPause, onAddToQueue, currentTrack, isPlaying }
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             whileHover={{ y: -5 }}
-            className="group relative overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-xl"
+            className="group relative overflow-hidden rounded-sm bg-white dark:bg-gray-800 shadow-xl"
         >
             <div className="aspect-video relative">
                 <img
@@ -170,29 +170,33 @@ const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={`container mx-auto px-2 md:px-4 py-4 md:py-6 pb-24 md:pb-32`}
+            className="container mx-auto px-2 md:px-4 py-4 md:py-6 pb-24 md:pb-32"
         >
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-r from-purple-600 via-blue-600 to-violet-600 p-6 md:p-12 mb-4 md:mb-8"
+                className="relative overflow-hidden rounded-sm md:rounded-sm bg-gradient-to-r from-purple-600 via-blue-600 to-violet-600 p-6 md:p-12 mb-4 md:mb-8"
             >
+                <div className="absolute inset-0 bg-black/10" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
+                <div className="absolute -inset-[100px] bg-gradient-radial from-white/10 via-transparent to-transparent blur-xl" />
+
                 <motion.div
                     className="relative z-10"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <h1 className={`${isMobile ? 'text-3xl' : 'text-5xl'} font-bold text-white mb-4 md:mb-6 flex items-center gap-2 md:gap-4`}>
+                    <h1 className={`${isMobile ? 'text-3xl' : 'text-5xl'} font-bold text-white mb-4 md:mb-6 flex items-center gap-2 md:gap-4 drop-shadow-lg`}>
                         Discover New Music
                         <motion.span
                             animate={{ rotate: [0, 10, -10, 0] }}
                             transition={{ repeat: Infinity, duration: 2 }}
                         >
-                            <Sparkles className={`${isMobile ? 'h-6 w-6' : 'h-10 w-10'} text-yellow-300`} />
+                            <Sparkles className={`${isMobile ? 'h-6 w-6' : 'h-10 w-10'} text-yellow-300 drop-shadow-glow`} />
                         </motion.span>
                     </h1>
-                    <p className={`${isMobile ? 'text-base' : 'text-xl'} text-white/90 max-w-2xl leading-relaxed`}>
+                    <p className={`${isMobile ? 'text-base' : 'text-xl'} text-white/90 max-w-2xl leading-relaxed drop-shadow`}>
                         Explore a world of endless musical possibilities. From chart-topping hits to hidden gems,
                         your next favorite song is just a click away.
                     </p>
@@ -209,14 +213,14 @@ const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
                         repeat: Infinity
                     }}
                 >
-                    <Radio className="w-full h-full" />
+                    <Radio className="w-full h-full filter blur-sm" />
                 </motion.div>
             </motion.div>
 
-            <Card className="mb-4 md:mb-8">
-                <CardHeader className={`${isMobile ? 'p-4' : 'p-6'}`}>
+            <Card className="mb-4 md:mb-8 rounded-sm border border-border/50 shadow-xl backdrop-blur-sm bg-card/95">
+                <CardHeader className={`${isMobile ? 'p-4' : 'p-6'} border-b border-border/10`}>
                     <CardTitle className="flex items-center gap-2">
-                        <Flame className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-red-500`} />
+                        <Flame className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-red-500 animate-pulse`} />
                         Trending Now
                     </CardTitle>
                 </CardHeader>
@@ -246,8 +250,8 @@ const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader className={`${isMobile ? 'p-4' : 'p-6'}`}>
+            <Card className="rounded-sm border border-border/50 shadow-xl backdrop-blur-sm bg-card/95">
+                <CardHeader className={`${isMobile ? 'p-4' : 'p-6'} border-b border-border/10`}>
                     <CardTitle>Browse by Genre</CardTitle>
                 </CardHeader>
                 <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
@@ -258,12 +262,12 @@ const Discover = ({ onPlayPause, currentTrack, isPlaying, onAddToQueue }) => {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 className={`
-                                    ${isMobile ? 'px-4 py-2 text-sm' : 'px-6 py-3'} 
+                                    ${isMobile ? 'px-4 py-2 text-sm' : 'px-6 py-3'}
                                     rounded-full font-medium whitespace-nowrap
                                     ${selectedGenre.id === genre.id
-                                        ? `bg-gradient-to-r ${genre.color} text-white shadow-lg`
-                                        : 'bg-white/10 hover:bg-white/20 text-gray-700 dark:text-gray-200'}
-                                    transition-all duration-300
+                                        ? `bg-gradient-to-r ${genre.color} text-white shadow-lg backdrop-blur-sm`
+                                        : 'bg-white/10 hover:bg-white/20 text-gray-700 dark:text-gray-200 backdrop-blur-sm'}
+                                    transition-all duration-300 border border-border/20
                                 `}
                                 onClick={() => handleGenreChange(genre)}
                             >

@@ -191,7 +191,7 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                             </div>
                         </div>
                         {!isMobile && (
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent group-hover:scale-105 transition-transform">
+                            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent group-hover:scale-105 transition-transform">
                                 MinstrelMuse
                             </h1>
                         )}

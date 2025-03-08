@@ -220,7 +220,7 @@ const PlaylistDetail = ({ user, onPlayPause, currentTrack, isPlaying }) => {
     );
 
     return (
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 pt-2">
             <div className="relative">
                 {/* Hero Section */}
                 <div className="relative h-[300px] rounded-xl overflow-hidden mb-8">

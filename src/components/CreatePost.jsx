@@ -11,6 +11,7 @@ import { getYoutubeApiKey, rotateApiKey } from '@/config/youtube-api';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { useToast } from "@/hooks/use-toast";
+import { EmojiPicker } from "@/components/ui/emoji-picker"
 
 const CreatePost = ({ currentUser }) => {
     const navigate = useNavigate();
@@ -23,17 +24,15 @@ const CreatePost = ({ currentUser }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const { toast } = useToast();
 
+    const handleEmojiSelect = (emoji) => {
+        setContent(content + emoji.native);
+        setShowEmojiPicker(false);
+    };
+
     const handlePost = async () => {
-        if (!content.trim()) {
-            toast({
-                title: "Empty Post",
-                description: "Add some content to share",
-                variant: "destructive",
-            });
-            return;
-        }
 
         setIsUploading(true);
 
@@ -140,12 +139,31 @@ const CreatePost = ({ currentUser }) => {
                     </div>
 
                     {/* Content Input */}
-                    <Textarea
-                        placeholder="What's on your mind?"
-                        className="min-h-[120px] resize-none focus:ring-primary"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                    />
+                    <div className="relative">
+                        <Textarea
+                            placeholder="What's on your mind?"
+                            className="min-h-[120px] resize-none focus:ring-primary pr-10"
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                        />
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-2 top-2 h-8 w-8 p-0 hover:bg-muted"
+                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        >
+                            <Smile className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                        {showEmojiPicker && (
+                            <div className="absolute right-0 top-12 z-50">
+                                <EmojiPicker
+                                    onEmojiSelect={handleEmojiSelect}
+                                    theme="light"
+                                    className="border border-border shadow-lg"
+                                />
+                            </div>
+                        )}
+                    </div>
 
                     {/* Image Upload Section */}
                     <div className="space-y-4">
