@@ -38,6 +38,15 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
         setShowCommentEmojiPicker(null);
     };
 
+    const gradientStyles = [
+        "bg-gradient-to-br from-blue-50/40 via-indigo-50/20 to-transparent",
+        "bg-gradient-to-tl from-purple-50/40 via-pink-50/20 to-transparent",
+        "bg-gradient-to-tr from-emerald-50/40 via-teal-50/20 to-transparent",
+        "bg-gradient-to-bl from-amber-50/40 via-orange-50/20 to-transparent",
+        "bg-gradient-to-r from-rose-50/40 via-red-50/20 to-transparent",
+        "bg-gradient-to-l from-sky-50/40 via-cyan-50/20 to-transparent"
+    ];
+
     const handleShare = (postId) => {
         const shareableLink = `https://minstrelmuse.vercel.app/shared/${postId}`;
         navigator.clipboard.writeText(shareableLink);
@@ -304,7 +313,15 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                         {posts.map((post, index) => (
                                             <Card
                                                 key={post.id}
-                                                className="overflow-hidden border-l border-r border-gray-300 dark:border-border/90"
+                                                className={cn(
+                                                    "overflow-hidden border-l border-r border-gray-300 dark:border-border/90",
+                                                    "transition-all duration-300 ease-in-out",
+                                                    "hover:shadow-lg hover:shadow-primary/5",
+                                                    gradientStyles[Math.floor(Math.random() * gradientStyles.length)],
+                                                    "bg-[length:200%_200%]",
+                                                    "animate-gradient-shift",
+                                                    "backdrop-blur-[2px]"
+                                                )}
                                             >
                                                 <CardContent className="p-3">
                                                     <div className="flex space-x-2">

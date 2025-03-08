@@ -6,7 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Music, User, ArrowLeft, Play, Plus, Heart } from 'lucide-react';
+import { Calendar, Music, Music2, User, ArrowLeft, Play, Plus, Heart } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
+import { MessageCircle, Share2 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { cn } from '@/lib/utils';
+import { formatDistanceToNow, format, differenceInDays } from 'date-fns';
 import { Badge } from "@/components/ui/badge";
 
 const Profile = ({ onPlayPause }) => {
@@ -19,6 +24,60 @@ const Profile = ({ onPlayPause }) => {
     const [bio, setBio] = useState('');
     const currentUser = auth.currentUser;
     const isOwnProfile = currentUser?.uid === userId;
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUserPosts = async () => {
+            try {
+                const postsRef = collection(db, "posts");
+                const q = query(postsRef, where("userId", "==", userId));
+                const querySnapshot = await getDocs(q);
+
+                const postsData = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    createdAt: doc.data().createdAt?.toDate(),
+                }));
+
+                setPosts(postsData);
+                setLoading(false);
+            } catch (error) {
+                console.error("Error fetching user posts:", error);
+                setLoading(false);
+            }
+        };
+
+        fetchUserPosts();
+    }, [userId]);
+
+    const handleLikePost = async (postId) => {
+        const postRef = doc(db, "posts", postId);
+        const postDoc = await getDoc(postRef);
+
+        if (postDoc.exists()) {
+            const currentLikes = postDoc.data().likes || [];
+            const isLiked = currentLikes.includes(currentUser.uid);
+
+            await updateDoc(postRef, {
+                likes: isLiked
+                    ? currentLikes.filter(id => id !== currentUser.uid)
+                    : [...currentLikes, currentUser.uid]
+            });
+
+            setPosts(posts.map(post => {
+                if (post.id === postId) {
+                    return {
+                        ...post,
+                        likes: isLiked
+                            ? currentLikes.filter(id => id !== currentUser.uid)
+                            : [...currentLikes, currentUser.uid]
+                    };
+                }
+                return post;
+            }));
+        }
+    };
 
     const handlePlayTrack = (song) => {
         const trackToPlay = {
@@ -93,156 +152,180 @@ const Profile = ({ onPlayPause }) => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-black">
-            <div className="container mx-auto p-4">
-                {/* Cover Photo Section */}
-                <div className="relative rounded-t-xl overflow-hidden">
-                    <div className="h-[300px] bg-gradient-to-r from-blue-400/80 to-purple-400/80 via-indigo-400/80">
-                        <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
+        <div className="min-h-screen bg-gray-50 dark:bg-black/95">
+            <div className="max-w-6xl mx-auto">
+                {/* Hero Banner */}
+                <div className="relative h-[250px] md:h-[350px] overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 animate-gradient-xy">
+                        <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+                        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-soft-light" />
                     </div>
 
-                    <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
-                        <div className="flex items-end gap-6">
-                            <Avatar className="h-40 w-40 border-4 border-white dark:border-gray-800 shadow-xl">
-                                <AvatarImage src={profileUser.photoURL} />
-                                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-3xl">
-                                    {profileUser.displayName?.[0]?.toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="mb-4 text-gray-900 dark:text-white">
-                                <h1 className="text-3xl font-bold shadow-sm">
-                                    {profileUser.name || profileUser.displayName}
-                                </h1>
-                                <p className="opacity-90">{profileUser.email}</p>
-                                {isEditing ? (
-                                    <div className="mt-2 flex gap-2">
-                                        <textarea
-                                            value={bio}
-                                            onChange={(e) => setBio(e.target.value)}
-                                            className="w-full p-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 text-sm"
-                                            placeholder="Write your bio..."
-                                            rows={2}
-                                        />
-                                        <div className="flex flex-col gap-2">
-                                            <Button
-                                                size="sm"
-                                                onClick={handleUpdateProfile}
-                                                className="bg-green-500 hover:bg-green-600 text-white"
-                                            >
-                                                Save
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => setIsEditing(false)}
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <p className="mt-2 max-w-md text-sm">
-                                        {profileUser.bio || "No bio yet"}
-                                    </p>
-                                )}
-                            </div>
+                    {/* Profile Navigation */}
+                    <div className="absolute top-4 left-4 flex items-center gap-4">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 rounded-full bg-black/20 backdrop-blur-md border border-white/10 hover:bg-black/30"
+                            onClick={() => navigate(-1)}
+                        >
+                            <ArrowLeft className="h-5 w-5 text-white" />
+                        </Button>
+                        <div className="text-white">
+                            <h2 className="font-semibold text-lg leading-none">{profileUser.name}</h2>
+                            <p className="text-sm text-white/80">{userPlaylists.length} playlists</p>
                         </div>
+                    </div>
+                </div>
+
+                {/* Profile Info Section */}
+                <div className="relative px-4 pb-4">
+                    <div className="relative -mt-[86px] mb-4 flex justify-between items-end">
+                        <Avatar className="h-[172px] w-[172px] rounded-full ring-8 ring-white dark:ring-gray-950 shadow-2xl">
+                            <AvatarImage
+                                src={profileUser.photoURL}
+                                className="object-cover"
+                            />
+                            <AvatarFallback className="bg-gradient-to-br from-violet-600 to-indigo-600 text-5xl">
+                                {profileUser.displayName?.[0]?.toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
 
                         {!isEditing && isOwnProfile && (
                             <Button
                                 variant="outline"
-                                className="bg-white/10 backdrop-blur-sm border-white/20 text-gray-900 dark:text-white hover:bg-white/20 transition-colors"
+                                className="mb-4 bg-white/95 dark:bg-gray-950 backdrop-blur-sm border-2 hover:bg-gray-50 dark:hover:bg-gray-900"
                                 onClick={handleEditClick}
                             >
                                 Edit Profile
                             </Button>
                         )}
                     </div>
+
+                    <div className="space-y-2">
+                        <h1 className="text-2xl font-bold">{profileUser.name || profileUser.displayName}</h1>
+                        <p className="text-muted-foreground">@{profileUser.email?.split('@')[0]}</p>
+
+                        {isEditing ? (
+                            <div className="mt-4 flex gap-2">
+                                <textarea
+                                    value={bio}
+                                    onChange={(e) => setBio(e.target.value)}
+                                    className="flex-1 p-3 rounded-xl border bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm text-sm resize-none focus:ring-2 ring-primary/20"
+                                    placeholder="Write your bio..."
+                                    rows={3}
+                                />
+                                <div className="flex flex-col gap-2">
+                                    <Button
+                                        size="sm"
+                                        onClick={handleUpdateProfile}
+                                        className="bg-primary hover:bg-primary/90"
+                                    >
+                                        Save
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setIsEditing(false)}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-sm max-w-2xl">{profileUser.bio || "No bio yet"}</p>
+                        )}
+
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
+                            <span className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                Joined {new Date(profileUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Main Content */}
-                <div className="bg-white dark:bg-gray-800 rounded-b-xl shadow-lg">
-                    <Tabs defaultValue="overview" className="p-6">
-                        <TabsList className="flex gap-4 border-b border-gray-200 dark:border-gray-700 mb-6">
-                            <TabsTrigger
-                                value="overview"
-                                className="pb-4 text-lg font-medium border-b-2 border-transparent data-[state=active]:border-blue-500"
-                            >
-                                Overview
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="playlists"
-                                className="pb-4 text-lg font-medium border-b-2 border-transparent data-[state=active]:border-blue-500"
-                            >
-                                Playlists
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="favorites"
-                                className="pb-4 text-lg font-medium border-b-2 border-transparent data-[state=active]:border-blue-500"
-                            >
-                                Favorites
-                            </TabsTrigger>
-                        </TabsList>
+                {/* Tabs Section */}
+                <div className="mt-4 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-t dark:border-gray-800">
+                    <Tabs defaultValue="overview" className="w-full">
+                        <div className="px-2 md:px-4">
+                            <TabsList className="flex w-full justify-start gap-1 h-12">
+                                <TabsTrigger value="overview" className="flex-1 md:flex-none">Overview</TabsTrigger>
+                                <TabsTrigger value="playlists" className="flex-1 md:flex-none">Playlists</TabsTrigger>
+                                <TabsTrigger value="favorites" className="flex-1 md:flex-none">Favorites</TabsTrigger>
+                            </TabsList>
+                        </div>
 
-                        <TabsContent value="overview">
-                            <div className="grid md:grid-cols-3 gap-8">
-                                <div className="p-6 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-2xl hover:shadow-lg transition-all duration-300 group">
-                                    <div className="flex items-center gap-4 mb-2">
-                                        <div className="p-3 rounded-full bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
-                                            <User className="h-6 w-6 text-blue-500" />
+                        <TabsContent value="overview" className="px-4 py-6">
+                            <div className="grid md:grid-cols-3 gap-6">
+                                <Card className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm border-none shadow-xl">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 rounded-full bg-violet-500/10">
+                                                <User className="h-6 w-6 text-violet-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                                                    {new Date(profileUser.createdAt).getFullYear()}
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground">Member since</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                                                {new Date(profileUser.createdAt).getFullYear()}
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground">Member since</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
 
-                                <div className="p-6 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-2xl hover:shadow-lg transition-all duration-300 group">
-                                    <div className="flex items-center gap-4 mb-2">
-                                        <div className="p-3 rounded-full bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                                            <Music className="h-6 w-6 text-purple-500" />
+                                <Card className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm border-none shadow-xl">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 rounded-full bg-fuchsia-500/10">
+                                                <Music className="h-6 w-6 text-fuchsia-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-2xl font-bold bg-gradient-to-r from-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
+                                                    {userPlaylists.length}
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground">Playlists Created</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
-                                                {userPlaylists.length}
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground">Playlists Created</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
 
-                                <div className="p-6 bg-gradient-to-br from-pink-50/50 to-rose-50/50 dark:from-pink-950/20 dark:to-rose-950/20 rounded-2xl hover:shadow-lg transition-all duration-300 group">
-                                    <div className="flex items-center gap-4 mb-2">
-                                        <div className="p-3 rounded-full bg-pink-500/10 group-hover:bg-pink-500/20 transition-colors">
-                                            <Calendar className="h-6 w-6 text-pink-500" />
+                                <Card className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm border-none shadow-xl">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 rounded-full bg-pink-500/10">
+                                                <Heart className="h-6 w-6 text-pink-500" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">
+                                                    {favoriteSongs.length}
+                                                </h3>
+                                                <p className="text-sm text-muted-foreground">Songs Favorited</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-pink-400 bg-clip-text text-transparent">
-                                                {favoriteSongs.length}
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground">Songs Favorited</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
                             </div>
                         </TabsContent>
 
-                        <TabsContent value="playlists">
+                        <TabsContent value="playlists" className="px-4 py-6">
                             <div className="grid gap-4">
                                 {userPlaylists.map(playlist => (
-                                    <Card key={playlist.id} className="hover:shadow-md transition-shadow">
+                                    <Card
+                                        key={playlist.id}
+                                        className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300"
+                                    >
                                         <CardContent className="p-6">
-                                            <div className="flex items-center gap-4 cursor-pointer"
-                                                onClick={() => navigate(`/dashboard/library/${playlist.id}`)}>
-                                                <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
-                                                    <Music className="h-6 w-6 text-blue-500" />
+                                            <div
+                                                className="flex items-center gap-4 cursor-pointer"
+                                                onClick={() => navigate(`/dashboard/library/${playlist.id}`)}
+                                            >
+                                                <div className="p-3 rounded-full bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10">
+                                                    <Music className="h-6 w-6 text-primary" />
                                                 </div>
                                                 <div>
                                                     <h3 className="text-lg font-semibold">{playlist.name}</h3>
-                                                    <p className="text-gray-500 dark:text-gray-400">
+                                                    <p className="text-muted-foreground">
                                                         {playlist.tracks?.length || 0} tracks
                                                     </p>
                                                 </div>
@@ -253,12 +336,12 @@ const Profile = ({ onPlayPause }) => {
                             </div>
                         </TabsContent>
 
-                        <TabsContent value="favorites">
+                        <TabsContent value="favorites" className="px-4 py-6">
                             <div className="space-y-4">
                                 {favoriteSongs.map(song => (
                                     <Card
                                         key={song.id}
-                                        className="group hover:shadow-xl transition-all duration-300 border-primary/10 hover:border-primary/20"
+                                        className="group bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300"
                                     >
                                         <CardContent className="p-4">
                                             <div className="flex items-center gap-6">
@@ -320,12 +403,12 @@ const Profile = ({ onPlayPause }) => {
                                 ))}
 
                                 {favoriteSongs.length === 0 && (
-                                    <div className="text-center p-12 bg-card rounded-xl border shadow-xl">
+                                    <div className="text-center p-12 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-xl border shadow-xl">
                                         <div className="relative">
-                                            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 blur-xl opacity-10 animate-pulse" />
+                                            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-600 blur-xl opacity-10 animate-pulse" />
                                             <Music className="h-16 w-16 mx-auto text-primary mb-4 relative z-10" />
                                         </div>
-                                        <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                        <h3 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
                                             No favorites yet
                                         </h3>
                                         <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
@@ -336,6 +419,84 @@ const Profile = ({ onPlayPause }) => {
                             </div>
                         </TabsContent>
                     </Tabs>
+                </div>
+                <div className="mt-8 px-4">
+                    <h2 className="text-xl font-semibold mb-4">Posts</h2>
+                    <div className="space-y-4">
+                        {posts.filter(post => post.userId === userId).map(post => (
+                            <Card
+                                key={post.id}
+                                className={cn(
+                                    "overflow-hidden backdrop-blur-sm border-none shadow-lg",
+                                    "bg-white/50 dark:bg-gray-900/50",
+                                    "hover:shadow-xl transition-all duration-300"
+                                )}
+                            >
+                                <CardContent className="p-4">
+                                    <div className="flex space-x-4">
+                                        <Avatar className="h-10 w-10 ring-2 ring-primary/10">
+                                            <AvatarImage src={post.userPhoto} />
+                                            <AvatarFallback>{post.userName?.[0]}</AvatarFallback>
+                                        </Avatar>
+
+                                        <div className="flex-1 space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">{post.userName}</span>
+                                                <span className="text-sm text-muted-foreground">
+                                                    {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                                                </span>
+                                            </div>
+
+                                            {post.music && (
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-primary/5 w-fit px-3 py-1 rounded-full">
+                                                    <Music2 className="h-3 w-3" />
+                                                    <span className="font-medium bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                                                        {post.music.title}
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            <p className="text-sm">{post.content}</p>
+
+                                            {post.image && (
+                                                <div className="flex justify-center mt-2">
+                                                    <img
+                                                        src={post.image}
+                                                        alt="Post attachment"
+                                                        className="rounded-lg max-h-[300px] object-cover"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center gap-4 pt-2">
+                                                <Button variant="ghost" size="sm" className="gap-2">
+                                                    <Heart className="h-4 w-4" />
+                                                    <span className="text-xs">{post.likes?.length || 0}</span>
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="gap-2">
+                                                    <MessageCircle className="h-4 w-4" />
+                                                    <span className="text-xs">{post.comments?.length || 0}</span>
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="gap-2">
+                                                    <Share2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+
+                        {posts.filter(post => post.userId === userId).length === 0 && (
+                            <div className="text-center p-8 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-xl">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-600 blur-xl opacity-10 animate-pulse" />
+                                    <Music2 className="h-12 w-12 mx-auto text-primary/40 mb-3" />
+                                </div>
+                                <h3 className="text-lg font-medium text-muted-foreground">No posts yet</h3>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
