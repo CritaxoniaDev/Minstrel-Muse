@@ -196,6 +196,7 @@ module.exports = {
 				'slide-in-right': 'slide-in-right 0.3s ease-out',
 				'slide-up': 'slide-up 0.3s ease-out',
 				'grid-fade-in': 'grid-fade-in 2s ease-out forwards',
+				'gradient-very-slow': 'gradient 8s linear infinite',
 				'grid-beam': 'grid-beam 3s linear infinite',
 				'grid-beam-horizontal': 'grid-beam-horizontal 8s linear infinite',
 				'grid-beam-vertical': 'grid-beam-vertical 8s linear infinite',

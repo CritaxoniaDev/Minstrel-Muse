@@ -38,15 +38,6 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
         setShowCommentEmojiPicker(null);
     };
 
-    const gradientStyles = [
-        "bg-gradient-to-br from-blue-50/40 via-indigo-50/20 to-transparent",
-        "bg-gradient-to-tl from-purple-50/40 via-pink-50/20 to-transparent",
-        "bg-gradient-to-tr from-emerald-50/40 via-teal-50/20 to-transparent",
-        "bg-gradient-to-bl from-amber-50/40 via-orange-50/20 to-transparent",
-        "bg-gradient-to-r from-rose-50/40 via-red-50/20 to-transparent",
-        "bg-gradient-to-l from-sky-50/40 via-cyan-50/20 to-transparent"
-    ];
-
     const handleShare = (postId) => {
         const shareableLink = `https://minstrelmuse.vercel.app/shared/${postId}`;
         navigator.clipboard.writeText(shareableLink);
@@ -200,20 +191,20 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
 
     const PostSkeleton = () => (
         <Card className="border-dashed border border-border/50">
-            <CardContent className="p-6">
-                <div className="flex space-x-5">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="flex-1 space-y-4">
-                        <div className="flex items-center gap-2">
-                            <Skeleton className="h-6 w-32" />
-                            <Skeleton className="h-4 w-24" />
+            <CardContent className="p-3 md:p-6">
+                <div className="flex space-x-2 md:space-x-5">
+                    <Skeleton className="h-8 w-8 md:h-12 md:w-12 rounded-full" />
+                    <div className="flex-1 space-y-2 md:space-y-4">
+                        <div className="flex items-center gap-1 md:gap-2">
+                            <Skeleton className="h-4 w-24 md:h-6 md:w-32" />
+                            <Skeleton className="h-3 w-16 md:h-4 md:w-24" />
                         </div>
-                        <Skeleton className="h-20 w-full" />
-                        <div className="flex items-center space-x-6 pt-4">
-                            <Skeleton className="h-8 w-16" />
-                            <Skeleton className="h-8 w-16" />
-                            <Skeleton className="h-8 w-16" />
-                            <Skeleton className="h-8 w-16" />
+                        <Skeleton className="h-16 w-full md:h-20" />
+                        <div className="flex items-center space-x-2 md:space-x-6 pt-2 md:pt-4">
+                            <Skeleton className="h-6 w-12 md:h-8 md:w-16" />
+                            <Skeleton className="h-6 w-12 md:h-8 md:w-16" />
+                            <Skeleton className="h-6 w-12 md:h-8 md:w-16" />
+                            <Skeleton className="h-6 w-12 md:h-8 md:w-16" />
                         </div>
                     </div>
                 </div>
@@ -315,26 +306,27 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                 key={post.id}
                                                 className={cn(
                                                     "overflow-hidden border-l border-r border-gray-300 dark:border-border/90",
-                                                    "transition-all duration-300 ease-in-out",
+                                                    "transition-all duration-[3000ms] ease-in-out",
                                                     "hover:shadow-lg hover:shadow-primary/5",
-                                                    gradientStyles[Math.floor(Math.random() * gradientStyles.length)],
-                                                    "bg-[length:200%_200%]",
-                                                    "animate-gradient-shift",
-                                                    "backdrop-blur-[2px]"
                                                 )}
                                             >
                                                 <CardContent className="p-3">
                                                     <div className="flex space-x-2">
-                                                        <Avatar className="h-8 w-8 ring-1 ring-primary/20 hover:ring-primary/40 transition-colors">
+                                                        <Avatar className="h-10 w-10 ring-1 ring-primary/20 hover:ring-primary/40 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/profile/${post.userId}`)}>
                                                             <AvatarImage src={post.userPhoto} />
                                                             <AvatarFallback className="bg-primary/10">{post.userName?.[0]}</AvatarFallback>
                                                         </Avatar>
 
                                                         <div className="flex-1 space-y-2">
                                                             <div className="flex items-center flex-wrap gap-1">
-                                                                <div className="flex items-center gap-1 group">
-                                                                    <h4 className="font-semibold text-base hover:text-primary transition-colors">{post.userName}</h4>
-                                                                    <span className="text-xs text-muted-foreground">@{post.email?.split('@')[0]}</span>
+                                                                <div className="flex items-center gap-1 group cursor-pointer"
+                                                                    onClick={() => navigate(`/dashboard/profile/${post.userId}`)}>
+                                                                    <h4 className="font-semibold text-base hover:text-primary transition-colors">
+                                                                        {post.userName}
+                                                                    </h4>
+                                                                    <span className="text-xs text-muted-foreground">
+                                                                        @{post.email?.split('@')[0]}
+                                                                    </span>
                                                                     <span className="text-muted-foreground">·</span>
                                                                     <span className="text-xs text-muted-foreground hover:underline cursor-pointer">
                                                                         {differenceInDays(new Date(), post.createdAt) > 7

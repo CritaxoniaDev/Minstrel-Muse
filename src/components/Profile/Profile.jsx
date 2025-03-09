@@ -152,7 +152,7 @@ const Profile = ({ onPlayPause }) => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-black/95">
+        <div className="min-h-screen bg-gray-50 dark:bg-black/95 pb-20">
             <div className="max-w-6xl mx-auto">
                 {/* Hero Banner */}
                 <div className="relative h-[250px] md:h-[350px] overflow-hidden">
