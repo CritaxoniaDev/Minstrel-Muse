@@ -27,6 +27,7 @@ import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
 import MainPage from './components/MainPage';
 import Users from './components/Users/Users';
+import YoutubeDownloader from './pages/YoutubeDownloader';
 import Library from './components/Library';
 import PlaylistDetail from './components/PlaylistDetail';
 import NotFound from './components/Error/404';
@@ -414,6 +415,7 @@ function App() {
               } />
               <Route path="/dashboard/profile/:userId" element={<Profile onPlayPause={handlePlayPause} />} />
               <Route path="/dashboard/users" element={<Users />} />
+              <Route path="/dashboard/youtube-downloader" element={<YoutubeDownloader />} />
               <Route path="/dashboard/search" element={
                 <SearchResults
                   results={searchResults}

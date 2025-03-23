@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from "@/config/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { Home, Compass, Library, Users, Settings, Music2, Menu, Shield, Users2, BarChart3, Database, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Compass, Library, Users, Settings, Music2, Menu, Shield, Download, Users2, BarChart3, Database, Flag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,8 @@ const Sidebar = ({ user, isMinimized, setIsMinimized, isOpen, setIsOpen }) => {
     const menuItems = [
         { icon: Home, label: 'Home', path: '/dashboard' },
         { icon: Compass, label: 'Discover', path: '/dashboard/discover' },
-        { icon: Library, label: 'Library', path: '/dashboard/library' }
+        { icon: Library, label: 'Library', path: '/dashboard/library' },
+        { icon: Download, label: 'YouTube Downloader', path: '/dashboard/youtube-downloader' }
     ];
 
     const adminMenuItems = [
