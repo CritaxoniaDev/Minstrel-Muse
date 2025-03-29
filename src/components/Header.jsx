@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { LogOut, Search, Music2, User2, Menu } from 'lucide-react';
+import { LogOut, Search, Music2, User2, Menu, Mic, MicOff } from 'lucide-react';
 import { auth } from '../config/firebase';
 import { useTheme } from 'next-themes';
 import { useMediaQuery } from 'react-responsive';
@@ -12,6 +12,7 @@ import { getYoutubeApiKey, rotateApiKey } from '../config/youtube-api';
 import { Card } from './ui/card';
 import { cn } from "@/lib/utils";
 import { ScrollArea } from './ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
     const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -24,10 +25,59 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const searchRef = useRef(null);
 
+    // Speech recognition states
+    const [isListening, setIsListening] = useState(false);
+    const [speechRecognition, setSpeechRecognition] = useState(null);
+
     const decodeHTMLEntities = (text) => {
         const textarea = document.createElement('textarea');
         textarea.innerHTML = text;
         return textarea.value;
+    };
+
+     // Initialize speech recognition
+     useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                setSearchQuery(transcript);
+                // Trigger search suggestions when speech input is received
+                if (transcript.trim()) {
+                    fetchSuggestions(transcript);
+                    setShowSuggestions(true);
+                }
+            };
+            
+            recognition.onend = () => {
+                setIsListening(false);
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                setIsListening(false);
+            };
+            
+            setSpeechRecognition(recognition);
+        }
+    }, []);
+
+    const toggleSpeechRecognition = () => {
+        if (!speechRecognition) return;
+        
+        if (isListening) {
+            speechRecognition.stop();
+            setIsListening(false);
+        } else {
+            speechRecognition.start();
+            setIsListening(true);
+        }
     };
 
     const fetchSuggestions = async (query) => {
@@ -211,8 +261,29 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                                         value={searchQuery}
                                         onChange={handleSearchInput}
                                         onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
-                                        className="w-full pl-10 pr-4 rounded-sm border-2 focus:border-purple-500 transition-all duration-300 bg-background/50 hover:bg-background/80"
+                                        className="w-full pl-10 pr-12 rounded-sm border-2 focus:border-purple-500 transition-all duration-300 bg-background/50 hover:bg-background/80"
                                     />
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button 
+                                                    type="button"
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className={cn(
+                                                        "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full",
+                                                        isListening ? "text-red-500 animate-pulse" : "text-muted-foreground"
+                                                    )}
+                                                    onClick={toggleSpeechRecognition}
+                                                >
+                                                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{isListening ? "Stop voice search" : "Search with your voice"}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
                             </form>
 
@@ -285,7 +356,7 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                             </Button>
                         ) : (
                             <Button
-                                variant="outline"
+                            variant="outline"
                                 onClick={handleSignOut}
                                 className={cn(
                                     "rounded-sm border-destructive transition-all duration-300 group",
@@ -302,6 +373,14 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                     </div>
                 </div>
             </div>
+            
+            {/* Voice recognition status indicator */}
+            {isListening && (
+                <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-black/80 dark:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-sm font-medium">Listening...</span>
+                </div>
+            )}
         </header>
     );
 };
