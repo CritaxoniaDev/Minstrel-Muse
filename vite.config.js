@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import tailwindcssMangle from 'unplugin-tailwindcss-mangle'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcssMangle.vite()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
