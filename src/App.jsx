@@ -431,7 +431,7 @@ function App() {
                 <FullPlayerView
                   currentTrack={currentTrack}
                   isPlaying={isPlaying}
-                  onPlayPause={() => currentTrack && handlePlayPause(currentTrack)}
+                  onPlayPause={handlePlayPause}  // Changed from the arrow function to pass the full function
                   onSkipBack={handleSkipBack}
                   onSkipForward={handleSkipForward}
                   currentTime={currentTime}
@@ -492,7 +492,10 @@ function App() {
                   origin: window.location.origin,
                   playsinline: 1,
                   rel: 0,
-                  modestbranding: 1
+                  modestbranding: 1,
+                  iv_load_policy: 3, // Add this to disable annotations
+                  hl: 'en',          // Add language
+                  host: 'https://www.youtube-nocookie.com' // Use privacy-enhanced mode
                 },
               }}
               onReady={(event) => {
