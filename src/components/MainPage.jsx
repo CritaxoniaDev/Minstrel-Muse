@@ -20,7 +20,7 @@ const MainPage = () => {
     const isDesktop = useMediaQuery({ minWidth: 1024 });
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-start relative overflow-hidden bg-background">
+        <div className="min-h-screen flex flex-col items-center justify-start relative overflow-hidden bg-background w-full">
             <AnimatePresence>
                 {showCopyright && (
                     <motion.div
@@ -38,15 +38,15 @@ const MainPage = () => {
                             className="w-full"
                         >
                             <Card className={`
-                                w-full 
-                                ${isMobile ? 'max-w-[95%]' : isTablet ? 'max-w-[600px]' : 'max-w-[500px]'}
-                                mx-auto
-                                bg-card
-                                border border-border
-                                relative
-                                overflow-hidden
-                                shadow-lg
-                            `}>
+                        w-full 
+                        ${isMobile ? 'max-w-[95%]' : isTablet ? 'max-w-[600px]' : 'max-w-[500px]'}
+                        mx-auto
+                        bg-card
+                        border border-border
+                        relative
+                        overflow-hidden
+                        shadow-lg
+                    `}>
                                 {/* Card decorative elements */}
                                 <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.1]"></div>
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-600"></div>
@@ -100,10 +100,10 @@ const MainPage = () => {
                                     >
                                         <Button
                                             className={`
-                                                bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90
-                                                ${isMobile ? 'mt-4' : 'mt-6'}
-                                                w-full relative group overflow-hidden
-                                            `}
+                                        bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90
+                                        ${isMobile ? 'mt-4' : 'mt-6'}
+                                        w-full relative group overflow-hidden
+                                    `}
                                             onClick={() => setShowCopyright(false)}
                                         >
                                             <span className="relative z-10 flex items-center justify-center">
@@ -120,46 +120,59 @@ const MainPage = () => {
                 )}
             </AnimatePresence>
 
-            {/* Hero Section */}
+            {/* Hero Section - Full width */}
             <motion.div
-                className="text-center z-10 w-full max-w-4xl pt-20 pb-12 md:pb-16 relative"
+                className="text-center z-10 w-full pt-20 pb-12 md:pb-16 relative px-4 md:px-6 overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
             >
-                {/* Hero decorative elements */}
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[150%] h-[250px] rounded-full blur-3xl opacity-70"></div>
-
-                    <div className="absolute -left-4 animate-ping">
-                        <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
-                    </div>
-
-                    <div className="relative pb-10">
-                        <div className="absolute -inset-1"></div>
-                        <MorphingText
-                            className="text-4xl md:text-5xl font-bold tracking-tighter mx-auto relative"
-                            texts={[
-                                "MinstrelMuse",
-                                "Harmonious",
-                                "Enchanting",
-                                "Boundless",
-                                "Ethereal",
-                                "Timeless",
-                                "Euphoric",
-                                "Infinite",
-                            ]}
+                <div className="fixed inset-0 -z-20 overflow-hidden pointer-events-none w-full h-full">
+                    <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/70 to-background z-10"></div>
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="absolute w-full h-full object-cover opacity-50 dark:opacity-30" // Increased opacity
+                        style={{ minHeight: '70vh' }} // Ensure minimum height
+                    >
+                        <source src="/videos/bg-video-mainpage.mp4" type="video/mp4" />
+                        {/* Fallback image if video doesn't load */}
+                        <img
+                            src="/images/music-background-fallback.jpg"
+                            alt="Music background"
+                            className="absolute w-full h-full object-cover"
                         />
-                    </div>
-
-                    <div className="absolute -right-4 animate-ping">
-                        <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
-                    </div>
-        
-                <p className="text-lg md:text-2xl text-muted-foreground tracking-tighter font-light mb-8 md:mb-10 relative">
+                    </video>
+                </div>
+                {/* Hero decorative elements */}
+                <div className="absolute -left-4 animate-ping">
+                    <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
+                </div>
+                <div className="relative pb-10 max-w-4xl mx-auto">
+                    <div className="absolute -inset-1"></div>
+                    <MorphingText
+                        className="text-4xl md:text-5xl font-bold tracking-tighter mx-auto relative"
+                        texts={[
+                            "MinstrelMuse",
+                            "Harmonious",
+                            "Enchanting",
+                            "Boundless",
+                            "Ethereal",
+                            "Timeless",
+                            "Euphoric",
+                            "Infinite",
+                        ]}
+                    />
+                </div>
+                <div className="absolute -right-4 animate-ping">
+                    <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
+                </div>
+                <p className="text-lg md:text-2xl text-muted-foreground tracking-tighter font-light mb-8 md:mb-10 relative max-w-4xl mx-auto">
                     Where Poetry Meets Melody in the Digital Age
                     <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></span>
                 </p>
-
                 <div className="flex items-center justify-center">
                     <Button
                         className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 relative group overflow-hidden"
@@ -174,9 +187,9 @@ const MainPage = () => {
                 </div>
             </motion.div>
 
-            {/* Features Section */}
+            {/* Features Section - Full width */}
             <motion.div
-                className="w-full max-w-7xl px-4 md:px-8 py-16 md:py-24 z-10 relative"
+                className="w-full px-4 md:px-8 py-16 md:py-24 z-10 relative"
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
@@ -184,113 +197,115 @@ const MainPage = () => {
                 {/* Section decorative elements */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80%] h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
-                <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 md:mb-16 bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent relative">
-                    Discover Our Features
-                    <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full"></span>
-                </h2>
 
-                <BentoGrid className={`${isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-2' : 'grid-cols-3'} gap-4 md:gap-6 auto-rows-[18rem] md:auto-rows-[22rem]`}>
-                    <BentoCard
-                        name="YouTube Integration"
-                        className="col-span-1 md:col-span-1 relative group"
-                        background={
-                            <>
-                                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-red-600/20 opacity-70" />
-                                <div className="absolute inset-0 bg-[radial-gradient(#f87171_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                            </>
-                        }
-                        Icon={Youtube}
-                        description="Seamlessly access and play your favorite YouTube music videos."
-                        href="#youtube-integration"
-                        cta="Learn More"
-                    />
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 md:mb-16 bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent relative">
+                        Discover Our Features
+                        <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full"></span>
+                    </h2>
 
-                    <BentoCard
-                        name="Playlist Creation"
-                        className="col-span-1 md:col-span-1 relative group"
-                        background={
-                            <>
-                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-purple-600/20 opacity-70" />
-                                <div className="absolute inset-0 bg-[radial-gradient(#c084fc_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                            </>
-                        }
-                        Icon={Music}
-                        description="Create and manage custom playlists from your favorite tracks."
-                        href="#playlist-creation"
-                        cta="Explore"
-                    />
+                    <BentoGrid className={`${isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-2' : 'grid-cols-3'} gap-4 md:gap-6 auto-rows-[18rem] md:auto-rows-[22rem]`}>
+                        <BentoCard
+                            name="YouTube Integration"
+                            className="col-span-1 md:col-span-1 relative group"
+                            background={
+                                <>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-red-600/20 opacity-70" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(#f87171_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                                </>
+                            }
+                            Icon={Youtube}
+                            description="Seamlessly access and play your favorite YouTube music videos."
+                            href="#youtube-integration"
+                            cta="Learn More"
+                        />
 
-                    <BentoCard
-                        name="Audio Extraction"
-                        className="col-span-1 md:col-span-1 relative group"
-                        background={
-                            <>
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/20 opacity-70" />
-                                <div className="absolute inset-0 bg-[radial-gradient(#60a5fa_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                            </>
-                        }
-                        Icon={Headphones}
-                        description="Listen to just the audio from your favorite videos."
-                        href="#audio-extraction"
-                        cta="Try Now"
-                    />
+                        <BentoCard
+                            name="Playlist Creation"
+                            className="col-span-1 md:col-span-1 relative group"
+                            background={
+                                <>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-purple-600/20 opacity-70" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(#c084fc_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                                </>
+                            }
+                            Icon={Music}
+                            description="Create and manage custom playlists from your favorite tracks."
+                            href="#playlist-creation"
+                            cta="Explore"
+                        />
 
-                    <BentoCard
-                        name="Offline Listening"
-                        className="col-span-1 md:col-span-1 relative group"
-                        background={
-                            <>
-                                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-green-600/20 opacity-70" />
-                                <div className="absolute inset-0 bg-[radial-gradient(#4ade80_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                            </>
-                        }
-                        Icon={Bookmark}
-                        description="Save your music for offline enjoyment anytime, anywhere."
-                        href="#offline-listening"
-                        cta="Get Started"
-                    />
+                        <BentoCard
+                            name="Audio Extraction"
+                            className="col-span-1 md:col-span-1 relative group"
+                            background={
+                                <>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/20 opacity-70" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(#60a5fa_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                                </>
+                            }
+                            Icon={Headphones}
+                            description="Listen to just the audio from your favorite videos."
+                            href="#audio-extraction"
+                            cta="Try Now"
+                        />
+                        <BentoCard
+                            name="Offline Listening"
+                            className="col-span-1 md:col-span-1 relative group"
+                            background={
+                                <>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-green-600/20 opacity-70" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(#4ade80_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                                </>
+                            }
+                            Icon={Bookmark}
+                            description="Save your music for offline enjoyment anytime, anywhere."
+                            href="#offline-listening"
+                            cta="Get Started"
+                        />
 
-                    <BentoCard
-                        name="Social Sharing"
-                        className="col-span-1 md:col-span-1 relative group"
-                        background={
-                            <>
-                                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 opacity-70" />
-                                <div className="absolute inset-0 bg-[radial-gradient(#fbbf24_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                            </>
-                        }
-                        Icon={Share2}
-                        description="Share your favorite tracks and playlists with friends."
-                        href="#social-sharing"
-                        cta="Share Now"
-                    />
+                        <BentoCard
+                            name="Social Sharing"
+                            className="col-span-1 md:col-span-1 relative group"
+                            background={
+                                <>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 opacity-70" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(#fbbf24_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                                </>
+                            }
+                            Icon={Share2}
+                            description="Share your favorite tracks and playlists with friends."
+                            href="#social-sharing"
+                            cta="Share Now"
+                        />
 
-                    <BentoCard
-                        name="Favorites Collection"
-                        className="col-span-1 md:col-span-1 relative group"
-                        background={
-                            <>
-                                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 to-pink-600/20 opacity-70" />
-                                <div className="absolute inset-0 bg-[radial-gradient(#f472b6_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                            </>
-                        }
-                        Icon={Heart}
-                        description="Keep track of your most loved songs in your favorites collection."
-                        href="#favorites-collection"
-                        cta="View Favorites"
-                    />
-                </BentoGrid>
+                        <BentoCard
+                            name="Favorites Collection"
+                            className="col-span-1 md:col-span-1 relative group"
+                            background={
+                                <>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 to-pink-600/20 opacity-70" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(#f472b6_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                                </>
+                            }
+                            Icon={Heart}
+                            description="Keep track of your most loved songs in your favorites collection."
+                            href="#favorites-collection"
+                            cta="View Favorites"
+                        />
+                    </BentoGrid>
+                </div>
             </motion.div>
 
-            {/* CTA Section */}
+            {/* CTA Section - Full width */}
             <motion.div
-                className="w-full max-w-4xl px-4 md:px-8 py-16 md:py-20 z-10 text-center relative"
+                className="w-full px-4 md:px-8 py-16 md:py-20 z-10 text-center relative"
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.5 }}
@@ -300,50 +315,52 @@ const MainPage = () => {
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(168,85,247,0.1)_360deg)] animate-slow-spin"></div>
                 </div>
 
-                <div className="bg-card border border-border rounded-2xl p-8 md:p-12 shadow-lg relative overflow-hidden">
-                    {/* Card decorative elements */}
-                    <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.1]"></div>
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-600"></div>
+                <div className="max-w-4xl mx-auto">
+                    <div className="bg-card border border-border rounded-2xl p-8 md:p-12 shadow-lg relative overflow-hidden">
+                        {/* Card decorative elements */}
+                        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.1]"></div>
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-600"></div>
 
-                    {/* Corner accents */}
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-purple-500/30"></div>
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-500/30"></div>
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-500/30"></div>
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-purple-500/30"></div>
+                        {/* Corner accents */}
+                        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-purple-500/30"></div>
+                        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-500/30"></div>
+                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-500/30"></div>
+                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-purple-500/30"></div>
 
-                    <h2 className="text-2xl md:text-3xl font-bold mb-6 relative inline-block">
-                        Ready to transform your music experience?
-                        <span className="absolute -bottom-2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></span>
-                    </h2>
-                    <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-                        Join thousands of music lovers who have discovered a new way to enjoy their favorite tunes.
-                        MinstrelMuse brings you the best of YouTube's vast music library in an elegant,
-                        user-friendly interface designed for music enthusiasts.
-                    </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Button
-                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 w-full sm:w-auto relative group overflow-hidden"
-                            size="lg"
-                        >
-                            <span className="relative z-10 flex items-center justify-center">
-                                Sign Up Now
-                                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                            </span>
-                            <span className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors duration-200"></span>
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="w-full sm:w-auto group relative overflow-hidden"
-                            size="lg"
-                        >
-                            <span className="relative z-10">Learn More</span>
-                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-purple-600 to-blue-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-                        </Button>
+                        <h2 className="text-2xl md:text-3xl font-bold mb-6 relative inline-block">
+                            Ready to transform your music experience?
+                            <span className="absolute -bottom-2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></span>
+                        </h2>
+                        <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+                            Join thousands of music lovers who have discovered a new way to enjoy their favorite tunes.
+                            MinstrelMuse brings you the best of YouTube's vast music library in an elegant,
+                            user-friendly interface designed for music enthusiasts.
+                        </p>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <Button
+                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 w-full sm:w-auto relative group overflow-hidden"
+                                size="lg"
+                            >
+                                <span className="relative z-10 flex items-center justify-center">
+                                    Sign Up Now
+                                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                </span>
+                                <span className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors duration-200"></span>
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full sm:w-auto group relative overflow-hidden"
+                                size="lg"
+                            >
+                                <span className="relative z-10">Learn More</span>
+                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-purple-600 to-blue-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </motion.div>
 
-            {/* Footer */}
+            {/* Footer - Full width */}
             <footer className="w-full py-8 border-t border-border mt-auto z-10 bg-background/50 backdrop-blur-sm relative">
                 {/* Footer decorative elements */}
                 <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.05]"></div>
