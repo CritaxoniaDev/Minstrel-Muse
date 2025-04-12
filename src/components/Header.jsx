@@ -13,6 +13,7 @@ import { Card } from './ui/card';
 import { cn } from "@/lib/utils";
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import InstallPWA from './InstallPWA';
 
 const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
     const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -35,16 +36,59 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
         return textarea.value;
     };
 
-     // Initialize speech recognition
-     useEffect(() => {
+    // In Header.jsx
+    const [installable, setInstallable] = useState(false);
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+    useEffect(() => {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            setDeferredPrompt(e);
+            // Update UI to notify the user they can add to home screen
+            setInstallable(true);
+            console.log("Can be installed!");
+        });
+
+        window.addEventListener('appinstalled', () => {
+            // Log install to analytics
+            console.log('PWA was installed');
+            setInstallable(false);
+        });
+    }, []);
+
+    const handleInstallClick = () => {
+        if (!deferredPrompt) {
+            console.log("No installation prompt available");
+            return;
+        }
+
+        // Show the install prompt
+        deferredPrompt.prompt();
+
+        // Wait for the user to respond to the prompt
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            } else {
+                console.log('User dismissed the install prompt');
+            }
+            // Clear the saved prompt since it can't be used again
+            setDeferredPrompt(null);
+        });
+    };
+
+    // Initialize speech recognition
+    useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const recognition = new SpeechRecognition();
-            
+
             recognition.continuous = false;
             recognition.interimResults = false;
             recognition.lang = 'en-US';
-            
+
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 setSearchQuery(transcript);
@@ -54,23 +98,23 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                     setShowSuggestions(true);
                 }
             };
-            
+
             recognition.onend = () => {
                 setIsListening(false);
             };
-            
+
             recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
                 setIsListening(false);
             };
-            
+
             setSpeechRecognition(recognition);
         }
     }, []);
 
     const toggleSpeechRecognition = () => {
         if (!speechRecognition) return;
-        
+
         if (isListening) {
             speechRecognition.stop();
             setIsListening(false);
@@ -266,10 +310,10 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button 
+                                                <Button
                                                     type="button"
-                                                    variant="ghost" 
-                                                    size="icon" 
+                                                    variant="ghost"
+                                                    size="icon"
                                                     className={cn(
                                                         "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full",
                                                         isListening ? "text-red-500 animate-pulse" : "text-muted-foreground"
@@ -333,6 +377,11 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                     )}
 
                     <div className="flex items-center gap-2 sm:gap-4">
+                        {installable &&
+                            <Button onClick={handleInstallClick} className="mr-2">
+                                Install App
+                            </Button>
+                        }
                         <Button
                             variant="ghost"
                             size="icon"
@@ -356,7 +405,7 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                             </Button>
                         ) : (
                             <Button
-                            variant="outline"
+                                variant="outline"
                                 onClick={handleSignOut}
                                 className={cn(
                                     "rounded-sm border-destructive transition-all duration-300 group",
@@ -373,7 +422,7 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                     </div>
                 </div>
             </div>
-            
+
             {/* Voice recognition status indicator */}
             {isListening && (
                 <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-black/80 dark:bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 animate-pulse">
