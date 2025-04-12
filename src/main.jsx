@@ -2,9 +2,6 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import '@fontsource/public-sans'
-// In main.jsx
-import '@fontsource/public-sans/400.css'; // Regular
-import '@fontsource/public-sans/700.css'; // Bold
 
 
 // Add CSS import

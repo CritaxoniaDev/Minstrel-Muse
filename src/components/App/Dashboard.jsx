@@ -22,6 +22,8 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
     const navigate = useNavigate();
     const [posts, setPosts] = useState([]);
     const [users, setUsers] = useState([]);
+    const isMobileS = useMediaQuery({ maxWidth: 320 });
+    const isMobileM = useMediaQuery({ minWidth: 321, maxWidth: 375 });
     const isMobile = useMediaQuery({ maxWidth: 767 });
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
     const isDesktop = useMediaQuery({ minWidth: 1024 });
@@ -191,20 +193,53 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
 
     const PostSkeleton = () => (
         <Card className="border-dashed border border-border/50">
-            <CardContent className="p-3 md:p-6">
-                <div className="flex space-x-2 md:space-x-5">
-                    <Skeleton className="h-8 w-8 md:h-12 md:w-12 rounded-full" />
-                    <div className="flex-1 space-y-2 md:space-y-4">
-                        <div className="flex items-center gap-1 md:gap-2">
-                            <Skeleton className="h-4 w-24 md:h-6 md:w-32" />
-                            <Skeleton className="h-3 w-16 md:h-4 md:w-24" />
+            <CardContent className={cn(
+                "p-2",
+                isMobileS ? "p-2" : isMobileM ? "p-2.5" : isMobile ? "p-3" : "p-6"
+            )}>
+                <div className={cn(
+                    "flex",
+                    isMobileS ? "space-x-1.5" : isMobileM ? "space-x-2" : isMobile ? "space-x-2" : "space-x-5"
+                )}>
+                    <Skeleton className={cn(
+                        "rounded-full",
+                        isMobileS ? "h-6 w-6" : isMobileM ? "h-7 w-7" : isMobile ? "h-8 w-8" : "h-12 w-12"
+                    )} />
+                    <div className={cn(
+                        "flex-1",
+                        isMobileS ? "space-y-1.5" : isMobileM ? "space-y-1.5" : isMobile ? "space-y-2" : "space-y-4"
+                    )}>
+                        <div className={cn(
+                            "flex items-center",
+                            isMobileS ? "gap-0.5" : isMobileM ? "gap-1" : isMobile ? "gap-1" : "gap-2"
+                        )}>
+                            <Skeleton className={cn(
+                                isMobileS ? "h-3 w-16" : isMobileM ? "h-3.5 w-20" : isMobile ? "h-4 w-24" : "h-6 w-32"
+                            )} />
+                            <Skeleton className={cn(
+                                isMobileS ? "h-2.5 w-12" : isMobileM ? "h-2.5 w-14" : isMobile ? "h-3 w-16" : "h-4 w-24"
+                            )} />
                         </div>
-                        <Skeleton className="h-16 w-full md:h-20" />
-                        <div className="flex items-center space-x-2 md:space-x-6 pt-2 md:pt-4">
-                            <Skeleton className="h-6 w-12 md:h-8 md:w-16" />
-                            <Skeleton className="h-6 w-12 md:h-8 md:w-16" />
-                            <Skeleton className="h-6 w-12 md:h-8 md:w-16" />
-                            <Skeleton className="h-6 w-12 md:h-8 md:w-16" />
+                        <Skeleton className={cn(
+                            "w-full",
+                            isMobileS ? "h-12" : isMobileM ? "h-14" : isMobile ? "h-16" : "h-20"
+                        )} />
+                        <div className={cn(
+                            "flex items-center",
+                            isMobileS ? "space-x-1 pt-1.5" : isMobileM ? "space-x-1.5 pt-1.5" : isMobile ? "space-x-2 pt-2" : "space-x-6 pt-4"
+                        )}>
+                            <Skeleton className={cn(
+                                isMobileS ? "h-5 w-8" : isMobileM ? "h-5 w-10" : isMobile ? "h-6 w-12" : "h-8 w-16"
+                            )} />
+                            <Skeleton className={cn(
+                                isMobileS ? "h-5 w-8" : isMobileM ? "h-5 w-10" : isMobile ? "h-6 w-12" : "h-8 w-16"
+                            )} />
+                            <Skeleton className={cn(
+                                isMobileS ? "h-5 w-8" : isMobileM ? "h-5 w-10" : isMobile ? "h-6 w-12" : "h-8 w-16"
+                            )} />
+                            <Skeleton className={cn(
+                                isMobileS ? "h-5 w-8" : isMobileM ? "h-5 w-10" : isMobile ? "h-6 w-12" : "h-8 w-16"
+                            )} />
                         </div>
                     </div>
                 </div>
@@ -228,18 +263,48 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
 
                     {loading ? (
                         <Card className="transform transition-all duration-300">
-                            <CardContent className="p-4">
-                                <div className="flex space-x-4">
-                                    <Skeleton className="h-10 w-10 md:h-12 md:w-12 rounded-full" />
-                                    <div className="flex-1 space-y-4">
-                                        <Skeleton className="h-10 w-full" />
-                                        <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-2">
-                                            <div className="flex flex-wrap md:flex-nowrap gap-2">
-                                                <Skeleton className="h-8 w-20" />
-                                                <Skeleton className="h-8 w-20" />
-                                                <Skeleton className="h-8 w-20" />
+                            <CardContent className={cn(
+                                isMobileS ? "p-2.5" : isMobileM ? "p-3" : isMobile ? "p-4" : "p-6"
+                            )}>
+                                <div className={cn(
+                                    "flex",
+                                    isMobileS ? "space-x-2" : isMobileM ? "space-x-3" : "space-x-4"
+                                )}>
+                                    <Skeleton className={cn(
+                                        "rounded-full",
+                                        isMobileS ? "h-8 w-8" : isMobileM ? "h-9 w-9" : isMobile ? "h-10 w-10" : "h-12 w-12"
+                                    )} />
+                                    <div className={cn(
+                                        "flex-1",
+                                        isMobileS ? "space-y-2" : isMobileM ? "space-y-3" : "space-y-4"
+                                    )}>
+                                        <Skeleton className={cn(
+                                            "w-full",
+                                            isMobileS ? "h-8" : isMobileM ? "h-9" : "h-10"
+                                        )} />
+                                        <div className={cn(
+                                            "flex flex-wrap items-center justify-between",
+                                            isMobileS ? "gap-1" : isMobileM ? "gap-1.5" : "gap-2",
+                                            isMobile ? "" : "md:flex-nowrap"
+                                        )}>
+                                            <div className={cn(
+                                                "flex flex-wrap",
+                                                isMobileS ? "gap-1" : isMobileM ? "gap-1.5" : "gap-2",
+                                                isMobile ? "" : "md:flex-nowrap"
+                                            )}>
+                                                <Skeleton className={cn(
+                                                    isMobileS ? "h-6 w-16" : isMobileM ? "h-7 w-18" : isMobile ? "h-8 w-20" : "h-8 w-20"
+                                                )} />
+                                                <Skeleton className={cn(
+                                                    isMobileS ? "h-6 w-16" : isMobileM ? "h-7 w-18" : isMobile ? "h-8 w-20" : "h-8 w-20"
+                                                )} />
+                                                <Skeleton className={cn(
+                                                    isMobileS ? "h-6 w-16" : isMobileM ? "h-7 w-18" : isMobile ? "h-8 w-20" : "h-8 w-20"
+                                                )} />
                                             </div>
-                                            <Skeleton className="h-8 w-28 md:w-32" />
+                                            <Skeleton className={cn(
+                                                isMobileS ? "h-6 w-20" : isMobileM ? "h-7 w-24" : isMobile ? "h-8 w-28" : "h-8 w-32"
+                                            )} />
                                         </div>
                                     </div>
                                 </div>
@@ -247,34 +312,88 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                         </Card>
                     ) : (
                         <Card className="transform transition-all duration-300 hover:shadow-lg">
-                            <CardContent className="p-4 md:p-6">
-                                <div className="flex space-x-4">
-                                    <Avatar className="h-10 w-10 md:h-12 md:w-12">
+                            <CardContent className={cn(
+                                isMobileS ? "p-2.5" : isMobileM ? "p-3" : isMobile ? "p-4" : "p-6",
+                                isMobile ? "" : "md:p-6"
+                            )}>
+                                <div className={cn(
+                                    "flex",
+                                    isMobileS ? "space-x-2" : isMobileM ? "space-x-3" : "space-x-4"
+                                )}>
+                                    <Avatar className={cn(
+                                        isMobileS ? "h-8 w-8" : isMobileM ? "h-9 w-9" : isMobile ? "h-10 w-10" : "h-12 w-12",
+                                        isMobile ? "" : "md:h-12 md:w-12"
+                                    )}>
                                         <AvatarImage src={currentUser?.photoURL} />
                                         <AvatarFallback>{currentUser?.displayName?.[0]}</AvatarFallback>
                                     </Avatar>
-                                    <div className="flex-1 space-y-4">
+                                    <div className={cn(
+                                        "flex-1",
+                                        isMobileS ? "space-y-2" : isMobileM ? "space-y-3" : "space-y-4"
+                                    )}>
                                         <Input
                                             placeholder="Share what you're listening to..."
-                                            className="bg-muted"
+                                            className={cn(
+                                                "bg-muted",
+                                                isMobileS ? "text-xs" : isMobileM ? "text-sm" : ""
+                                            )}
                                         />
-                                        <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-2">
-                                            <div className="flex flex-wrap md:flex-nowrap gap-2">
-                                                <Button variant="outline" size="sm" className="flex-shrink-0" disabled>
-                                                    <Image className="h-4 w-4 mr-2" />
-                                                    Photo
+                                        <div className={cn(
+                                            "flex flex-wrap items-center justify-between",
+                                            isMobileS ? "gap-1" : isMobileM ? "gap-1.5" : "gap-2",
+                                            isMobile ? "" : "md:flex-nowrap"
+                                        )}>
+                                            <div className={cn(
+                                                "flex flex-wrap",
+                                                isMobileS ? "gap-1" : isMobileM ? "gap-1.5" : "gap-2",
+                                                isMobile ? "" : "md:flex-nowrap"
+                                            )}>
+                                                <Button
+                                                    variant="outline"
+                                                    size={isMobileS ? "xs" : "sm"}
+                                                    className="flex-shrink-0"
+                                                    disabled
+                                                >
+                                                    <Image className={cn(
+                                                        isMobileS ? "h-3 w-3 mr-1" : isMobileM ? "h-3.5 w-3.5 mr-1.5" : "h-4 w-4 mr-2"
+                                                    )} />
+                                                    <span className={cn(
+                                                        isMobileS ? "text-xs" : isMobileM ? "text-xs" : ""
+                                                    )}>Photo</span>
                                                 </Button>
-                                                <Button variant="outline" size="sm" className="flex-shrink-0" disabled>
-                                                    <Music2 className="h-4 w-4 mr-2" />
-                                                    Music
+                                                <Button
+                                                    variant="outline"
+                                                    size={isMobileS ? "xs" : "sm"}
+                                                    className="flex-shrink-0"
+                                                    disabled
+                                                >
+                                                    <Music2 className={cn(
+                                                        isMobileS ? "h-3 w-3 mr-1" : isMobileM ? "h-3.5 w-3.5 mr-1.5" : "h-4 w-4 mr-2"
+                                                    )} />
+                                                    <span className={cn(
+                                                        isMobileS ? "text-xs" : isMobileM ? "text-xs" : ""
+                                                    )}>Music</span>
                                                 </Button>
-                                                <Button variant="outline" size="sm" className="flex-shrink-0" disabled>
-                                                    <Smile className="h-4 w-4 mr-2" />
-                                                    Feeling
+                                                <Button
+                                                    variant="outline"
+                                                    size={isMobileS ? "xs" : "sm"}
+                                                    className="flex-shrink-0"
+                                                    disabled
+                                                >
+                                                    <Smile className={cn(
+                                                        isMobileS ? "h-3 w-3 mr-1" : isMobileM ? "h-3.5 w-3.5 mr-1.5" : "h-4 w-4 mr-2"
+                                                    )} />
+                                                    <span className={cn(
+                                                        isMobileS ? "text-xs" : isMobileM ? "text-xs" : ""
+                                                    )}>Feeling</span>
                                                 </Button>
                                             </div>
                                             <Button
-                                                className="bg-primary hover:bg-primary/90 w-full md:w-auto"
+                                                className={cn(
+                                                    "bg-primary hover:bg-primary/90 w-full",
+                                                    isMobileS ? "text-xs py-1" : isMobileM ? "text-sm py-1.5" : "",
+                                                    isMobile ? "" : "md:w-auto"
+                                                )}
                                                 onClick={() => navigate('/dashboard/create-post')}
                                             >
                                                 Create Post
@@ -310,25 +429,53 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                     "hover:shadow-lg hover:shadow-primary/5",
                                                 )}
                                             >
-                                                <CardContent className="p-3">
-                                                    <div className="flex space-x-2">
-                                                        <Avatar className="h-10 w-10 ring-1 ring-primary/20 hover:ring-primary/40 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/profile/${post.userId}`)}>
+                                                <CardContent className={cn(
+                                                    isMobileS ? "p-2" : isMobileM ? "p-2.5" : "p-3"
+                                                )}>
+                                                    <div className={cn(
+                                                        "flex",
+                                                        isMobileS ? "space-x-1.5" : isMobileM ? "space-x-1.5" : "space-x-2"
+                                                    )}>
+                                                        <Avatar
+                                                            className={cn(
+                                                                "ring-1 ring-primary/20 hover:ring-primary/40 transition-colors cursor-pointer",
+                                                                isMobileS ? "h-8 w-8" : isMobileM ? "h-9 w-9" : "h-10 w-10"
+                                                            )}
+                                                            onClick={() => navigate(`/dashboard/profile/${post.userId}`)}
+                                                        >
                                                             <AvatarImage src={post.userPhoto} />
                                                             <AvatarFallback className="bg-primary/10">{post.userName?.[0]}</AvatarFallback>
                                                         </Avatar>
 
-                                                        <div className="flex-1 space-y-2">
+                                                        <div className={cn(
+                                                            "flex-1",
+                                                            isMobileS ? "space-y-1.5" : isMobileM ? "space-y-1.5" : "space-y-2"
+                                                        )}>
                                                             <div className="flex items-center flex-wrap gap-1">
-                                                                <div className="flex items-center gap-1 group cursor-pointer"
-                                                                    onClick={() => navigate(`/dashboard/profile/${post.userId}`)}>
-                                                                    <h4 className="font-semibold text-base hover:text-primary transition-colors">
+                                                                <div
+                                                                    className={cn(
+                                                                        "flex items-center group cursor-pointer",
+                                                                        isMobileS ? "gap-0.5" : isMobileM ? "gap-0.5" : "gap-1"
+                                                                    )}
+                                                                    onClick={() => navigate(`/dashboard/profile/${post.userId}`)}
+                                                                >
+                                                                    <h4 className={cn(
+                                                                        "font-semibold hover:text-primary transition-colors",
+                                                                        isMobileS ? "text-sm" : isMobileM ? "text-sm" : "text-base"
+                                                                    )}>
                                                                         {post.userName}
                                                                     </h4>
-                                                                    <span className="text-xs text-muted-foreground">
+                                                                    <span className={cn(
+                                                                        "text-muted-foreground",
+                                                                        isMobileS ? "text-[10px]" : isMobileM ? "text-[11px]" : "text-xs"
+                                                                    )}>
                                                                         @{post.email?.split('@')[0]}
                                                                     </span>
                                                                     <span className="text-muted-foreground">·</span>
-                                                                    <span className="text-xs text-muted-foreground hover:underline cursor-pointer">
+                                                                    <span className={cn(
+                                                                        "text-muted-foreground hover:underline cursor-pointer",
+                                                                        isMobileS ? "text-[10px]" : isMobileM ? "text-[11px]" : "text-xs"
+                                                                    )}>
                                                                         {differenceInDays(new Date(), post.createdAt) > 7
                                                                             ? format(post.createdAt, 'MMMM dd')
                                                                             : formatDistanceToNow(post.createdAt, { addSuffix: true })}
@@ -337,26 +484,44 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                             </div>
 
                                                             {post.music && (
-                                                                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 w-fit px-2 py-1 rounded-full">
-                                                                    <Music2 className="h-3 w-3" />
+                                                                <div className={cn(
+                                                                    "flex items-center text-muted-foreground bg-muted/30 w-fit px-2 py-1 rounded-full",
+                                                                    isMobileS ? "gap-1 text-[10px]" : isMobileM ? "gap-1.5 text-[11px]" : "gap-2 text-xs"
+                                                                )}>
+                                                                    <Music2 className={cn(
+                                                                        isMobileS ? "h-2.5 w-2.5" : isMobileM ? "h-2.5 w-2.5" : "h-3 w-3"
+                                                                    )} />
                                                                     <span>Listening to</span>
-                                                                    <span className="font-medium bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">{post.music.title}</span>
+                                                                    <span className="font-medium bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                                                        {post.music.title}
+                                                                    </span>
                                                                 </div>
                                                             )}
 
-                                                            <p className="text-sm leading-relaxed">{post.content}</p>
+                                                            <p className={cn(
+                                                                "leading-relaxed",
+                                                                isMobileS ? "text-xs" : isMobileM ? "text-xs" : "text-sm"
+                                                            )}>
+                                                                {post.content}
+                                                            </p>
 
                                                             {post.image && (
                                                                 <div className="mt-2 overflow-hidden flex justify-center items-center">
                                                                     <img
                                                                         src={post.image}
                                                                         alt="Post"
-                                                                        className="h-[300px] object-cover"
+                                                                        className={cn(
+                                                                            "object-cover",
+                                                                            isMobileS ? "h-[200px]" : isMobileM ? "h-[250px]" : "h-[300px]"
+                                                                        )}
                                                                     />
                                                                 </div>
                                                             )}
 
-                                                            <div className="flex items-center space-x-4 pt-2 border-t border-border/50">
+                                                            <div className={cn(
+                                                                "flex items-center pt-2 border-t border-border/50",
+                                                                isMobileS ? "space-x-2" : isMobileM ? "space-x-3" : "space-x-4"
+                                                            )}>
                                                                 <div className="relative group"
                                                                     onMouseEnter={() => setActiveReactionPost(post.id)}
                                                                     onMouseLeave={() => setActiveReactionPost(null)}
@@ -364,34 +529,57 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                     <div className="flex items-center">
                                                                         <Button
                                                                             variant="ghost"
-                                                                            size="sm"
-                                                                            className="h-8 px-2 group transition-colors relative"
+                                                                            size={isMobileS ? "xs" : "sm"}
+                                                                            className={cn(
+                                                                                "group transition-colors relative",
+                                                                                isMobileS ? "h-6 px-1.5" : isMobileM ? "h-7 px-1.5" : "h-8 px-2"
+                                                                            )}
                                                                             onClick={() => handleReaction(post, 'pensive')}
                                                                         >
-                                                                            <div className="flex -space-x-1 mr-2">
+                                                                            <div className={cn(
+                                                                                "flex -space-x-1",
+                                                                                isMobileS ? "mr-1" : isMobileM ? "mr-1.5" : "mr-2"
+                                                                            )}>
                                                                                 {(() => {
                                                                                     // Get the most used reaction for this specific post
                                                                                     const postReactions = [
-                                                                                        { type: 'wow', count: post.wowCount || 0, icon: <Flame className="h-4 w-4 text-yellow-500 fill-yellow-500" /> },
-                                                                                        { type: 'love', count: post.loveCount || 0, icon: <Heart className="h-4 w-4 text-pink-500 fill-pink-500" /> },
-                                                                                        { type: 'slay', count: post.slayCount || 0, icon: <Sparkles className="h-4 w-4 text-purple-500 fill-purple-500" /> },
-                                                                                        { type: 'pensive', count: post.pensiveCount || 0, icon: <ThumbsUp className="h-4 w-4 text-blue-500 fill-blue-500" /> }
+                                                                                        {
+                                                                                            type: 'wow', count: post.wowCount || 0, icon: <Flame className={cn(
+                                                                                                "text-yellow-500 fill-yellow-500",
+                                                                                                isMobileS ? "h-3 w-3" : isMobileM ? "h-3.5 w-3.5" : "h-4 w-4"
+                                                                                            )} />
+                                                                                        },
+                                                                                        {
+                                                                                            type: 'love', count: post.loveCount || 0, icon: <Heart className={cn(
+                                                                                                "text-pink-500 fill-pink-500",
+                                                                                                isMobileS ? "h-3 w-3" : isMobileM ? "h-3.5 w-3.5" : "h-4 w-4"
+                                                                                            )} />
+                                                                                        },
+                                                                                        {
+                                                                                            type: 'slay', count: post.slayCount || 0, icon: <Sparkles className={cn(
+                                                                                                "text-purple-500 fill-purple-500",
+                                                                                                isMobileS ? "h-3 w-3" : isMobileM ? "h-3.5 w-3.5" : "h-4 w-4"
+                                                                                            )} />
+                                                                                        },
+                                                                                        {
+                                                                                            type: 'pensive', count: post.pensiveCount || 0, icon: <ThumbsUp className={cn(
+                                                                                                "text-blue-500 fill-blue-500",
+                                                                                                isMobileS ? "h-3 w-3" : isMobileM ? "h-3.5 w-3.5" : "h-4 w-4"
+                                                                                            )} />
+                                                                                        }
                                                                                     ];
-
                                                                                     const mostUsedReaction = postReactions.sort((a, b) => b.count - a.count)[0];
                                                                                     const otherReactions = postReactions.filter(r => r.type !== mostUsedReaction.type);
-
                                                                                     return (
                                                                                         <>
                                                                                             {mostUsedReaction.count > 0 ? mostUsedReaction.icon : (
                                                                                                 <ThumbsUp className={cn(
-                                                                                                    "h-4 w-4",
+                                                                                                    isMobileS ? "h-3 w-3" : isMobileM ? "h-3.5 w-3.5" : "h-4 w-4",
                                                                                                     post.pensive?.includes(currentUser.uid)
                                                                                                         ? "text-blue-500 fill-blue-500"
                                                                                                         : "group-hover:text-blue-500"
                                                                                                 )} />
                                                                                             )}
-
                                                                                             {otherReactions.map(reaction => (
                                                                                                 post[reaction.type]?.includes(currentUser.uid) && reaction.icon
                                                                                             ))}
@@ -399,39 +587,60 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                                     );
                                                                                 })()}
                                                                             </div>
-                                                                            <span className="text-sm">
+                                                                            <span className={cn(
+                                                                                isMobileS ? "text-xs" : isMobileM ? "text-xs" : "text-sm"
+                                                                            )}>
                                                                                 {(post.wowCount || 0) + (post.loveCount || 0) + (post.slayCount || 0) + (post.pensiveCount || 0)}
                                                                             </span>
                                                                         </Button>
                                                                     </div>
 
                                                                     {activeReactionPost === post.id && (
-                                                                        <div className="absolute -top-12 left-0 flex items-center gap-1 bg-background/95 backdrop-blur-sm p-2 rounded-full shadow-lg border border-border/50 transition-all duration-200">
+                                                                        <div className={cn(
+                                                                            "absolute -top-12 left-0 flex items-center gap-1 bg-background/95 backdrop-blur-sm rounded-full shadow-lg border border-border/50 transition-all duration-200",
+                                                                            isMobileS ? "p-1.5" : isMobileM ? "p-1.5" : "p-2"
+                                                                        )}>
                                                                             <Button
                                                                                 variant="ghost"
-                                                                                size="sm"
-                                                                                className="h-8 w-8 p-0 hover:bg-pink-500/10 hover:text-pink-500"
+                                                                                size={isMobileS ? "xs" : "sm"}
+                                                                                className={cn(
+                                                                                    "p-0 hover:bg-pink-500/10 hover:text-pink-500",
+                                                                                    isMobileS ? "h-6 w-6" : isMobileM ? "h-7 w-7" : "h-8 w-8"
+                                                                                )}
                                                                                 onClick={() => handleReaction(post, 'love')}
                                                                             >
-                                                                                <Heart className={cn("h-4 w-4", post.love?.includes(currentUser.uid) && "fill-pink-500 text-pink-500")} />
+                                                                                <Heart className={cn(
+                                                                                    isMobileS ? "h-3 w-3" : isMobileM ? "h-3.5 w-3.5" : "h-4 w-4",
+                                                                                    post.love?.includes(currentUser.uid) && "fill-pink-500 text-pink-500"
+                                                                                )} />
                                                                             </Button>
-
                                                                             <Button
                                                                                 variant="ghost"
-                                                                                size="sm"
-                                                                                className="h-8 w-8 p-0 hover:bg-yellow-500/10 hover:text-yellow-500"
+                                                                                size={isMobileS ? "xs" : "sm"}
+                                                                                className={cn(
+                                                                                    "p-0 hover:bg-yellow-500/10 hover:text-yellow-500",
+                                                                                    isMobileS ? "h-6 w-6" : isMobileM ? "h-7 w-7" : "h-8 w-8"
+                                                                                )}
                                                                                 onClick={() => handleReaction(post, 'wow')}
                                                                             >
-                                                                                <Flame className={cn("h-4 w-4", post.wow?.includes(currentUser.uid) && "fill-yellow-500 text-yellow-500")} />
+                                                                                <Flame className={cn(
+                                                                                    isMobileS ? "h-3 w-3" : isMobileM ? "h-3.5 w-3.5" : "h-4 w-4",
+                                                                                    post.wow?.includes(currentUser.uid) && "fill-yellow-500 text-yellow-500"
+                                                                                )} />
                                                                             </Button>
-
                                                                             <Button
                                                                                 variant="ghost"
-                                                                                size="sm"
-                                                                                className="h-8 w-8 p-0 hover:bg-purple-500/10 hover:text-purple-500"
+                                                                                size={isMobileS ? "xs" : "sm"}
+                                                                                className={cn(
+                                                                                    "p-0 hover:bg-purple-500/10 hover:text-purple-500",
+                                                                                    isMobileS ? "h-6 w-6" : isMobileM ? "h-7 w-7" : "h-8 w-8"
+                                                                                )}
                                                                                 onClick={() => handleReaction(post, 'slay')}
                                                                             >
-                                                                                <Sparkles className={cn("h-4 w-4", post.slay?.includes(currentUser.uid) && "fill-purple-500 text-purple-500")} />
+                                                                                <Sparkles className={cn(
+                                                                                    isMobileS ? "h-3 w-3" : isMobileM ? "h-3.5 w-3.5" : "h-4 w-4",
+                                                                                    post.slay?.includes(currentUser.uid) && "fill-purple-500 text-purple-500"
+                                                                                )} />
                                                                             </Button>
                                                                         </div>
                                                                     )}
@@ -439,59 +648,118 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
 
                                                                 <Button
                                                                     variant="ghost"
-                                                                    size="sm"
-                                                                    className="h-8 px-2 hover:text-blue-500 hover:bg-blue-500/10 group transition-colors"
+                                                                    size={isMobileS ? "xs" : "sm"}
+                                                                    className={cn(
+                                                                        "hover:text-blue-500 hover:bg-blue-500/10 group transition-colors",
+                                                                        isMobileS ? "h-6 px-1.5" : isMobileM ? "h-7 px-1.5" : "h-8 px-2"
+                                                                    )}
                                                                     onClick={() => setCommentingPost(post.id)}
                                                                 >
-                                                                    <MessageCircle className="h-4 w-4 mr-1 group-hover:fill-blue-500" />
-                                                                    <span className="text-sm">{post.commentCount || 0}</span>
+                                                                    <MessageCircle className={cn(
+                                                                        "group-hover:fill-blue-500",
+                                                                        isMobileS ? "h-3 w-3 mr-0.5" : isMobileM ? "h-3.5 w-3.5 mr-0.5" : "h-4 w-4 mr-1"
+                                                                    )} />
+                                                                    <span className={cn(
+                                                                        isMobileS ? "text-xs" : isMobileM ? "text-xs" : "text-sm"
+                                                                    )}>
+                                                                        {post.commentCount || 0}
+                                                                    </span>
                                                                 </Button>
 
                                                                 <Button
                                                                     variant="ghost"
-                                                                    size="sm"
-                                                                    className="h-8 px-2 hover:text-green-500 hover:bg-green-500/10 group transition-colors"
+                                                                    size={isMobileS ? "xs" : "sm"}
+                                                                    className={cn(
+                                                                        "hover:text-green-500 hover:bg-green-500/10 group transition-colors",
+                                                                        isMobileS ? "h-6 px-1.5" : isMobileM ? "h-7 px-1.5" : "h-8 px-2"
+                                                                    )}
                                                                 >
-                                                                    <Repeat2 className="h-4 w-4 mr-1 group-hover:fill-green-500" />
-                                                                    <span className="text-sm">{post.shares || 0}</span>
+                                                                    <Repeat2 className={cn(
+                                                                        "group-hover:fill-green-500",
+                                                                        isMobileS ? "h-3 w-3 mr-0.5" : isMobileM ? "h-3.5 w-3.5 mr-0.5" : "h-4 w-4 mr-1"
+                                                                    )} />
+                                                                    <span className={cn(
+                                                                        isMobileS ? "text-xs" : isMobileM ? "text-xs" : "text-sm"
+                                                                    )}>
+                                                                        {post.shares || 0}
+                                                                    </span>
                                                                 </Button>
 
                                                                 <Button
                                                                     variant="ghost"
-                                                                    size="sm"
-                                                                    className="h-8 px-2 hover:text-primary hover:bg-primary/10 group transition-colors ml-auto"
+                                                                    size={isMobileS ? "xs" : "sm"}
+                                                                    className={cn(
+                                                                        "hover:text-primary hover:bg-primary/10 group transition-colors ml-auto",
+                                                                        isMobileS ? "h-6 px-1.5" : isMobileM ? "h-7 px-1.5" : "h-8 px-2"
+                                                                    )}
                                                                     onClick={() => handleShare(post.id)}
                                                                 >
-                                                                    <Share2 className="h-4 w-4 mr-1 group-hover:fill-primary" />
-                                                                    <span className="text-sm">Share</span>
+                                                                    <Share2 className={cn(
+                                                                        "group-hover:fill-primary",
+                                                                        isMobileS ? "h-3 w-3 mr-0.5" : isMobileM ? "h-3.5 w-3.5 mr-0.5" : "h-4 w-4 mr-1"
+                                                                    )} />
+                                                                    <span className={cn(
+                                                                        isMobileS ? "text-xs" : isMobileM ? "text-xs" : "text-sm"
+                                                                    )}>
+                                                                        Share
+                                                                    </span>
                                                                 </Button>
                                                             </div>
+
                                                             {commentingPost === post.id && (
-                                                                <div className="mt-3 px-2 space-y-3">
+                                                                <div className={cn(
+                                                                    "mt-3 space-y-3",
+                                                                    isMobileS ? "px-1" : isMobileM ? "px-1.5" : "px-2"
+                                                                )}>
                                                                     {/* Existing comments */}
                                                                     <div className="space-y-3">
                                                                         {post.comments?.map((comment) => (
-                                                                            <div key={comment.id} className="flex items-start gap-2 pl-8">
-                                                                                <Avatar className="h-5 w-5">
+                                                                            <div key={comment.id} className={cn(
+                                                                                "flex items-start gap-2",
+                                                                                isMobileS ? "pl-4" : isMobileM ? "pl-6" : "pl-8"
+                                                                            )}>
+                                                                                <Avatar className={cn(
+                                                                                    isMobileS ? "h-4 w-4" : isMobileM ? "h-4.5 w-4.5" : "h-5 w-5"
+                                                                                )}>
                                                                                     <AvatarImage src={comment.userPhoto} />
                                                                                     <AvatarFallback>{comment.userName?.[0]}</AvatarFallback>
                                                                                 </Avatar>
                                                                                 <div className="flex-1">
-                                                                                    <div className="flex items-center gap-1.5">
-                                                                                        <span className="font-medium text-xs">{comment.userName}</span>
-                                                                                        <span className="text-xs text-muted-foreground">
+                                                                                    <div className={cn(
+                                                                                        "flex items-center",
+                                                                                        isMobileS ? "gap-1" : isMobileM ? "gap-1" : "gap-1.5"
+                                                                                    )}>
+                                                                                        <span className={cn(
+                                                                                            "font-medium",
+                                                                                            isMobileS ? "text-[10px]" : isMobileM ? "text-[10px]" : "text-xs"
+                                                                                        )}>
+                                                                                            {comment.userName}
+                                                                                        </span>
+                                                                                        <span className={cn(
+                                                                                            "text-muted-foreground",
+                                                                                            isMobileS ? "text-[9px]" : isMobileM ? "text-[9px]" : "text-xs"
+                                                                                        )}>
                                                                                             {formatDistanceToNow(comment.createdAt?.toDate(), { addSuffix: true })}
                                                                                         </span>
                                                                                     </div>
-                                                                                    <p className="text-xs mt-0.5">{comment.content}</p>
+                                                                                    <p className={cn(
+                                                                                        isMobileS ? "text-[10px] mt-0.5" : isMobileM ? "text-[10px] mt-0.5" : "text-xs mt-0.5"
+                                                                                    )}>
+                                                                                        {comment.content}
+                                                                                    </p>
                                                                                 </div>
                                                                             </div>
                                                                         ))}
                                                                     </div>
 
                                                                     {/* New comment input always at bottom */}
-                                                                    <div className="flex items-center gap-2 border-t border-border/50 pt-3">
-                                                                        <Avatar className="h-6 w-6">
+                                                                    <div className={cn(
+                                                                        "flex items-center gap-2 border-t border-border/50 pt-3",
+                                                                        isMobileS ? "gap-1" : isMobileM ? "gap-1.5" : "gap-2"
+                                                                    )}>
+                                                                        <Avatar className={cn(
+                                                                            isMobileS ? "h-5 w-5" : isMobileM ? "h-5.5 w-5.5" : "h-6 w-6"
+                                                                        )}>
                                                                             <AvatarImage src={currentUser?.photoURL} />
                                                                             <AvatarFallback>{currentUser?.displayName?.[0]}</AvatarFallback>
                                                                         </Avatar>
@@ -501,27 +769,42 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                                                                                     value={commentText}
                                                                                     onChange={(e) => setCommentText(e.target.value)}
                                                                                     placeholder="Write a comment..."
-                                                                                    className="flex-1 h-8 text-sm bg-muted/50 pr-8"
+                                                                                    className={cn(
+                                                                                        "flex-1 bg-muted/50 pr-8",
+                                                                                        isMobileS ? "h-7 text-xs" : isMobileM ? "h-7 text-xs" : "h-8 text-sm"
+                                                                                    )}
                                                                                 />
                                                                                 <Button
                                                                                     variant="ghost"
                                                                                     size="sm"
-                                                                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                                                                                    className={cn(
+                                                                                        "absolute right-1 top-1/2 -translate-y-1/2 p-0 hover:bg-muted",
+                                                                                        isMobileS ? "h-5 w-5" : isMobileM ? "h-5 w-5" : "h-6 w-6"
+                                                                                    )}
                                                                                     onClick={() => setShowCommentEmojiPicker(post.id)}
                                                                                 >
-                                                                                    <Smile className="h-4 w-4 text-muted-foreground" />
+                                                                                    <Smile className={cn(
+                                                                                        "text-muted-foreground",
+                                                                                        isMobileS ? "h-3 w-3" : isMobileM ? "h-3.5 w-3.5" : "h-4 w-4"
+                                                                                    )} />
                                                                                 </Button>
                                                                             </div>
                                                                             <Button
-                                                                                size="sm"
-                                                                                className="h-8"
+                                                                                size={isMobileS ? "xs" : "sm"}
+                                                                                className={cn(
+                                                                                    isMobileS ? "h-7 px-2 text-xs" : isMobileM ? "h-7 px-3 text-xs" : "h-8"
+                                                                                )}
                                                                                 onClick={() => handleComment(post)}
                                                                                 disabled={!commentText.trim()}
                                                                             >
                                                                                 Post
                                                                             </Button>
                                                                             {showCommentEmojiPicker === post.id && (
-                                                                                <div className="absolute right-0 bottom-full mb-2 z-50">
+                                                                                <div className={cn(
+                                                                                    "absolute right-0 bottom-full z-50",
+                                                                                    isMobileS ? "mb-1 scale-75 origin-bottom-right" :
+                                                                                        isMobileM ? "mb-1.5 scale-90 origin-bottom-right" : "mb-2"
+                                                                                )}>
                                                                                     <EmojiPicker
                                                                                         onEmojiSelect={handleCommentEmojiSelect}
                                                                                         theme="light"
