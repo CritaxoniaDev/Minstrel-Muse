@@ -289,9 +289,9 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage }) => {
                     <Tabs defaultValue="foryou" className="w-full">
                         <div className="sticky top-16 bg-white z-30 border-gray-300 mt-6 shadow-sm">
                             <TabsList className="w-full grid grid-cols-3 px-2">
-                                <TabsTrigger value="foryou" className="text-sm">For You</TabsTrigger>
-                                <TabsTrigger value="following" className="text-sm">Following</TabsTrigger>
-                                <TabsTrigger value="trending" className="text-sm">Trending</TabsTrigger>
+                                <TabsTrigger value="foryou" className="text-sm font-bold">For You</TabsTrigger>
+                                <TabsTrigger value="following" className="text-sm font-bold">Following</TabsTrigger>
+                                <TabsTrigger value="trending" className="text-sm font-bold  ">Trending</TabsTrigger>
                             </TabsList>
                         </div>
 

@@ -158,7 +158,7 @@ const FullPlayerView = ({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
-                className="w-full max-w-sm aspect-square relative group mx-auto" // Changed from max-w-md to max-w-sm
+                className="w-full max-w-xs aspect-square relative group mx-auto border-2 border-dashed border-primary/50 p-2 rounded-xl" // Added dashed border
               >
                 <img
                   src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/400/400"}
