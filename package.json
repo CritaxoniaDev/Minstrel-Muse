@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "prepare": "tw-patch"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
