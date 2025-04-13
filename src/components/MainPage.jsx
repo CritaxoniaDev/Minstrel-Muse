@@ -9,15 +9,37 @@ import { Music2, Youtube, Headphones, Radio, Sparkles, ArrowRight, Music, Video,
 import { useTheme } from 'next-themes';
 import { OrbitingCircles } from "@/components/magicui/orbiting-circles";
 import { BentoGrid, BentoCard } from "@/components/magicui/bento-grid";
+import Lottie from 'lottie-react';
+import lazyLoadingAnimation from '/public/lottie/lazy-loading.json';
 
 const MainPage = () => {
     const { theme } = useTheme();
     const user = auth.currentUser;
     const [showCopyright, setShowCopyright] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     const isMobile = useMediaQuery({ maxWidth: 767 });
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
     const isDesktop = useMediaQuery({ minWidth: 1024 });
+
+    useEffect(() => {
+        // Show loading animation for 2 seconds
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (isLoading) {
+        return (
+            <div className="fixed inset-0 bg-background flex items-center justify-center z-50">
+                <div className="w-32 h-32">
+                    <Lottie animationData={lazyLoadingAnimation} loop={true} />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-start relative overflow-hidden bg-background w-full">

@@ -33,12 +33,18 @@ import PlaylistDetail from './components/PlaylistDetail';
 import NotFound from './components/Error/404';
 import SharedPost from '@/components/SharedPost';
 import './App.css';
+import Lottie from 'lottie-react';
+import lazyLoadingAnimation from '/public/lottie/lazy-loading.json';
 
 function App() {
+  const isMobileS = useMediaQuery({ maxWidth: 320 });
+  const isMobileM = useMediaQuery({ minWidth: 321, maxWidth: 375 });
+  const isMobileL = useMediaQuery({ minWidth: 376, maxWidth: 425 });
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
   const isDesktop = useMediaQuery({ minWidth: 1024 });
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -83,7 +89,6 @@ function App() {
 
     fetchUsers();
   }, []);
-
 
   const handleLoopToggle = () => {
     setIsLooping(!isLooping);
@@ -375,6 +380,14 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <Toaster className="z-[99999]" />
+
+      {isLoading && (
+        <div className="fixed inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center z-[99999]">
+          <div className="w-32 h-32">
+            <Lottie animationData={lazyLoadingAnimation} loop={true} />
+          </div>
+        </div>
+      )}
       <Layout
         user={user}
         onSearchResults={setSearchResults}
@@ -382,6 +395,7 @@ function App() {
         setIsMinimized={setIsMinimized}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        setIsLoading={setIsLoading}
       >
         <Routes>
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
@@ -507,125 +521,106 @@ function App() {
             />
             {currentTrack && !isPlayerPage && (
               <div className={cn(
-                "fixed bottom-0 left-0 right-0 border-t z-[50] bg-background p-4 animate-slide-up transition-[margin] duration-300 ease-in-out",
+                "fixed bottom-0 left-0 right-0 border-t z-[50] bg-background animate-slide-up transition-[margin] duration-300 ease-in-out",
+                isMobileS || isMobileM || isMobileL ? "p-2" : "p-4",
                 isDesktop ? (isMinimized ? "ml-20" : "ml-64") : "",
                 !isDesktop && sidebarOpen ? "ml-64" : ""
               )}>
-                <div className="flex max-w-7xl mx-auto items-center">
+                <div className={cn(
+                  "flex mx-auto items-center",
+                  isMobileS || isMobileM || isMobileL ? "max-w-full" : "max-w-7xl"
+                )}>
+                  {/* Track info - always visible */}
                   <div
-                    className="flex items-center space-x-4 w-1/4 cursor-pointer"
+                    className={cn(
+                      "flex items-center cursor-pointer",
+                      isMobileS || isMobileM || isMobileL ? "space-x-2 flex-1" : "space-x-4 w-1/4"
+                    )}
                     onClick={() => navigate('/dashboard/player')}
                   >
                     <img
                       src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/48/48"}
                       alt={currentTrack?.title || "Current song"}
-                      className="rounded-md w-12 h-12 object-cover"
+                      className={cn(
+                        "rounded-md object-cover",
+                        isMobileS ? "w-8 h-8" : isMobileM || isMobileL ? "w-10 h-10" : "w-12 h-12"
+                      )}
                     />
                     <div className="overflow-hidden">
                       <div className={`${isPlaying ? 'animate-marquee' : ''} whitespace-nowrap mb-1`}>
-                        <p className="text-sm font-medium">{decodeHTMLEntities(currentTrack?.title) || "No track playing"}</p>
+                        <p className={cn(
+                          "font-medium truncate",
+                          isMobileS ? "text-xs" : isMobileM || isMobileL ? "text-xs" : "text-sm"
+                        )}>
+                          {decodeHTMLEntities(currentTrack?.title) || "No track playing"}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground">{decodeHTMLEntities(currentTrack?.channelTitle) || "Select a track"}</p>
+                      <p className={cn(
+                        "text-muted-foreground truncate",
+                        isMobileS ? "text-[10px]" : isMobileM || isMobileL ? "text-[10px]" : "text-xs"
+                      )}>
+                        {decodeHTMLEntities(currentTrack?.channelTitle) || "Select a track"}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Button variant="ghost" size="icon" onClick={handleSkipBack}>
-                      <SkipBack className="h-4 w-4" />
-                    </Button>
+                  {/* Play/Pause button - always visible */}
+                  <div className={cn(
+                    "flex items-center",
+                    isMobileS || isMobileM || isMobileL ? "ml-auto space-x-1" : "space-x-2 mb-2"
+                  )}>
+                    {/* On small screens, only show play/pause and queue buttons */}
+                    {!(isMobileS || isMobileM || isMobileL) && (
+                      <Button variant="ghost" size="icon" onClick={handleSkipBack}>
+                        <SkipBack className="h-4 w-4" />
+                      </Button>
+                    )}
+
                     <Button
                       size="icon"
                       onClick={() => currentTrack && handlePlayPause(currentTrack)}
+                      className={isMobileS ? "h-8 w-8" : isMobileM || isMobileL ? "h-9 w-9" : ""}
                     >
-                      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={handleSkipForward}>
-                      <SkipForward className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleLoopToggle}
-                      className={`transition-colors duration-200 ${isLooping
-                        ? "text-primary hover:text-primary/80"
-                        : "text-muted-foreground hover:text-foreground"
-                        }`}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill={isLooping ? "currentColor" : "none"}
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={`transition-transform duration-200 ${isLooping ? "scale-110" : "scale-100"
-                          }`}
-                      >
-                        <path d="M17 2l4 4-4 4" />
-                        <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
-                        <path d="M7 22l-4-4 4-4" />
-                        <path d="M21 13v1a4 4 0 0 1-4 4H3" />
-                      </svg>
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-col items-center w-1/2 px-4">
-                    <div className="w-full flex items-center space-x-2 text-xs text-muted-foreground">
-                      <span>{formatTime(currentTime)}</span>
-                      <div className="relative flex-1 h-1 bg-secondary rounded-full overflow-hidden group">
-                        <div
-                          className="absolute h-full bg-primary rounded-full transition-all"
-                          style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                        />
-                        <input
-                          type="range"
-                          min={0}
-                          max={duration || 100}
-                          value={currentTime || 0}
-                          onChange={(e) => {
-                            const time = parseFloat(e.target.value);
-                            setCurrentTime(time);
-                            player?.seekTo(time);
-                          }}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        />
-                      </div>
-                      <span>{formatTime(duration)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end space-x-2 w-1/4">
-                    <Volume2 className="h-4 w-4" />
-                    <Slider
-                      value={[volume]}
-                      max={100}
-                      step={1}
-                      className="w-24"
-                      onValueChange={(value) => handleVolumeChange(value[0])}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleCancelTrack}
-                      className="hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <X className="h-4 w-4" />
+                      {isPlaying ?
+                        <Pause className={cn(isMobileS ? "h-3 w-3" : "h-4 w-4")} /> :
+                        <Play className={cn(isMobileS ? "h-3 w-3" : "h-4 w-4")} />
+                      }
                     </Button>
 
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="hover:bg-accent">
-                          <ListMusic className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80 p-0" align="end">
-                        <div className="p-4 border-b">
-                          <div className="flex items-center justify-between">
+                    {/* Queue button for mobile */}
+                    {(isMobileS || isMobileM || isMobileL) && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                              "hover:bg-accent",
+                              isMobileS ? "h-8 w-8" : "h-9 w-9"
+                            )}
+                          >
+                            <ListMusic className={cn(isMobileS ? "h-3 w-3" : "h-4 w-4")} />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className={cn(
+                            "p-0 border-2",
+                            isMobileS ? "w-[calc(100vw-1rem)]" :
+                              isMobileM ? "w-[calc(100vw-1.5rem)]" :
+                                isMobileL ? "w-[calc(100vw-2rem)]" : "w-80"
+                          )}
+                          align="end"
+                          side="top"
+                        >
+                          <div className={cn(
+                            "border-b flex items-center justify-between",
+                            isMobileS ? "p-2" : "p-3"
+                          )}>
                             <div>
-                              <h4 className="font-semibold">Queue</h4>
+                              <h4 className={cn(
+                                "font-semibold",
+                                isMobileS ? "text-sm" : "text-base"
+                              )}>Queue</h4>
                               <p className="text-xs text-muted-foreground">Up next in your queue</p>
                             </div>
                             {queue.length > 0 && (
@@ -635,76 +630,283 @@ function App() {
                                 onClick={clearQueue}
                                 className="text-xs"
                               >
-                                Clear Queue
+                                Clear
                               </Button>
                             )}
                           </div>
-                        </div>
-                        <div className="max-h-96 overflow-auto">
-                          {currentTrack && (
-                            <div className="p-3 bg-accent/50">
-                              <p className="text-xs font-medium mb-2">Now Playing</p>
-                              <div className="flex items-center space-x-3">
-                                <img
-                                  src={currentTrack.thumbnail}
-                                  alt={currentTrack.title}
-                                  className="w-10 h-10 rounded object-cover"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{currentTrack.title}</p>
-                                  <p className="text-xs text-muted-foreground">{currentTrack.channelTitle}</p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          {queue.length > 0 ? (
-                            queue.map((video, index) => (
-                              <div
-                                key={video.id}
-                                className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
-                              >
-                                <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
-                                <img
-                                  src={video.thumbnail}
-                                  alt={video.title}
-                                  className="w-10 h-10 rounded object-cover"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{video.title}</p>
-                                  <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
-                                </div>
+                          <div className={cn(
+                            "overflow-auto",
+                            isMobileS ? "max-h-[250px]" :
+                              isMobileM ? "max-h-[270px]" :
+                                "max-h-[300px]"
+                          )}>
+                            {currentTrack && (
+                              <div className={cn(
+                                "bg-accent/50",
+                                isMobileS ? "p-2" : "p-3"
+                              )}>
+                                <p className="text-xs font-medium mb-1">Now Playing</p>
                                 <div className="flex items-center space-x-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                      const remainingTracks = queue.slice(index + 1);
-                                      handlePlayPause(video, remainingTracks);
-                                      setQueue(remainingTracks);
-                                    }}
-                                  >
-                                    <Play className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleRemoveFromQueue(index)}
-                                    className="text-destructive hover:text-destructive"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
+                                  <img
+                                    src={currentTrack.thumbnail}
+                                    alt={currentTrack.title}
+                                    className={cn(
+                                      "rounded object-cover",
+                                      isMobileS ? "w-8 h-8" : "w-10 h-10"
+                                    )}
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className={cn(
+                                      "font-medium truncate",
+                                      isMobileS ? "text-xs" : "text-sm"
+                                    )}>{currentTrack.title}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{currentTrack.channelTitle}</p>
+                                  </div>
                                 </div>
                               </div>
-                            ))
-                          ) : (
-                            <div className="p-4 text-center text-sm text-muted-foreground">
-                              Queue is empty
-                            </div>
-                          )}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                            )}
+                            {queue.length > 0 ? (
+                              queue.map((video, index) => (
+                                <div
+                                  key={video.id}
+                                  className={cn(
+                                    "flex items-center hover:bg-accent transition-colors",
+                                    isMobileS ? "p-2 space-x-2" : "p-3 space-x-3"
+                                  )}
+                                >
+                                  <span className={cn(
+                                    "text-muted-foreground w-4",
+                                    isMobileS ? "text-xs" : "text-sm"
+                                  )}>{index + 1}</span>
+                                  <img
+                                    src={video.thumbnail}
+                                    alt={video.title}
+                                    className={cn(
+                                      "rounded object-cover",
+                                      isMobileS ? "w-8 h-8" : "w-10 h-10"
+                                    )}
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p className={cn(
+                                      "font-medium truncate",
+                                      isMobileS ? "text-xs" : "text-sm"
+                                    )}>{video.title}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{video.channelTitle}</p>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className={isMobileS ? "h-6 w-6" : "h-8 w-8"}
+                                      onClick={() => {
+                                        const remainingTracks = queue.slice(index + 1);
+                                        handlePlayPause(video, remainingTracks);
+                                        setQueue(remainingTracks);
+                                      }}
+                                    >
+                                      <Play className={isMobileS ? "h-3 w-3" : "h-4 w-4"} />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className={cn(
+                                        "text-destructive hover:text-destructive",
+                                        isMobileS ? "h-6 w-6" : "h-8 w-8"
+                                      )}
+                                      onClick={() => handleRemoveFromQueue(index)}
+                                    >
+                                      <X className={isMobileS ? "h-3 w-3" : "h-4 w-4"} />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className={cn(
+                                "text-center text-muted-foreground",
+                                isMobileS ? "p-3 text-xs" : "p-4 text-sm"
+                              )}>
+                                Queue is empty
+                              </div>
+                            )}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+
+                    {!(isMobileS || isMobileM || isMobileL) && (
+                      <>
+                        <Button variant="ghost" size="icon" onClick={handleSkipForward}>
+                          <SkipForward className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleLoopToggle}
+                          className={`transition-colors duration-200 ${isLooping
+                            ? "text-primary hover:text-primary/80"
+                            : "text-muted-foreground hover:text-foreground"
+                            }`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill={isLooping ? "currentColor" : "none"}
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`transition-transform duration-200 ${isLooping ? "scale-110" : "scale-100"
+                              }`}
+                          >
+                            <path d="M17 2l4 4-4 4" />
+                            <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+                            <path d="M7 22l-4-4 4-4" />
+                            <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+                          </svg>
+                        </Button>
+                      </>
+                    )}
                   </div>
+
+                  {/* Progress bar and volume - hide on small screens */}
+                  {!(isMobileS || isMobileM || isMobileL) && (
+                    <>
+                      <div className="flex flex-col items-center w-1/2 px-4">
+                        <div className="w-full flex items-center space-x-2 text-xs text-muted-foreground">
+                          <span>{formatTime(currentTime)}</span>
+                          <div className="relative flex-1 h-1 bg-secondary rounded-full overflow-hidden group">
+                            <div
+                              className="absolute h-full bg-primary rounded-full transition-all"
+                              style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                            />
+                            <input
+                              type="range"
+                              min={0}
+                              max={duration || 100}
+                              value={currentTime || 0}
+                              onChange={(e) => {
+                                const time = parseFloat(e.target.value);
+                                setCurrentTime(time);
+                                player?.seekTo(time);
+                              }}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                          </div>
+                          <span>{formatTime(duration)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end space-x-2 w-1/4">
+                        <Volume2 className="h-4 w-4" />
+                        <Slider
+                          value={[volume]}
+                          max={100}
+                          step={1}
+                          className="w-24"
+                          onValueChange={(value) => handleVolumeChange(value[0])}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleCancelTrack}
+                          className="hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="hover:bg-accent">
+                              <ListMusic className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0" align="end">
+                            <div className="p-4 border-b">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-semibold">Queue</h4>
+                                  <p className="text-xs text-muted-foreground">Up next in your queue</p>
+                                </div>
+                                {queue.length > 0 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={clearQueue}
+                                    className="text-xs"
+                                  >
+                                    Clear Queue
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            <div className="max-h-96 overflow-auto">
+                              {currentTrack && (
+                                <div className="p-3 bg-accent/50">
+                                  <p className="text-xs font-medium mb-2">Now Playing</p>
+                                  <div className="flex items-center space-x-3">
+                                    <img
+                                      src={currentTrack.thumbnail}
+                                      alt={currentTrack.title}
+                                      className="w-10 h-10 rounded object-cover"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium truncate">{currentTrack.title}</p>
+                                      <p className="text-xs text-muted-foreground">{currentTrack.channelTitle}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              {queue.length > 0 ? (
+                                queue.map((video, index) => (
+                                  <div
+                                    key={video.id}
+                                    className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
+                                  >
+                                    <span className="text-sm text-muted-foreground w-5">{index + 1}</span>
+                                    <img
+                                      src={video.thumbnail}
+                                      alt={video.title}
+                                      className="w-10 h-10 rounded object-cover"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium truncate">{video.title}</p>
+                                      <p className="text-xs text-muted-foreground">{video.channelTitle}</p>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                          const remainingTracks = queue.slice(index + 1);
+                                          handlePlayPause(video, remainingTracks);
+                                          setQueue(remainingTracks);
+                                        }}
+                                      >
+                                        <Play className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleRemoveFromQueue(index)}
+                                        className="text-destructive hover:text-destructive"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="p-4 text-center text-sm text-muted-foreground">
+                                  Queue is empty
+                                </div>
+                              )}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             )}
