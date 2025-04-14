@@ -55,7 +55,53 @@ const FullPlayerView = ({
   }, [currentTrack]);
 
   const fetchRecommendations = async () => {
-    // Existing implementation...
+    if (!currentTrack) return;
+
+    setIsLoadingRecommendations(true);
+
+    // Create a search query based on current track
+    const query = `${currentTrack.title.split('-')[0]} ${currentTrack.channelTitle}`.trim();
+
+    let attempts = 0;
+    while (attempts < 13) {
+      try {
+        const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+          params: {
+            part: 'snippet',
+            maxResults: 8,
+            key: getYoutubeApiKey(),
+            type: 'video',
+            q: `${query} music`,
+            videoCategoryId: '10', // Music category
+            relevanceLanguage: 'en',
+            safeSearch: 'none'
+          }
+        });
+
+        // Filter out the current track from recommendations
+        const filteredResults = response.data.items.filter(
+          item => item.id.videoId !== currentTrack.id
+        ).map(item => ({
+          id: item.id.videoId,
+          title: item.snippet.title,
+          channelTitle: item.snippet.channelTitle,
+          thumbnail: item.snippet.thumbnails.medium.url
+        }));
+
+        setRecommendations(filteredResults);
+        setIsLoadingRecommendations(false);
+        break;
+      } catch (error) {
+        console.error("YouTube API error:", error);
+        attempts++;
+        rotateApiKey(); // Try with a different API key
+
+        if (attempts >= 13) {
+          console.error("All API keys exhausted");
+          setIsLoadingRecommendations(false);
+        }
+      }
+    }
   };
 
   const decodeHTMLEntities = (text) => {

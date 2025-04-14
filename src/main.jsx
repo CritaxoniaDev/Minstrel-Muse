@@ -4,7 +4,6 @@ import { registerSW } from 'virtual:pwa-register'
 import App from './App.jsx'
 import '@fontsource/public-sans'
 
-
 // Add CSS import
 import './index.css'
 
@@ -24,14 +23,14 @@ const updateSW = registerSW({
 // Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
-        
+
       })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError)
-      })
-  })
+      .catch(error => {
+        console.error('Service Worker registration failed:', error);
+      });
+  });
 }
 
 createRoot(document.getElementById('root')).render(
