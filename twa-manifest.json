@@ -1,0 +1,49 @@
+{
+  "packageId": "app.vercel.minstrelmuse.twa",
+  "host": "minstrelmuse.vercel.app",
+  "name": "MinstrelMuse",
+  "launcherName": "MinstrelMuse",
+  "display": "standalone",
+  "themeColor": "#4C1D95",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#4C1D95",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://minstrelmuse.vercel.app/pwa-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "D:\\MinstrelMuse\\YouPiFy-Staging\\android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Play Music",
+      "shortName": "Play",
+      "url": "https://minstrelmuse.vercel.app/player",
+      "chosenIconUrl": "https://minstrelmuse.vercel.app/icons/play.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://minstrelmuse.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://minstrelmuse.vercel.app/",
+  "minSdkVersion": 21,
+  "orientation": "any",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "appVersion": "1"
+}

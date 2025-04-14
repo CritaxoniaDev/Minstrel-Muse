@@ -8,6 +8,18 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+android.keystore
+*.apk
+*.ap_
+*.aab
+*.ipa
+*.app
+*.app.dSYM.zip
+*.app.dSYM
+*.app.dSYM.tar.gz
+*.app.dSYM.tar
+.gz
+*apk.idsig
 dist
 build
 dist-ssr
