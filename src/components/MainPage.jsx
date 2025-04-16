@@ -1,26 +1,50 @@
-import { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
+import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import { auth } from '../config/firebase';
 import { useMediaQuery } from 'react-responsive';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MorphingText } from "@/components/magicui/morphing-text";
-import { Music2, Youtube, Headphones, Radio, Sparkles, ArrowRight, Music, Video, Mic, Bookmark, Share2, Heart } from "lucide-react";
+import {
+    Music2, Youtube, Headphones, Radio, Sparkles, ArrowRight,
+    Music, Video, Mic, Bookmark, Share2, Heart, ChevronDown,
+    BarChart3, Shield, Globe, Zap, CheckCircle, Users
+} from "lucide-react";
 import { useTheme } from 'next-themes';
-import { OrbitingCircles } from "@/components/magicui/orbiting-circles";
 import { BentoGrid, BentoCard } from "@/components/magicui/bento-grid";
 import Lottie from 'lottie-react';
-import lazyLoadingAnimation from '/public/lottie/lazy-loading.json';
+import lazyLoadingAnimation from '/src/lottie/lazy-loading.json';
+import analyticsAnimation from '/src/lottie/analytics.json';
+import musicAnimation from '/src/lottie/music-notes.json';
+import securityAnimation from '/src/lottie/security.json';
+import { useNavigate } from 'react-router-dom';
 
 const MainPage = () => {
     const { theme } = useTheme();
     const user = auth.currentUser;
     const [showCopyright, setShowCopyright] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
+    // Responsive breakpoints
+    const isMobileS = useMediaQuery({ maxWidth: 320 });
+    const isMobileM = useMediaQuery({ minWidth: 321, maxWidth: 375 });
+    const isMobileL = useMediaQuery({ minWidth: 376, maxWidth: 425 });
     const isMobile = useMediaQuery({ maxWidth: 767 });
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
     const isDesktop = useMediaQuery({ minWidth: 1024 });
+
+    // Refs for scroll animations
+    const heroRef = useRef(null);
+    const featuresRef = useRef(null);
+    const statsRef = useRef(null);
+    const testimonialsRef = useRef(null);
+    const pricingRef = useRef(null);
+
+    // Scroll animations
+    const { scrollYProgress } = useScroll();
+    const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0.2]);
+    const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
 
     useEffect(() => {
         // Show loading animation for 2 seconds
@@ -30,6 +54,10 @@ const MainPage = () => {
 
         return () => clearTimeout(timer);
     }, []);
+
+    const scrollToSection = (ref) => {
+        ref.current.scrollIntoView({ behavior: 'smooth' });
+    };
 
     if (isLoading) {
         return (
@@ -60,15 +88,15 @@ const MainPage = () => {
                             className="w-full"
                         >
                             <Card className={`
-                        w-full 
-                        ${isMobile ? 'max-w-[95%]' : isTablet ? 'max-w-[600px]' : 'max-w-[500px]'}
-                        mx-auto
-                        bg-card
-                        border border-border
-                        relative
-                        overflow-hidden
-                        shadow-lg
-                    `}>
+                w-full 
+                ${isMobileS ? 'max-w-[95%]' : isTablet ? 'max-w-[600px]' : 'max-w-[500px]'}
+                mx-auto
+                bg-card
+                border border-border
+                relative
+                overflow-hidden
+                shadow-lg
+              `}>
                                 {/* Card decorative elements */}
                                 <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.1]"></div>
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-600"></div>
@@ -122,10 +150,10 @@ const MainPage = () => {
                                     >
                                         <Button
                                             className={`
-                                        bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90
-                                        ${isMobile ? 'mt-4' : 'mt-6'}
-                                        w-full relative group overflow-hidden
-                                    `}
+                        bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90
+                        ${isMobile ? 'mt-4' : 'mt-6'}
+                        w-full relative group overflow-hidden
+                      `}
                                             onClick={() => setShowCopyright(false)}
                                         >
                                             <span className="relative z-10 flex items-center justify-center">
@@ -142,22 +170,18 @@ const MainPage = () => {
                 )}
             </AnimatePresence>
 
-            {/* Hero Section - Full width */}
-            <motion.div
-                className="text-center z-10 w-full pt-20 pb-12 md:pb-16 relative px-4 md:px-6 overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
+            <section
+                ref={heroRef}
+                className="w-full flex flex-col items-center justify-center relative overflow-hidden"
             >
-                <div className="fixed inset-0 -z-20 overflow-hidden pointer-events-none w-full h-full">
+                {/* Background video */}
                     <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/70 to-background z-10"></div>
                     <video
                         autoPlay
                         loop
                         muted
                         playsInline
-                        className="absolute w-full h-full object-cover opacity-50 dark:opacity-30" // Increased opacity
-                        style={{ minHeight: '70vh' }} // Ensure minimum height
+                        className="absolute w-full h-full object-cover opacity-50 dark:opacity-30"
                     >
                         <source src="/videos/bg-video-mainpage.mp4" type="video/mp4" />
                         {/* Fallback image if video doesn't load */}
@@ -167,222 +191,356 @@ const MainPage = () => {
                             className="absolute w-full h-full object-cover"
                         />
                     </video>
+
+                {/* Background elements */}
+                <div className="absolute inset-0 -z-10 overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(120,119,198,0.1)_0,rgba(255,255,255,0)_100%)]"></div>
+                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent"></div>
                 </div>
-                {/* Hero decorative elements */}
-                <div className="absolute -left-4 animate-ping">
-                    <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-purple-400" />
-                </div>
-                <div className="relative pb-10 max-w-4xl mx-auto">
-                    <div className="absolute -inset-1"></div>
-                    <MorphingText
-                        className="text-4xl md:text-5xl font-bold tracking-tighter mx-auto relative"
-                        texts={[
-                            "MinstrelMuse",
-                            "Harmonious",
-                            "Enchanting",
-                            "Boundless",
-                            "Ethereal",
-                            "Timeless",
-                            "Euphoric",
-                            "Infinite",
-                        ]}
-                    />
-                </div>
-                <div className="absolute -right-4 animate-ping">
-                    <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-blue-400" />
-                </div>
-                <p className="text-lg md:text-2xl text-muted-foreground tracking-tighter font-light mb-8 md:mb-10 relative max-w-4xl mx-auto">
-                    Where Poetry Meets Melody in the Digital Age
-                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></span>
-                </p>
-                <div className="flex items-center justify-center">
-                    <Button
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 relative group overflow-hidden"
-                        size="lg"
+
+                {/* Hero content */}
+                <motion.div
+                    className="container px-4 pt-20 md:px-6 flex flex-col items-center text-center z-10 max-w-5xl mx-auto"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                    style={{ opacity, scale }}
+                >
+                    <div className="inline-flex items-center justify-center px-3 py-1 mb-8 text-sm font-medium rounded-full bg-muted/50 text-foreground/80 ring-1 ring-border backdrop-blur-sm">
+                        <Sparkles className="mr-1 h-3.5 w-3.5" />
+                        <span>Enterprise-grade Music Experience</span>
+                    </div>
+
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
+                        Transform Your Music Experience
+                    </h1>
+
+                    <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8 md:mb-12">
+                        Discover a new way to enjoy your favorite music with our powerful, intuitive platform designed for serious music enthusiasts.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md mx-auto">
+                        <Button
+                            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 relative group overflow-hidden"
+                            size="lg"
+                            onClick={() => navigate('/dashboard')}
+                        >
+                            <span className="relative z-10 flex items-center justify-center">
+                                Get Started
+                                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                            </span>
+                            <span className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors duration-200"></span>
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            onClick={() => scrollToSection(featuresRef)}
+                            className="group"
+                        >
+                            <span>Explore Features</span>
+                            <ChevronDown className="ml-2 h-4 w-4 transition-transform group-hover:translate-y-1" />
+                        </Button>
+                    </div>
+
+                    {/* Hero animation */}
+                    <motion.div
+                        className="mt-16 md:mt-20 w-full max-w-2xl mx-auto"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.4, duration: 0.8 }}
                     >
-                        <span className="relative z-10 flex items-center justify-center">
-                            Get Started
-                            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </span>
-                        <span className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors duration-200"></span>
-                    </Button>
-                </div>
-            </motion.div>
+                        <div className="relative aspect-video rounded-xl overflow-hidden border border-border shadow-2xl">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 to-blue-500/10"></div>
+                            <div className="w-full h-full">
+                                <Lottie animationData={musicAnimation} loop={true} />
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
+                        </div>
+                    </motion.div>
 
-            {/* Features Section - Full width */}
-            <motion.div
-                className="w-full px-4 md:px-8 py-16 md:py-24 z-10 relative"
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-            >
-                {/* Section decorative elements */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80%] h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+                    {/* Scroll indicator */}
+                    <motion.div
+                        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1, duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
+                    >
+                        <ChevronDown className="h-6 w-6 text-muted-foreground" />
+                    </motion.div>
+                </motion.div>
+            </section>
 
-                <div className="max-w-7xl mx-auto">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 md:mb-16 bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 bg-clip-text text-transparent relative">
-                        Discover Our Features
-                        <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full"></span>
-                    </h2>
-
-                    <BentoGrid className={`${isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-2' : 'grid-cols-3'} gap-4 md:gap-6 auto-rows-[18rem] md:auto-rows-[22rem]`}>
-                        <BentoCard
-                            name="YouTube Integration"
-                            className="col-span-1 md:col-span-1 relative group"
-                            background={
-                                <>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-red-600/20 opacity-70" />
-                                    <div className="absolute inset-0 bg-[radial-gradient(#f87171_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                                </>
-                            }
-                            Icon={Youtube}
-                            description="Seamlessly access and play your favorite YouTube music videos."
-                            href="#youtube-integration"
-                            cta="Learn More"
-                        />
-
-                        <BentoCard
-                            name="Playlist Creation"
-                            className="col-span-1 md:col-span-1 relative group"
-                            background={
-                                <>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-purple-600/20 opacity-70" />
-                                    <div className="absolute inset-0 bg-[radial-gradient(#c084fc_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                                </>
-                            }
-                            Icon={Music}
-                            description="Create and manage custom playlists from your favorite tracks."
-                            href="#playlist-creation"
-                            cta="Explore"
-                        />
-
-                        <BentoCard
-                            name="Audio Extraction"
-                            className="col-span-1 md:col-span-1 relative group"
-                            background={
-                                <>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/20 opacity-70" />
-                                    <div className="absolute inset-0 bg-[radial-gradient(#60a5fa_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                                </>
-                            }
-                            Icon={Headphones}
-                            description="Listen to just the audio from your favorite videos."
-                            href="#audio-extraction"
-                            cta="Try Now"
-                        />
-                        <BentoCard
-                            name="Offline Listening"
-                            className="col-span-1 md:col-span-1 relative group"
-                            background={
-                                <>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-green-600/20 opacity-70" />
-                                    <div className="absolute inset-0 bg-[radial-gradient(#4ade80_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                                </>
-                            }
-                            Icon={Bookmark}
-                            description="Save your music for offline enjoyment anytime, anywhere."
-                            href="#offline-listening"
-                            cta="Get Started"
-                        />
-
-                        <BentoCard
-                            name="Social Sharing"
-                            className="col-span-1 md:col-span-1 relative group"
-                            background={
-                                <>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 opacity-70" />
-                                    <div className="absolute inset-0 bg-[radial-gradient(#fbbf24_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                                </>
-                            }
-                            Icon={Share2}
-                            description="Share your favorite tracks and playlists with friends."
-                            href="#social-sharing"
-                            cta="Share Now"
-                        />
-
-                        <BentoCard
-                            name="Favorites Collection"
-                            className="col-span-1 md:col-span-1 relative group"
-                            background={
-                                <>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 to-pink-600/20 opacity-70" />
-                                    <div className="absolute inset-0 bg-[radial-gradient(#f472b6_0.5px,transparent_0.5px)] [background-size:12px_12px] opacity-[0.15]"></div>
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500/50 to-transparent transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                                </>
-                            }
-                            Icon={Heart}
-                            description="Keep track of your most loved songs in your favorites collection."
-                            href="#favorites-collection"
-                            cta="View Favorites"
-                        />
-                    </BentoGrid>
-                </div>
-            </motion.div>
-
-            {/* CTA Section - Full width */}
-            <motion.div
-                className="w-full px-4 md:px-8 py-16 md:py-20 z-10 text-center relative"
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.5 }}
-            >
-                {/* CTA decorative elements */}
-                <div className="absolute -z-10 inset-0 overflow-hidden">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(168,85,247,0.1)_360deg)] animate-slow-spin"></div>
-                </div>
-
-                <div className="max-w-4xl mx-auto">
-                    <div className="bg-card border border-border rounded-2xl p-8 md:p-12 shadow-lg relative overflow-hidden">
-                        {/* Card decorative elements */}
-                        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.1]"></div>
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-600"></div>
-
-                        {/* Corner accents */}
-                        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-purple-500/30"></div>
-                        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-blue-500/30"></div>
-                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-blue-500/30"></div>
-                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-purple-500/30"></div>
-
-                        <h2 className="text-2xl md:text-3xl font-bold mb-6 relative inline-block">
-                            Ready to transform your music experience?
-                            <span className="absolute -bottom-2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></span>
-                        </h2>
-                        <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-                            Join thousands of music lovers who have discovered a new way to enjoy their favorite tunes.
-                            MinstrelMuse brings you the best of YouTube's vast music library in an elegant,
-                            user-friendly interface designed for music enthusiasts.
-                        </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Animated Feature Showcase */}
+            <section className="w-full py-20 md:py-28 relative">
+                <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(120,119,198,0.05)_0,rgba(255,255,255,0)_100%)]"></div>
+                <div className="container px-4 md:px-6 mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <motion.div
+                            className="order-2 lg:order-1"
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
+                                Advanced Analytics Dashboard
+                            </h2>
+                            <p className="text-xl text-muted-foreground mb-6">
+                                Gain deep insights into your music consumption patterns with our enterprise-grade analytics platform.
+                            </p>
+                            <ul className="space-y-4">
+                                {[
+                                    "Track listening habits and preferences over time",
+                                    "Discover new music based on sophisticated algorithms",
+                                    "Visualize your music journey with interactive charts",
+                                    "Export detailed reports for business intelligence"
+                                ].map((item, i) => (
+                                    <motion.li
+                                        key={i}
+                                        className="flex items-start"
+                                        initial={{ opacity: 0, x: -10 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.5, delay: 0.1 * i }}
+                                    >
+                                        <CheckCircle className="h-6 w-6 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                                        <span>{item}</span>
+                                    </motion.li>
+                                ))}
+                            </ul>
                             <Button
-                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 w-full sm:w-auto relative group overflow-hidden"
+                                className="mt-8 bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90"
                                 size="lg"
                             >
-                                <span className="relative z-10 flex items-center justify-center">
-                                    Sign Up Now
-                                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                                </span>
-                                <span className="absolute inset-0 bg-white/10 group-hover:bg-white/20 transition-colors duration-200"></span>
+                                Explore Analytics
+                            </Button>
+                        </motion.div>
+
+                        <motion.div
+                            className="order-1 lg:order-2 relative"
+                            initial={{ opacity: 0, x: 20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <div className="relative aspect-square md:aspect-video lg:aspect-square max-w-md mx-auto">
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl blur-sm opacity-50"></div>
+                                <div className="relative bg-card border border-border rounded-lg overflow-hidden shadow-xl">
+                                    <Lottie animationData={analyticsAnimation} loop={true} />
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Security Feature Showcase */}
+            <section className="w-full py-20 md:py-28 bg-muted/30 relative">
+                <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+                <div className="container px-4 md:px-6 mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <motion.div
+                            className="relative"
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <div className="relative aspect-square md:aspect-video lg:aspect-square max-w-md mx-auto">
+                                <div className="absolute -inset-0.5 bg-gradient-to-r from-green-600 to-blue-600 rounded-xl blur-sm opacity-50"></div>
+                                <div className="relative bg-card border border-border rounded-lg overflow-hidden shadow-xl">
+                                    <Lottie animationData={securityAnimation} loop={true} />
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-green-600 via-blue-500 to-green-600">
+                                Enterprise-Grade Security
+                            </h2>
+                            <p className="text-xl text-muted-foreground mb-6">
+                                Protect your data and privacy with our comprehensive security infrastructure.
+                            </p>
+                            <ul className="space-y-4">
+                                {[
+                                    "End-to-end encryption for all your music data",
+                                    "Compliance with global data protection regulations",
+                                    "Advanced authentication and access controls",
+                                    "Regular security audits and penetration testing"
+                                ].map((item, i) => (
+                                    <motion.li
+                                        key={i}
+                                        className="flex items-start"
+                                        initial={{ opacity: 0, x: 10 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.5, delay: 0.1 * i }}
+                                    >
+                                        <CheckCircle className="h-6 w-6 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                                        <span>{item}</span>
+                                    </motion.li>
+                                ))}
+                            </ul>
+                            <Button
+                                className="mt-8 bg-gradient-to-r from-green-600 to-blue-600 hover:opacity-90"
+                                size="lg"
+                            >
+                                Learn About Security
+                            </Button>
+                        </motion.div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Stats Section */}
+            <section
+                ref={statsRef}
+                className="w-full py-20 md:py-28 relative overflow-hidden"
+            >
+                <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(120,119,198,0.05)_0,rgba(255,255,255,0)_100%)]"></div>
+                <div className="container px-4 md:px-6 mx-auto">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
+                            Trusted by Music Professionals
+                        </h2>
+                        <p className="text-xl text-muted-foreground">
+                            Join thousands of enterprises and professionals who trust MinstrelMuse
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                        {[
+                            { value: "10M+", label: "Active Users" },
+                            { value: "500K+", label: "Enterprise Clients" },
+                            { value: "99.9%", label: "Uptime" },
+                            { value: "24/7", label: "Support" }
+                        ].map((stat, i) => (
+                            <motion.div
+                                key={i}
+                                className="p-6 bg-card border border-border rounded-xl relative overflow-hidden"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: 0.1 * i }}
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5"></div>
+                                <h3 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+                                    {stat.value}
+                                </h3>
+                                <p className="text-muted-foreground">{stat.label}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Testimonials Section */}
+            <section
+                ref={testimonialsRef}
+                className="w-full py-20 md:py-28 bg-muted/30 relative"
+            >
+                <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+                <div className="container px-4 md:px-6 mx-auto">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
+                            What Our Clients Say
+                        </h2>
+                        <p className="text-xl text-muted-foreground">
+                            Hear from enterprise clients who have transformed their music experience
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[
+                            {
+                                quote: "MinstrelMuse has revolutionized how our creative team accesses and utilizes music resources. The analytics features are particularly impressive.",
+                                author: "Sarah Johnson",
+                                title: "Creative Director, TechVision Inc."
+                            },
+                            {
+                                quote: "The enterprise security features give us peace of mind when handling sensitive audio content. Best music platform we've used in our 15 years of operation.",
+                                author: "Michael Chen",
+                                title: "CTO, Global Media Solutions"
+                            },
+                            {
+                                quote: "Our productivity increased by 40% after implementing MinstrelMuse across our marketing department. The collaborative features are game-changing.",
+                                author: "Emma Rodriguez",
+                                title: "VP of Marketing, Innovate Corp"
+                            }
+                        ].map((testimonial, i) => (
+                            <motion.div
+                                key={i}
+                                className="p-6 bg-card border border-border rounded-xl relative"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: 0.1 * i }}
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-600"></div>
+                                <div className="mb-4 text-4xl text-purple-500">"</div>
+                                <p className="mb-6 italic">{testimonial.quote}</p>
+                                <div className="flex items-center">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold">
+                                        {testimonial.author.charAt(0)}
+                                    </div>
+                                    <div className="ml-4">
+                                        <p className="font-semibold">{testimonial.author}</p>
+                                        <p className="text-sm text-muted-foreground">{testimonial.title}</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* CTA Section */}
+            <section className="w-full py-20 md:py-28 relative overflow-hidden">
+                <div className="absolute inset-0 -z-10">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10"></div>
+                    <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.1]"></div>
+                </div>
+                <div className="container px-4 md:px-6 mx-auto">
+                    <motion.div
+                        className="max-w-3xl mx-auto text-center"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
+                            Ready to Transform Your Music Experience?
+                        </h2>
+                        <p className="text-xl text-muted-foreground mb-8">
+                            Join thousands of enterprises that have already elevated their audio workflow with MinstrelMuse.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Button
+                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90"
+                                size="lg"
+                                onClick={() => navigate('/dashboard')}
+                            >
+                                Get Started Now
                             </Button>
                             <Button
                                 variant="outline"
-                                className="w-full sm:w-auto group relative overflow-hidden"
                                 size="lg"
                             >
-                                <span className="relative z-10">Learn More</span>
-                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-purple-600 to-blue-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                                Schedule a Demo
                             </Button>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
-            </motion.div>
+            </section>
 
-            {/* Footer - Full width */}
+            {/* Footer */}
             <footer className="w-full py-8 border-t border-border mt-auto z-10 bg-background/50 backdrop-blur-sm relative">
                 {/* Footer decorative elements */}
                 <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.05]"></div>
@@ -414,4 +572,3 @@ const MainPage = () => {
 };
 
 export default MainPage;
-

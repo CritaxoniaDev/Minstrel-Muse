@@ -80,7 +80,7 @@ const Auth = () => {
                 mx-auto shadow-2xl w-full 
                 ${isMobile ? 'h-[500px] max-w-[95%]' : isTablet ? 'h-[550px] max-w-3xl' : 'h-[600px] max-w-4xl'}
                 grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'} 
-                overflow-hidden bg-white/5 backdrop-blur-lg
+                overflow-hidden bg-white/5 backdrop-blur-lg mt-10
             `}>
                 {/* Left Side - Visual Section */}
                 <div className="relative tracking-tighter hidden md:block h-full">

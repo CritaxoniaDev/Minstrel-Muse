@@ -34,7 +34,7 @@ import NotFound from './components/Error/404';
 import SharedPost from '@/components/SharedPost';
 import './App.css';
 import Lottie from 'lottie-react';
-import lazyLoadingAnimation from '/public/lottie/lazy-loading.json';
+import lazyLoadingAnimation from '/src/lottie/lazy-loading.json';
 
 function App() {
   const isMobileS = useMediaQuery({ maxWidth: 320 });

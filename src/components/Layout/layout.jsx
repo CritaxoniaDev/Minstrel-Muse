@@ -53,7 +53,7 @@ const Layout = ({ user, children, onSearchResults, isMinimized, setIsMinimized, 
                     navigateWithLoading={navigateWithLoading}
                 />
             )}
-            <main className={`${user ? (isMinimized ? 'lg:ml-20' : 'lg:ml-64') : 'mt-10'} relative min-h-screen transition-all duration-300 ${showMiniPlayer ? 'pb-16' : ''}`}>
+            <main className={`${user ? (isMinimized ? 'lg:ml-20' : 'lg:ml-64') : ' '} relative min-h-screen transition-all duration-300 ${showMiniPlayer ? 'pb-16' : ''}`}>
                 {children}
             </main>
             

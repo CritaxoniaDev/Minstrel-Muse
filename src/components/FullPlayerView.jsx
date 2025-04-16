@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from 'react-responsive';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX,
-  ListMusic, X, Shuffle, Loader2, Heart, Share2, MoreHorizontal, ChevronDown
+  ListMusic, X, Shuffle, Heart, Share2, MoreHorizontal, ChevronDown, Loader2
 } from 'lucide-react';
 import { Slider } from "@/components/ui/slider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import axios from 'axios';
 import { getYoutubeApiKey, rotateApiKey } from '@/config/youtube-api';
@@ -35,6 +35,10 @@ const FullPlayerView = ({
   const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [lyrics, setLyrics] = useState("");
+  const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
+  const [lyricsError, setLyricsError] = useState(null);
+  const [geniusData, setGeniusData] = useState(null);
 
   // Responsive breakpoints
   const isMobileS = useMediaQuery({ maxWidth: 320 });
@@ -43,54 +47,24 @@ const FullPlayerView = ({
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
   const isDesktop = useMediaQuery({ minWidth: 1024 });
-  const [lyrics, setLyrics] = useState("");
-  const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
-  const [lyricsError, setLyricsError] = useState(null);
-
 
   // Helper for small mobile screens
   const isSmallMobile = isMobileS || isMobileM || isMobileL;
 
-  const fetchLyrics = async () => {
-    if (!currentTrack) return;
-
-    setIsLoadingLyrics(true);
-    setLyricsError(null);
-
-    try {
-      // Use a lyrics API service - this is just an example
-      // You'll need to replace this with an actual lyrics API
-      const response = await axios.get('https://api.lyrics.ovh/v1/', {
-        params: {
-          artist: currentTrack.channelTitle,
-          title: currentTrack.title.split('-')[0].trim()
-        }
-      });
-
-      if (response.data && response.data.lyrics) {
-        setLyrics(response.data.lyrics);
-      } else {
-        setLyricsError("No lyrics found for this song");
-      }
-    } catch (error) {
-      console.error("Error fetching lyrics:", error);
-      setLyricsError("Unable to load lyrics at this time");
-    } finally {
-      setIsLoadingLyrics(false);
-    }
+  // Define decodeHTMLEntities function before using it
+  const decodeHTMLEntities = (text) => {
+    if (!text) return '';
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
   };
-
-  useEffect(() => {
-    if (currentTrack) {
-      fetchLyrics();
-    }
-  }, [currentTrack?.id]);
 
   useEffect(() => {
     if (!currentTrack) {
       navigate('/dashboard');
     } else {
       fetchRecommendations();
+      fetchLyrics();
     }
   }, [currentTrack]);
 
@@ -144,12 +118,35 @@ const FullPlayerView = ({
     }
   };
 
-  const decodeHTMLEntities = (text) => {
-    if (!text) return '';
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = text;
-    return textarea.value;
+  // Add this function to fetch lyrics using Genius API
+  // Replace the fetchLyrics function with this version
+  const fetchLyrics = async () => {
+    if (!currentTrack) return;
+
+    setIsLoadingLyrics(true);
+    setLyricsError(null);
+
+    try {
+      // Instead of directly calling the Genius API, we'll just prepare data for a link to Genius
+      const searchQuery = encodeURIComponent(`${decodeHTMLEntities(currentTrack.title)} ${decodeHTMLEntities(currentTrack.channelTitle)}`);
+      const geniusSearchUrl = `https://genius.com/search?q=${searchQuery}`;
+
+      // Create a simplified version of the Genius data
+      setGeniusData({
+        title: decodeHTMLEntities(currentTrack.title),
+        artist: decodeHTMLEntities(currentTrack.channelTitle),
+        imageUrl: currentTrack.thumbnail,
+        lyricsUrl: geniusSearchUrl
+      });
+
+      setIsLoadingLyrics(false);
+    } catch (error) {
+      console.error("Error preparing lyrics link:", error);
+      setLyricsError("Unable to prepare lyrics link");
+      setIsLoadingLyrics(false);
+    }
   };
+
 
   // Function to get volume icon based on volume level
   const getVolumeIcon = () => {
@@ -167,16 +164,10 @@ const FullPlayerView = ({
       // If it's a different track, we want to play it immediately
       // This will replace the current track and start playing
       onPlayPause(track);
-
-      // You could also add a toast notification
-      // If you have access to the toast function, uncomment this:
-      // toast({
-      //   title: "Now Playing",
-      //   description: `${track.title}`,
-      //   duration: 3000,
-      // });
     }
   };
+
+  // Rest of your component code...
 
 
   return (
@@ -775,54 +766,57 @@ const FullPlayerView = ({
                     {isLoadingLyrics ? (
                       <div className="flex flex-col items-center justify-center py-12">
                         <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
-                        <p className="text-muted-foreground">Loading lyrics...</p>
+                        <p className="text-muted-foreground">Preparing lyrics link...</p>
                       </div>
-                    ) : lyricsError ? (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground">{lyricsError}</p>
-                        <p className="text-xs mt-2">
-                          Note: Lyrics may not be available for all songs or may be protected by copyright.
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-4"
-                          onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(currentTrack?.title + ' ' + currentTrack?.channelTitle + ' lyrics')}`, '_blank')}
-                        >
-                          Search lyrics online
-                        </Button>
-                      </div>
-                    ) : lyrics ? (
-                      <div className="whitespace-pre-line text-sm">
-                        <p className="mb-4 text-xs text-muted-foreground italic">
-                          Note: These lyrics are provided for personal, non-commercial use only.
-                        </p>
-                        <div className="space-y-4">
-                          {/* Display lyrics in a way that respects copyright */}
-                          <p>Lyrics for "{decodeHTMLEntities(currentTrack?.title)}" by {decodeHTMLEntities(currentTrack?.channelTitle)} are available.</p>
-                          <p className="text-muted-foreground">
-                            Due to copyright restrictions, we can only show a preview or link to official sources.
+                    ) : geniusData ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-4">
+                          <img
+                            src={geniusData.imageUrl}
+                            alt={geniusData.title}
+                            className="w-20 h-20 rounded-md object-cover"
+                          />
+                          <div>
+                            <h4 className="font-medium">{geniusData.title}</h4>
+                            <p className="text-sm text-muted-foreground">{geniusData.artist}</p>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t">
+                          <p className="text-sm mb-4">
+                            Find lyrics for this song on Genius, the world's biggest collection of song lyrics and musical knowledge.
                           </p>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(currentTrack?.title + ' ' + currentTrack?.channelTitle + ' lyrics')}`, '_blank')}
-                          >
-                            View full lyrics online
-                          </Button>
+
+                          <div className="flex justify-center">
+                            <Button
+                              className="bg-[#FFFF64] hover:bg-[#FFFF64]/90 text-black"
+                              onClick={() => window.open(geniusData.lyricsUrl, '_blank')}
+                            >
+                              <svg
+                                viewBox="0 0 136.55 136.55"
+                                className="h-4 w-4 mr-2"
+                              >
+                                <path
+                                  d="M106.74,60.19c-1.62,2.86-3.6,6.06-6.3,9.5-1.35,1.7-2.67,3.23-3.95,4.6a93.77,93.77,0,0,0-6.62-9.71A103.65,103.65,0,0,0,75.55,50.5h0A34.2,34.2,0,0,1,44.3,19.25a34.2,34.2,0,0,0,30.5,50.5h0c.23,0,.45,0,.68,0a34.07,34.07,0,0,0,9.93-1.5A39.66,39.66,0,0,0,98.1,59.09a45.82,45.82,0,0,0,8.64,1.1Z"
+                                  fill="currentColor"
+                                />
+                              </svg>
+                              Find Lyrics on Genius
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
-                        <p>No lyrics available for this track</p>
-                        <p className="text-xs mt-1">Try another song or search online</p>
+                        <p>No lyrics information available</p>
+                        <p className="text-xs mt-1">Try searching for this song on Genius</p>
                         <Button
                           variant="outline"
                           size="sm"
                           className="mt-4"
-                          onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(currentTrack?.title + ' ' + currentTrack?.channelTitle + ' lyrics')}`, '_blank')}
+                          onClick={() => window.open(`https://genius.com/search?q=${encodeURIComponent(currentTrack?.title + ' ' + currentTrack?.channelTitle)}`, '_blank')}
                         >
-                          Search lyrics online
+                          Search on Genius
                         </Button>
                       </div>
                     )}
