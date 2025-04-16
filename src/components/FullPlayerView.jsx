@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from 'react-responsive';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX,
-  ListMusic, X, Shuffle, Heart, Share2, MoreHorizontal, ChevronDown
+  ListMusic, X, Shuffle, Loader2, Heart, Share2, MoreHorizontal, ChevronDown
 } from 'lucide-react';
 import { Slider } from "@/components/ui/slider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,9 +43,48 @@ const FullPlayerView = ({
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
   const isDesktop = useMediaQuery({ minWidth: 1024 });
+  const [lyrics, setLyrics] = useState("");
+  const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
+  const [lyricsError, setLyricsError] = useState(null);
+
 
   // Helper for small mobile screens
   const isSmallMobile = isMobileS || isMobileM || isMobileL;
+
+  const fetchLyrics = async () => {
+    if (!currentTrack) return;
+
+    setIsLoadingLyrics(true);
+    setLyricsError(null);
+
+    try {
+      // Use a lyrics API service - this is just an example
+      // You'll need to replace this with an actual lyrics API
+      const response = await axios.get('https://api.lyrics.ovh/v1/', {
+        params: {
+          artist: currentTrack.channelTitle,
+          title: currentTrack.title.split('-')[0].trim()
+        }
+      });
+
+      if (response.data && response.data.lyrics) {
+        setLyrics(response.data.lyrics);
+      } else {
+        setLyricsError("No lyrics found for this song");
+      }
+    } catch (error) {
+      console.error("Error fetching lyrics:", error);
+      setLyricsError("Unable to load lyrics at this time");
+    } finally {
+      setIsLoadingLyrics(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentTrack) {
+      fetchLyrics();
+    }
+  }, [currentTrack?.id]);
 
   useEffect(() => {
     if (!currentTrack) {
@@ -624,70 +664,186 @@ const FullPlayerView = ({
             </div>
           </div>
 
-          {/* Recommendations section (visible on md screens and up) */}
+          {/* Recommendations and Lyrics section (visible on md screens and up) */}
           <div className="hidden md:block md:w-1/3 mt-8 md:mt-0">
             <div className="bg-card rounded-lg p-4 border shadow-sm">
-              <h3 className="text-lg font-semibold mb-4">Recommended for you</h3>
-              {isLoadingRecommendations ? (
-                <div className="space-y-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="flex items-center space-x-3 animate-pulse">
-                      <div className="w-16 h-16 bg-muted rounded"></div>
-                      <div className="space-y-2 flex-1">
-                        <div className="h-4 bg-muted rounded w-3/4"></div>
-                        <div className="h-3 bg-muted rounded w-1/2"></div>
+              <Tabs defaultValue="recommendations" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+                  <TabsTrigger value="lyrics">Lyrics</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="recommendations" className="mt-0">
+                  <h3 className="text-lg font-semibold mb-4">Recommended for you</h3>
+                  {isLoadingRecommendations ? (
+                    <div className="space-y-4">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={i} className="flex items-center space-x-3 animate-pulse">
+                          <div className="w-16 h-16 bg-muted rounded"></div>
+                          <div className="space-y-2 flex-1">
+                            <div className="h-4 bg-muted rounded w-3/4"></div>
+                            <div className="h-3 bg-muted rounded w-1/2"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : recommendations.length > 0 ? (
+                    <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
+                      {recommendations.map((track) => (
+                        <motion.div
+                          key={track.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex items-center space-x-3 p-2 hover:bg-accent/50 rounded-md transition-colors cursor-pointer group"
+                          onClick={() => playRecommendation(track)}
+                        >
+                          <div className="relative w-16 h-16 flex-shrink-0">
+                            <img
+                              src={track.thumbnail}
+                              alt={track.title}
+                              className="w-full h-full object-cover rounded-md"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                              <Play className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium line-clamp-2">{decodeHTMLEntities(track.title)}</p>
+                            <p className="text-xs text-muted-foreground">{decodeHTMLEntities(track.channelTitle)}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No recommendations available</p>
+                      <p className="text-xs mt-1">Try playing a different track</p>
+                    </div>
+                  )}
+                  <div className="mt-4 pt-4 border-t">
+                    <h4 className="text-sm font-medium mb-2">Based on</h4>
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={currentTrack?.thumbnail}
+                        alt={currentTrack?.title}
+                        className="w-8 h-8 rounded-md object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{decodeHTMLEntities(currentTrack?.title)}</p>
+                        <p className="text-xs text-muted-foreground truncate">{decodeHTMLEntities(currentTrack?.channelTitle)}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : recommendations.length > 0 ? (
-                <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                  {recommendations.map((track) => (
-                    <motion.div
-                      key={track.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex items-center space-x-3 p-2 hover:bg-accent/50 rounded-md transition-colors cursor-pointer group"
-                      onClick={() => playRecommendation(track)}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="lyrics" className="mt-0">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Lyrics</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={fetchLyrics}
+                      disabled={isLoadingLyrics}
                     >
-                      <div className="relative w-16 h-16 flex-shrink-0">
-                        <img
-                          src={track.thumbnail}
-                          alt={track.title}
-                          className="w-full h-full object-cover rounded-md"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
-                          <Play className="h-6 w-6 text-white" />
+                      {isLoadingLyrics ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="mr-1"
+                        >
+                          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                          <path d="M3 3v5h5" />
+                          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                          <path d="M16 16h5v5" />
+                        </svg>
+                      )}
+                      Refresh
+                    </Button>
+                  </div>
+
+                  <div className="bg-card/50 rounded-md border p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
+                    {isLoadingLyrics ? (
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
+                        <p className="text-muted-foreground">Loading lyrics...</p>
+                      </div>
+                    ) : lyricsError ? (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">{lyricsError}</p>
+                        <p className="text-xs mt-2">
+                          Note: Lyrics may not be available for all songs or may be protected by copyright.
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-4"
+                          onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(currentTrack?.title + ' ' + currentTrack?.channelTitle + ' lyrics')}`, '_blank')}
+                        >
+                          Search lyrics online
+                        </Button>
+                      </div>
+                    ) : lyrics ? (
+                      <div className="whitespace-pre-line text-sm">
+                        <p className="mb-4 text-xs text-muted-foreground italic">
+                          Note: These lyrics are provided for personal, non-commercial use only.
+                        </p>
+                        <div className="space-y-4">
+                          {/* Display lyrics in a way that respects copyright */}
+                          <p>Lyrics for "{decodeHTMLEntities(currentTrack?.title)}" by {decodeHTMLEntities(currentTrack?.channelTitle)} are available.</p>
+                          <p className="text-muted-foreground">
+                            Due to copyright restrictions, we can only show a preview or link to official sources.
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(currentTrack?.title + ' ' + currentTrack?.channelTitle + ' lyrics')}`, '_blank')}
+                          >
+                            View full lyrics online
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium line-clamp-2">{decodeHTMLEntities(track.title)}</p>
-                        <p className="text-xs text-muted-foreground">{decodeHTMLEntities(track.channelTitle)}</p>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No lyrics available for this track</p>
+                        <p className="text-xs mt-1">Try another song or search online</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-4"
+                          onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(currentTrack?.title + ' ' + currentTrack?.channelTitle + ' lyrics')}`, '_blank')}
+                        >
+                          Search lyrics online
+                        </Button>
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No recommendations available</p>
-                  <p className="text-xs mt-1">Try playing a different track</p>
-                </div>
-              )}
-              <div className="mt-4 pt-4 border-t">
-                <h4 className="text-sm font-medium mb-2">Based on</h4>
-                <div className="flex items-center space-x-2">
-                  <img
-                    src={currentTrack?.thumbnail}
-                    alt={currentTrack?.title}
-                    className="w-8 h-8 rounded-md object-cover"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{decodeHTMLEntities(currentTrack?.title)}</p>
-                    <p className="text-xs text-muted-foreground truncate">{decodeHTMLEntities(currentTrack?.channelTitle)}</p>
+                    )}
                   </div>
-                </div>
-              </div>
+
+                  <div className="mt-4 pt-4 border-t">
+                    <h4 className="text-sm font-medium mb-2">Now Playing</h4>
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={currentTrack?.thumbnail}
+                        alt={currentTrack?.title}
+                        className="w-8 h-8 rounded-md object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{decodeHTMLEntities(currentTrack?.title)}</p>
+                        <p className="text-xs text-muted-foreground truncate">{decodeHTMLEntities(currentTrack?.channelTitle)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>
