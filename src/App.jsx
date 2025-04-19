@@ -18,11 +18,12 @@ import FullPlayerView from './components/FullPlayerView';
 import AdminDashboard from '@/Admin/AdminDashboard';
 import PendingApproval from './components/Auth/PendingApproval';
 import Layout from './components/Layout/layout';
+import Social from './components/Social';
 import Profile from './components/Profile/Profile';
-import Discover from './components/Discover';
 import SearchResults from './components/SearchResults';
 import CreatePost from './components/CreatePost';
 import UserManagement from './Admin/UserManagement';
+import VideoPlayer from './components/VideoPlayer';
 import YouTube from 'react-youtube';
 import endSound from '/sounds/end-sound.wav';
 import MainPage from './components/MainPage';
@@ -427,6 +428,25 @@ function App() {
                   setSidebarOpen={setSidebarOpen}
                 />
               } />
+              <Route path="/dashboard/social" element={
+                <Social
+                  currentUser={user}
+                  currentTrack={currentTrack}
+                  isPlayerPage={isPlayerPage}
+                />
+              } />
+              <Route path="/dashboard/video/player" element={
+                <VideoPlayer
+                  currentUser={user}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayPause={handlePlayPause}
+                  onSkipBack={handleSkipBack}
+                  onSkipForward={handleSkipForward}
+                  queue={queue}
+                  onAddToQueue={handleAddToQueue}
+                />
+              } />
               <Route path="/dashboard/profile/:userId" element={<Profile onPlayPause={handlePlayPause} />} />
               <Route path="/dashboard/users" element={<Users />} />
               <Route path="/dashboard/youtube-downloader" element={<YoutubeDownloader />} />
@@ -466,14 +486,6 @@ function App() {
               } />
               <Route path="/dashboard/admin" element={
                 user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/dashboard" />
-              } />
-              <Route path="/dashboard/discover" element={
-                <Discover
-                  onPlayPause={handlePlayPause}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onAddToQueue={handleAddToQueue}
-                />
               } />
               <Route path="/dashboard/library" element={
                 <Library

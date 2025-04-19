@@ -41,8 +41,8 @@ const Sidebar = ({ user, isMinimized, setIsMinimized, isOpen, setIsOpen }) => {
 
     const menuItems = [
         { icon: Home, label: 'Home', path: '/dashboard' },
-        { icon: Compass, label: 'Discover', path: '/dashboard/discover' },
         { icon: Library, label: 'Library', path: '/dashboard/library' },
+        { icon: Users, label: 'Social', path: '/dashboard/social' }, // Added Social navigation item
         { icon: Download, label: 'YouTube Downloader', path: '/dashboard/youtube-downloader' }
     ];
 
