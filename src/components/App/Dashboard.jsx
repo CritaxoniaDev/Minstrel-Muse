@@ -34,6 +34,191 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage, onPlayPause, queue
     const isMobile = useMediaQuery({ maxWidth: 767 });
     const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
     const isDesktop = useMediaQuery({ minWidth: 1024 });
+    // Add this near the top of your component, after the useState declarations
+    const [featuredArtist, setFeaturedArtist] = useState(null);
+
+    // Complete useEffect to fetch and select a daily featured OPM artist with improved API key rotation
+    useEffect(() => {
+        const fetchFeaturedArtist = async () => {
+            // List of OPM artists to search for
+            const opmArtists = [
+                "Cup of Joe",
+                "Dionela",
+                "Ben&Ben",
+                "Moira Dela Torre",
+                "December Avenue",
+                "SB19",
+                "Zack Tabudlo",
+                "Arthur Nery",
+                "Juan Karlos",
+                "Adie",
+                "Nobita",
+                "Munimuni",
+                "The Juans",
+                "BINI",
+                "Alamat"
+            ];
+
+            // Use the current date to select an artist (changes daily)
+            const today = new Date();
+            const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            const artistIndex = dayOfYear % opmArtists.length;
+            const selectedArtist = opmArtists[artistIndex];
+
+            // Attempt to fetch with multiple API keys if needed
+            let attempts = 0;
+            let videoData = null;
+            let videoId = null;
+
+            while (attempts < 13 && !videoData) { // 13 is the number of API keys we have
+                try {
+                    // Get API key from the YouTube API configuration
+                    const apiKey = getYoutubeApiKey();
+
+                    // Search for the artist's most popular video
+                    const response = await fetch(
+                        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(selectedArtist + " official music video")}&type=video&maxResults=1&order=viewCount&regionCode=PH&relevanceLanguage=tl&videoCategoryId=10&key=${apiKey}`
+                    );
+
+                    if (!response.ok) {
+                        // If we hit API quota, rotate to next key
+                        if (response.status === 403) {
+                            rotateApiKey();
+                            attempts++;
+                            console.log(`API quota exceeded, rotated to next key. Attempt ${attempts}/13`);
+                            continue; // Try with the next key
+                        }
+                        throw new Error(`Network response was not ok: ${response.status}`);
+                    }
+
+                    const searchData = await response.json();
+
+                    if (searchData.items && searchData.items.length > 0) {
+                        videoId = searchData.items[0].id.videoId;
+
+                        // Get video details to get view count and better quality thumbnail
+                        const videoResponse = await fetch(
+                            `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${apiKey}`
+                        );
+
+                        if (!videoResponse.ok) {
+                            if (videoResponse.status === 403) {
+                                rotateApiKey();
+                                attempts++;
+                                console.log(`API quota exceeded, rotated to next key. Attempt ${attempts}/13`);
+                                continue; // Try with the next key
+                            }
+                            throw new Error(`Video details response was not ok: ${videoResponse.status}`);
+                        }
+
+                        const videoDataResponse = await videoResponse.json();
+
+                        if (videoDataResponse.items && videoDataResponse.items.length > 0) {
+                            videoData = videoDataResponse;
+                            break; // Success! Exit the loop
+                        }
+                    }
+
+                    // If we get here without valid data, try the next key
+                    rotateApiKey();
+                    attempts++;
+
+                } catch (error) {
+                    console.error(`Error fetching featured OPM artist (attempt ${attempts}/13):`, error);
+                    rotateApiKey();
+                    attempts++;
+                }
+            }
+
+            // Process the video data if we got it
+            if (videoData && videoData.items && videoData.items.length > 0) {
+                const videoDetails = videoData.items[0];
+                const fullTitle = videoDetails.snippet.title;
+
+                // Try to extract song title from common formats like "Artist - Song" or "Song by Artist"
+                let songTitle = fullTitle;
+                let artistName = selectedArtist;
+
+                // Try to parse "Artist - Song" format
+                if (fullTitle.includes(' - ')) {
+                    const parts = fullTitle.split(' - ');
+                    // If the video is uploaded by the artist, the title might be "Song - Artist"
+                    // or "Artist - Song" so we need to check which part contains the artist name
+                    if (parts[0].toLowerCase().includes(selectedArtist.toLowerCase())) {
+                        artistName = parts[0].trim();
+                        songTitle = parts[1].trim();
+                    } else {
+                        songTitle = parts[0].trim();
+                        artistName = parts[1].trim();
+                    }
+                }
+                // Try to parse "Song by Artist" format
+                else if (fullTitle.toLowerCase().includes(' by ')) {
+                    const parts = fullTitle.split(' by ');
+                    songTitle = parts[0].trim();
+                    artistName = parts[1].trim();
+                }
+                // Try to parse "Song (Official Music Video)" format
+                else if (fullTitle.includes('(') && fullTitle.includes(')')) {
+                    songTitle = fullTitle.split('(')[0].trim();
+                }
+
+                // Clean up song title by removing common suffixes
+                const suffixesToRemove = [
+                    '(Official Music Video)',
+                    '(Official Video)',
+                    '(Music Video)',
+                    '(Lyric Video)',
+                    '(Official Lyric Video)',
+                    '(Official Audio)',
+                    '(Audio)',
+                    '[Official Music Video]',
+                    '[Official Video]',
+                    '[Music Video]',
+                    '[Lyric Video]',
+                    '[Official Lyric Video]',
+                    '[Official Audio]',
+                    '[Audio]'
+                ];
+
+                for (const suffix of suffixesToRemove) {
+                    if (songTitle.includes(suffix)) {
+                        songTitle = songTitle.replace(suffix, '').trim();
+                    }
+                }
+
+                // Set the featured artist with parsed data
+                setFeaturedArtist({
+                    name: selectedArtist,
+                    videoId: videoId,
+                    title: fullTitle,
+                    songTitle: songTitle,
+                    artistName: artistName,
+                    channelTitle: videoDetails.snippet.channelTitle,
+                    thumbnail: videoDetails.snippet.thumbnails.maxres?.url ||
+                        videoDetails.snippet.thumbnails.high?.url ||
+                        videoDetails.snippet.thumbnails.medium?.url ||
+                        videoDetails.snippet.thumbnails.default?.url,
+                    viewCount: parseInt(videoDetails.statistics.viewCount).toLocaleString()
+                });
+            } else {
+                // Fallback to a default OPM artist if all API attempts fail
+                console.log("All API attempts failed, using fallback artist data");
+                setFeaturedArtist({
+                    name: "Ben&Ben",
+                    videoId: "PFtEP2aYi9A",
+                    title: "Ben&Ben - Kathang Isip (Official Music Video)",
+                    songTitle: "Kathang Isip",
+                    artistName: "Ben&Ben",
+                    channelTitle: "Ben&Ben",
+                    thumbnail: "https://i.ytimg.com/vi/PFtEP2aYi9A/maxresdefault.jpg",
+                    viewCount: "15M"
+                });
+            }
+        };
+
+        fetchFeaturedArtist();
+    }, []);
 
     // Fetch trending music videos from YouTube API
     useEffect(() => {
@@ -156,66 +341,37 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage, onPlayPause, queue
         setTimeout(() => setLoading(false), 1500);
     }, [currentUser]);
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/dashboard/search?q=${encodeURIComponent(searchQuery)}`);
-        }
-    };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-background to-background/95">
             <div className="container mx-auto px-4 py-6">
-                {/* Header with Search */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Discover Music
-                        </h1>
-                        <p className="text-muted-foreground mt-1">
-                            Explore trending tracks, new releases, and personalized recommendations
-                        </p>
-                    </div>
-
-                    <form onSubmit={handleSearch} className="w-full md:w-auto">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search for songs, artists, or albums"
-                                className="pl-10 w-full md:w-[300px] bg-background border-border"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                    </form>
-                </div>
 
                 {/* Main Content */}
                 <div className="space-y-8">
                     {/* Featured Section */}
-                    {loading ? (
+                    {loading || !featuredArtist ? (
                         <Skeleton className="w-full h-[300px] rounded-xl" />
                     ) : (
                         <div className="relative overflow-hidden rounded-xl h-[300px] group">
                             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/5 group-hover:from-primary/30 group-hover:to-primary/10 transition-all duration-500"></div>
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20"></div>
                             <img
-                                src={trendingTracks[0]?.thumbnail || "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg"}
-                                alt="Featured Track"
+                                src={featuredArtist.thumbnail || "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg"}
+                                alt="Featured OPM Artist"
                                 className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                             />
                             <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 flex flex-col items-start">
-                                <Badge className="bg-primary/80 hover:bg-primary mb-3">Featured Track</Badge>
+                                <Badge className="bg-primary/80 hover:bg-primary mb-3">OPM Featured Artist: {featuredArtist.name}</Badge>
                                 <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 line-clamp-2">
-                                    {trendingTracks[0]?.title || "Loading featured track..."}
+                                    {featuredArtist.songTitle || featuredArtist.title}
                                 </h2>
                                 <p className="text-white/80 mb-4">
-                                    {trendingTracks[0]?.channelTitle || "Artist"} • {trendingTracks[0]?.viewCount || "1M"} views
+                                    {featuredArtist.artistName || featuredArtist.channelTitle} • {featuredArtist.viewCount} views
                                 </p>
                                 <div className="flex gap-3">
                                     <Button
                                         className="gap-2 bg-white text-primary hover:bg-white/90"
-                                        onClick={() => navigate(`/dashboard/player?v=${trendingTracks[0]?.id}`)}
+                                        onClick={() => navigate(`/dashboard/player?v=${featuredArtist.videoId}`)}
                                     >
                                         <Play className="h-4 w-4 fill-primary" />
                                         Play Now
