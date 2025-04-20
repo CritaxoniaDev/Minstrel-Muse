@@ -220,76 +220,391 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage, onPlayPause, queue
         fetchFeaturedArtist();
     }, []);
 
-    // Fetch trending music videos from YouTube API
+    // Fetch trending Filipino music videos from YouTube API
     useEffect(() => {
         const fetchTrendingMusic = async () => {
-            try {
-                const apiKey = getYoutubeApiKey();
-                const response = await fetch(
-                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&videoCategoryId=10&maxResults=10&key=${apiKey}`
+            // List of popular Filipino artists to search for
+            const filipinoArtists = [
+                "BINI",
+                "SB19",
+                "Ben&Ben",
+                "Moira Dela Torre",
+                "December Avenue",
+                "Zack Tabudlo",
+                "Arthur Nery",
+                "Juan Karlos",
+                "Adie",
+                "Nobita",
+                "Cup of Joe",
+                "Dionela",
+                "The Juans",
+                "Alamat",
+                "BGYO",
+                "Sarah Geronimo",
+                "KZ Tandingan",
+                "Morissette Amon",
+                "Darren Espanto",
+                "Unique Salonga"
+            ];
+
+            let attempts = 0;
+            let trendingData = null;
+
+            while (attempts < 13 && !trendingData) { // 13 is the number of API keys we have
+                try {
+                    const apiKey = getYoutubeApiKey();
+
+                    // Create a combined search for Filipino artists
+                    // We'll search for each artist and combine the results
+                    const promises = filipinoArtists.slice(0, 5).map(artist =>
+                        fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(artist + " music")}&type=video&maxResults=3&order=viewCount&regionCode=PH&relevanceLanguage=tl&videoCategoryId=10&key=${apiKey}`)
+                            .then(response => {
+                                if (!response.ok) {
+                                    if (response.status === 403) {
+                                        throw new Error('API quota exceeded');
+                                    }
+                                    throw new Error(`Network response was not ok: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                    );
+
+                    // Wait for all searches to complete
+                    const searchResults = await Promise.all(promises);
+
+                    // Extract video IDs from search results
+                    const videoIds = searchResults.flatMap(result =>
+                        result.items ? result.items.map(item => item.id.videoId) : []
+                    );
+
+                    if (videoIds.length === 0) {
+                        throw new Error('No videos found');
+                    }
+
+                    // Get detailed information for each video
+                    const videoDetailsResponse = await fetch(
+                        `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds.join(',')}&key=${apiKey}`
+                    );
+
+                    if (!videoDetailsResponse.ok) {
+                        if (videoDetailsResponse.status === 403) {
+                            rotateApiKey();
+                            attempts++;
+                            console.log(`API quota exceeded, rotated to next key. Attempt ${attempts}/13`);
+                            continue; // Try with the next key
+                        }
+                        throw new Error(`Video details response was not ok: ${videoDetailsResponse.status}`);
+                    }
+
+                    trendingData = await videoDetailsResponse.json();
+
+                    // If we got valid data, break the loop
+                    if (trendingData && trendingData.items && trendingData.items.length > 0) {
+                        break;
+                    }
+
+                    // If we get here without valid data, try the next key
+                    rotateApiKey();
+                    attempts++;
+
+                } catch (error) {
+                    console.error(`Error fetching trending Filipino music (attempt ${attempts}/13):`, error);
+                    rotateApiKey();
+                    attempts++;
+                }
+            }
+
+            // Process the video data if we got it
+            if (trendingData && trendingData.items && trendingData.items.length > 0) {
+                // Sort by view count to get the most popular videos
+                const sortedItems = [...trendingData.items].sort((a, b) =>
+                    parseInt(b.statistics.viewCount) - parseInt(a.statistics.viewCount)
                 );
 
-                if (!response.ok) {
-                    // If we hit API quota, rotate to next key
-                    if (response.status === 403) {
-                        rotateApiKey();
-                        return;
-                    }
-                    throw new Error('Network response was not ok');
-                }
+                // Format the tracks data
+                const formattedTracks = sortedItems.map(item => {
+                    // Extract clean song title
+                    let title = item.snippet.title;
+                    const suffixesToRemove = [
+                        '(Official Music Video)',
+                        '(Official Video)',
+                        '(Music Video)',
+                        '(Lyric Video)',
+                        '(Official Lyric Video)',
+                        '(Official Audio)',
+                        '(Audio)',
+                        '[Official Music Video]',
+                        '[Official Video]',
+                        '[Music Video]',
+                        '[Lyric Video]',
+                        '[Official Lyric Video]',
+                        '[Official Audio]',
+                        '[Audio]'
+                    ];
 
-                const data = await response.json();
-                const formattedTracks = data.items.map(item => ({
-                    id: item.id,
-                    title: item.snippet.title,
-                    channelTitle: item.snippet.channelTitle,
-                    thumbnail: item.snippet.thumbnails.high.url,
-                    viewCount: parseInt(item.statistics.viewCount).toLocaleString(),
-                    publishedAt: new Date(item.snippet.publishedAt)
-                }));
+                    for (const suffix of suffixesToRemove) {
+                        if (title.includes(suffix)) {
+                            title = title.replace(suffix, '').trim();
+                        }
+                    }
+
+                    return {
+                        id: item.id,
+                        title: title,
+                        originalTitle: item.snippet.title,
+                        channelTitle: item.snippet.channelTitle,
+                        thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+                        viewCount: parseInt(item.statistics.viewCount).toLocaleString(),
+                        publishedAt: new Date(item.snippet.publishedAt)
+                    };
+                });
 
                 setTrendingTracks(formattedTracks);
-            } catch (error) {
-                console.error("Error fetching trending music:", error);
+            } else {
+                // Fallback to default data if all API attempts fail
+                console.log("All API attempts failed for trending music, using fallback data");
+                const fallbackTracks = [
+                    {
+                        id: "PFtEP2aYi9A",
+                        title: "Kathang Isip",
+                        channelTitle: "Ben&Ben",
+                        thumbnail: "https://i.ytimg.com/vi/PFtEP2aYi9A/maxresdefault.jpg",
+                        viewCount: "15M",
+                        publishedAt: new Date("2018-05-30")
+                    },
+                    {
+                        id: "0XktQCjx0VE",
+                        title: "Tagpuan",
+                        channelTitle: "Moira Dela Torre",
+                        thumbnail: "https://i.ytimg.com/vi/0XktQCjx0VE/maxresdefault.jpg",
+                        viewCount: "25M",
+                        publishedAt: new Date("2018-01-15")
+                    },
+                    {
+                        id: "JnQIHs_UT-Q",
+                        title: "Kung 'Di Rin Lang Ikaw",
+                        channelTitle: "December Avenue",
+                        thumbnail: "https://i.ytimg.com/vi/JnQIHs_UT-Q/maxresdefault.jpg",
+                        viewCount: "18M",
+                        publishedAt: new Date("2017-11-20")
+                    },
+                    {
+                        id: "Vrd8uDWRmx0",
+                        title: "Wannabe",
+                        channelTitle: "Cup of Joe",
+                        thumbnail: "https://i.ytimg.com/vi/Vrd8uDWRmx0/maxresdefault.jpg",
+                        viewCount: "1.2M",
+                        publishedAt: new Date("2021-05-10")
+                    },
+                    {
+                        id: "Qz4GcVxWU7Y",
+                        title: "Paalam",
+                        channelTitle: "Dionela",
+                        thumbnail: "https://i.ytimg.com/vi/Qz4GcVxWU7Y/maxresdefault.jpg",
+                        viewCount: "3.5M",
+                        publishedAt: new Date("2020-08-15")
+                    }
+                ];
+                setTrendingTracks(fallbackTracks);
             }
         };
 
         fetchTrendingMusic();
     }, []);
 
-    // Fetch new releases (recent music uploads)
+    // Fetch new releases from Filipino artists
     useEffect(() => {
         const fetchNewReleases = async () => {
-            try {
-                const apiKey = getYoutubeApiKey();
-                const oneMonthAgo = new Date();
-                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-                const publishedAfter = oneMonthAgo.toISOString();
+            // List of popular Filipino artists/bands to search for
+            const filipinoArtists = [
+                "BINI",
+                "SB19",
+                "Ben&Ben",
+                "Moira Dela Torre",
+                "December Avenue",
+                "Zack Tabudlo",
+                "Arthur Nery",
+                "Juan Karlos",
+                "Adie",
+                "BGYO",
+                "Sarah Geronimo",
+                "KZ Tandingan",
+                "Morissette Amon",
+                "Alamat",
+                "P-Pop"
+            ];
 
-                const response = await fetch(
-                    `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=8&order=date&publishedAfter=${publishedAfter}&key=${apiKey}`
-                );
+            let attempts = 0;
+            let releasesData = null;
 
-                if (!response.ok) {
-                    if (response.status === 403) {
-                        rotateApiKey();
-                        return;
+            while (attempts < 13 && !releasesData) { // 13 is the number of API keys we have
+                try {
+                    const apiKey = getYoutubeApiKey();
+                    const oneMonthAgo = new Date();
+                    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                    const publishedAfter = oneMonthAgo.toISOString();
+
+                    // Randomly select 3 artists to search for to get a variety of results
+                    const selectedArtists = filipinoArtists
+                        .sort(() => 0.5 - Math.random())
+                        .slice(0, 3)
+                        .join(" OR ");
+
+                    const response = await fetch(
+                        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=8&order=date&publishedAfter=${publishedAfter}&q=${encodeURIComponent(selectedArtists)}&regionCode=PH&relevanceLanguage=tl&key=${apiKey}`
+                    );
+
+                    if (!response.ok) {
+                        if (response.status === 403) {
+                            rotateApiKey();
+                            attempts++;
+                            console.log(`API quota exceeded, rotated to next key. Attempt ${attempts}/13`);
+                            continue; // Try with the next key
+                        }
+                        throw new Error(`Network response was not ok: ${response.status}`);
                     }
-                    throw new Error('Network response was not ok');
+
+                    const data = await response.json();
+
+                    if (data.items && data.items.length > 0) {
+                        releasesData = data;
+                        break; // Success! Exit the loop
+                    }
+
+                    // If we get here without valid data, try the next key
+                    rotateApiKey();
+                    attempts++;
+
+                } catch (error) {
+                    console.error(`Error fetching new releases (attempt ${attempts}/13):`, error);
+                    rotateApiKey();
+                    attempts++;
                 }
+            }
 
-                const data = await response.json();
-                const formattedReleases = data.items.map(item => ({
-                    id: item.id.videoId,
-                    title: item.snippet.title,
-                    channelTitle: item.snippet.channelTitle,
-                    thumbnail: item.snippet.thumbnails.high.url,
-                    publishedAt: new Date(item.snippet.publishedAt)
-                }));
+            if (releasesData && releasesData.items && releasesData.items.length > 0) {
+                // Get additional details for each video to get better thumbnails and view counts
+                try {
+                    const apiKey = getYoutubeApiKey();
+                    const videoIds = releasesData.items.map(item => item.id.videoId).join(',');
 
-                setNewReleases(formattedReleases);
-            } catch (error) {
-                console.error("Error fetching new releases:", error);
+                    const videoDetailsResponse = await fetch(
+                        `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds}&key=${apiKey}`
+                    );
+
+                    if (videoDetailsResponse.ok) {
+                        const videoDetailsData = await videoDetailsResponse.json();
+
+                        if (videoDetailsData.items && videoDetailsData.items.length > 0) {
+                            // Create a map of video details by ID for easy lookup
+                            const videoDetailsMap = {};
+                            videoDetailsData.items.forEach(item => {
+                                videoDetailsMap[item.id] = item;
+                            });
+
+                            // Format the releases with enhanced data
+                            const formattedReleases = releasesData.items.map(item => {
+                                const videoId = item.id.videoId;
+                                const videoDetails = videoDetailsMap[videoId];
+
+                                // Clean up title by removing common suffixes
+                                let title = item.snippet.title;
+                                const suffixesToRemove = [
+                                    '(Official Music Video)',
+                                    '(Official Video)',
+                                    '(Music Video)',
+                                    '(Lyric Video)',
+                                    '(Official Lyric Video)',
+                                    '(Official Audio)',
+                                    '(Audio)',
+                                    '[Official Music Video]',
+                                    '[Official Video]',
+                                    '[Music Video]',
+                                    '[Lyric Video]',
+                                    '[Official Lyric Video]',
+                                    '[Official Audio]',
+                                    '[Audio]'
+                                ];
+
+                                for (const suffix of suffixesToRemove) {
+                                    if (title.includes(suffix)) {
+                                        title = title.replace(suffix, '').trim();
+                                    }
+                                }
+
+                                return {
+                                    id: videoId,
+                                    title: title,
+                                    originalTitle: item.snippet.title,
+                                    channelTitle: item.snippet.channelTitle,
+                                    thumbnail: videoDetails ?
+                                        (videoDetails.snippet.thumbnails.maxres?.url ||
+                                            videoDetails.snippet.thumbnails.high?.url ||
+                                            item.snippet.thumbnails.high?.url) :
+                                        item.snippet.thumbnails.high?.url,
+                                    publishedAt: new Date(item.snippet.publishedAt),
+                                    viewCount: videoDetails ?
+                                        parseInt(videoDetails.statistics.viewCount).toLocaleString() :
+                                        "N/A"
+                                };
+                            });
+
+                            setNewReleases(formattedReleases);
+                        }
+                    }
+                } catch (detailsError) {
+                    console.error("Error fetching video details:", detailsError);
+
+                    // If details fetch fails, still use the basic data
+                    const formattedReleases = releasesData.items.map(item => ({
+                        id: item.id.videoId,
+                        title: item.snippet.title,
+                        channelTitle: item.snippet.channelTitle,
+                        thumbnail: item.snippet.thumbnails.high?.url,
+                        publishedAt: new Date(item.snippet.publishedAt)
+                    }));
+
+                    setNewReleases(formattedReleases);
+                }
+            } else {
+                // Fallback to static data if all API attempts fail
+                console.log("All API attempts failed, using fallback new releases data");
+                const fallbackReleases = [
+                    {
+                        id: "Qz4GcVxWU7Y",
+                        title: "Paalam",
+                        channelTitle: "Dionela",
+                        thumbnail: "https://i.ytimg.com/vi/Qz4GcVxWU7Y/maxresdefault.jpg",
+                        publishedAt: new Date(new Date().setDate(new Date().getDate() - 5)),
+                        viewCount: "3.5M"
+                    },
+                    {
+                        id: "PFtEP2aYi9A",
+                        title: "Kathang Isip",
+                        channelTitle: "Ben&Ben",
+                        thumbnail: "https://i.ytimg.com/vi/PFtEP2aYi9A/maxresdefault.jpg",
+                        publishedAt: new Date(new Date().setDate(new Date().getDate() - 8)),
+                        viewCount: "15M"
+                    },
+                    {
+                        id: "0XktQCjx0VE",
+                        title: "Tagpuan",
+                        channelTitle: "Moira Dela Torre",
+                        thumbnail: "https://i.ytimg.com/vi/0XktQCjx0VE/maxresdefault.jpg",
+                        publishedAt: new Date(new Date().setDate(new Date().getDate() - 12)),
+                        viewCount: "25M"
+                    },
+                    {
+                        id: "JnQIHs_UT-Q",
+                        title: "Kung 'Di Rin Lang Ikaw",
+                        channelTitle: "December Avenue",
+                        thumbnail: "https://i.ytimg.com/vi/JnQIHs_UT-Q/maxresdefault.jpg",
+                        publishedAt: new Date(new Date().setDate(new Date().getDate() - 15)),
+                        viewCount: "18M"
+                    }
+                ];
+
+                setNewReleases(fallbackReleases);
             }
         };
 
@@ -482,7 +797,7 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage, onPlayPause, queue
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-2xl font-bold flex items-center gap-2">
                                 <Sparkles className="h-5 w-5 text-primary" />
-                                New Releases
+                                New OPM Releases
                             </h2>
                             <Button variant="ghost" size="sm">
                                 View All <ChevronRight className="h-4 w-4 ml-1" />
@@ -516,7 +831,7 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage, onPlayPause, queue
                                                     <Play className="h-6 w-6 fill-current" />
                                                 </Button>
                                             </div>
-                                            <Badge className="absolute top-2 right-2 bg-primary/80 hover:bg-primary">New</Badge>
+                                            <Badge className="absolute top-2 right-2 bg-primary/80 hover:bg-primary">New OPM</Badge>
                                         </div>
                                         <CardContent className="p-3">
                                             <h3 className="font-medium line-clamp-1 group-hover:text-primary transition-colors">{release.title}</h3>
@@ -526,6 +841,9 @@ const Dashboard = ({ currentUser, currentTrack, isPlayerPage, onPlayPause, queue
                                                     <Calendar className="h-3 w-3" />
                                                     {formatDistanceToNow(release.publishedAt, { addSuffix: true })}
                                                 </Badge>
+                                                {release.viewCount && release.viewCount !== "N/A" && (
+                                                    <span className="text-xs text-muted-foreground">{release.viewCount} views</span>
+                                                )}
                                             </div>
                                         </CardContent>
                                     </Card>

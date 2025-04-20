@@ -201,7 +201,7 @@ const MainPage = () => {
 
                 {/* Hero content */}
                 <motion.div
-                    className="container px-4 pt-20 md:px-6 flex flex-col items-center text-center z-10 max-w-5xl mx-auto"
+                    className="container px-4 pt-40 md:px-6 flex flex-col items-center text-center z-10 max-w-5xl mx-auto"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
@@ -246,17 +246,13 @@ const MainPage = () => {
 
                     {/* Hero animation */}
                     <motion.div
-                        className="mt-16 md:mt-20 w-full max-w-2xl mx-auto"
+                        className="w-full max-w-2xl mx-auto"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4, duration: 0.8 }}
                     >
-                        <div className="relative aspect-video rounded-xl overflow-hidden border border-border shadow-2xl">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 to-blue-500/10"></div>
-                            <div className="w-full h-full">
-                                <Lottie animationData={musicAnimation} loop={true} />
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
+                        <div className="relative aspect-video rounded-xl overflow-hidden">
+                            
                         </div>
                     </motion.div>
 
