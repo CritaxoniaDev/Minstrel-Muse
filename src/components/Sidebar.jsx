@@ -39,19 +39,38 @@ const Sidebar = ({ user, isMinimized, setIsMinimized, isOpen, setIsOpen }) => {
     const [playlistCount, setPlaylistCount] = useState(0);
     const [users, setUsers] = useState([]);
 
-    const menuItems = [
+    // Regular user menu items (basic access)
+    const userMenuItems = [
         { icon: Home, label: 'Home', path: '/dashboard' },
-        { icon: Library, label: 'Library', path: '/dashboard/library' },
-        { icon: Users, label: 'Social', path: '/dashboard/social' }, // Added Social navigation item
+        { icon: Library, label: 'Library', path: '/dashboard/library' }
+    ];
+
+    // Moderator menu items (only social and youtube downloader)
+    const moderatorMenuItems = [
+        { icon: Users, label: 'Social', path: '/dashboard/social' },
         { icon: Download, label: 'YouTube Downloader', path: '/dashboard/youtube-downloader' }
     ];
 
+    // Admin menu items (full access)
     const adminMenuItems = [
         { icon: Shield, label: 'Admin Panel', path: '/dashboard/admin' },
         { icon: Users2, label: 'User Management', path: '/dashboard/admin/users' },
     ];
 
-    const visibleMenuItems = user?.isApproved ? menuItems : [];
+    // Determine which menu items to show based on user role
+    let visibleMenuItems = [];
+    
+    if (user?.isApproved) {
+        // Base items for all users
+        visibleMenuItems = [...userMenuItems];
+        
+        // Add moderator items if user is moderator or admin
+        if (user?.role === 'moderator' || user?.role === 'admin') {
+            visibleMenuItems = [...visibleMenuItems, ...moderatorMenuItems];
+        }
+    }
+    
+    // Admin-only items
     const visibleAdminItems = user?.isApproved && user?.role === 'admin' ? adminMenuItems : [];
 
     useEffect(() => {
@@ -135,7 +154,7 @@ const Sidebar = ({ user, isMinimized, setIsMinimized, isOpen, setIsOpen }) => {
                             {(!isMinimized || !isDesktop) && (
                                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-3 py-1 rounded-full text-xs flex items-center gap-1">
                                     <Music2 className="h-3 w-3" />
-                                    {user?.role === 'admin' ? 'Admin' : 'Online'}
+                                    {user?.role === 'admin' ? 'Admin' : user?.role === 'moderator' ? 'Moderator' : 'Online'}
                                 </div>
                             )}
                         </div>

@@ -189,6 +189,7 @@ const UserManagement = () => {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="user">User</SelectItem>
+                                                    <SelectItem value="moderator">Moderator</SelectItem>
                                                     <SelectItem value="admin">Admin</SelectItem>
                                                 </SelectContent>
                                             </Select>
