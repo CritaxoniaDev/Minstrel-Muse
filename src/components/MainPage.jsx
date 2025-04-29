@@ -175,22 +175,22 @@ const MainPage = () => {
                 className="w-full flex flex-col items-center justify-center relative overflow-hidden"
             >
                 {/* Background video */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/70 to-background z-10"></div>
-                    <video
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="absolute w-full h-full object-cover opacity-50 dark:opacity-30"
-                    >
-                        <source src="/videos/bg-video-mainpage.mp4" type="video/mp4" />
-                        {/* Fallback image if video doesn't load */}
-                        <img
-                            src="/images/music-background-fallback.jpg"
-                            alt="Music background"
-                            className="absolute w-full h-full object-cover"
-                        />
-                    </video>
+                <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/70 to-background z-10"></div>
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute w-full h-full object-cover opacity-50 dark:opacity-30"
+                >
+                    <source src="/videos/bg-video-mainpage.mp4" type="video/mp4" />
+                    {/* Fallback image if video doesn't load */}
+                    <img
+                        src="/images/music-background-fallback.jpg"
+                        alt="Music background"
+                        className="absolute w-full h-full object-cover"
+                    />
+                </video>
 
                 {/* Background elements */}
                 <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -212,8 +212,11 @@ const MainPage = () => {
                         <span>Enterprise-grade Music Experience</span>
                     </div>
 
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
-                        Transform Your Music Experience
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4">
+                        <span className="text-black dark:text-white">Transform Your Music </span>
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
+                            Experience
+                        </span>
                     </h1>
 
                     <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8 md:mb-12">
@@ -252,7 +255,7 @@ const MainPage = () => {
                         transition={{ delay: 0.4, duration: 0.8 }}
                     >
                         <div className="relative aspect-video rounded-xl overflow-hidden">
-                            
+
                         </div>
                     </motion.div>
 
@@ -391,108 +394,6 @@ const MainPage = () => {
                                 Learn About Security
                             </Button>
                         </motion.div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Stats Section */}
-            <section
-                ref={statsRef}
-                className="w-full py-20 md:py-28 relative overflow-hidden"
-            >
-                <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(120,119,198,0.05)_0,rgba(255,255,255,0)_100%)]"></div>
-                <div className="container px-4 md:px-6 mx-auto">
-                    <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
-                            Trusted by Music Professionals
-                        </h2>
-                        <p className="text-xl text-muted-foreground">
-                            Join thousands of enterprises and professionals who trust MinstrelMuse
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                        {[
-                            { value: "10M+", label: "Active Users" },
-                            { value: "500K+", label: "Enterprise Clients" },
-                            { value: "99.9%", label: "Uptime" },
-                            { value: "24/7", label: "Support" }
-                        ].map((stat, i) => (
-                            <motion.div
-                                key={i}
-                                className="p-6 bg-card border border-border rounded-xl relative overflow-hidden"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: 0.1 * i }}
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5"></div>
-                                <h3 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
-                                    {stat.value}
-                                </h3>
-                                <p className="text-muted-foreground">{stat.label}</p>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Testimonials Section */}
-            <section
-                ref={testimonialsRef}
-                className="w-full py-20 md:py-28 bg-muted/30 relative"
-            >
-                <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-                <div className="container px-4 md:px-6 mx-auto">
-                    <div className="text-center max-w-3xl mx-auto mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
-                            What Our Clients Say
-                        </h2>
-                        <p className="text-xl text-muted-foreground">
-                            Hear from enterprise clients who have transformed their music experience
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[
-                            {
-                                quote: "MinstrelMuse has revolutionized how our creative team accesses and utilizes music resources. The analytics features are particularly impressive.",
-                                author: "Sarah Johnson",
-                                title: "Creative Director, TechVision Inc."
-                            },
-                            {
-                                quote: "The enterprise security features give us peace of mind when handling sensitive audio content. Best music platform we've used in our 15 years of operation.",
-                                author: "Michael Chen",
-                                title: "CTO, Global Media Solutions"
-                            },
-                            {
-                                quote: "Our productivity increased by 40% after implementing MinstrelMuse across our marketing department. The collaborative features are game-changing.",
-                                author: "Emma Rodriguez",
-                                title: "VP of Marketing, Innovate Corp"
-                            }
-                        ].map((testimonial, i) => (
-                            <motion.div
-                                key={i}
-                                className="p-6 bg-card border border-border rounded-xl relative"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: 0.1 * i }}
-                            >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-600"></div>
-                                <div className="mb-4 text-4xl text-purple-500">"</div>
-                                <p className="mb-6 italic">{testimonial.quote}</p>
-                                <div className="flex items-center">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold">
-                                        {testimonial.author.charAt(0)}
-                                    </div>
-                                    <div className="ml-4">
-                                        <p className="font-semibold">{testimonial.author}</p>
-                                        <p className="text-sm text-muted-foreground">{testimonial.title}</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
                     </div>
                 </div>
             </section>

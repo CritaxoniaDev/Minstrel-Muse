@@ -2,8 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { useEffect, useState } from 'react';
 import { auth, db } from './config/firebase';
 import { cn } from "@/lib/utils";
-import { doc, getDoc, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { Play, Pause, SkipBack, SkipForward, Volume2, ListMusic, X } from 'lucide-react';
+import { doc, getDoc, collection, limit, addDoc, serverTimestamp, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { Play, Pause, Loader2, SkipBack, SkipForward, Volume2, ListMusic, X } from 'lucide-react';
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,8 @@ import YoutubeDownloader from './pages/YoutubeDownloader';
 import Library from './components/Library';
 import PlaylistDetail from './components/PlaylistDetail';
 import NotFound from './components/Error/404';
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy'
 import SharedPost from '@/components/SharedPost';
 import './App.css';
 import Lottie from 'lottie-react';
@@ -68,6 +70,8 @@ function App() {
   const location = useLocation();
   const isPlayerPage = location.pathname === '/dashboard/player';
   const [isMinimized, setIsMinimized] = useState(true);
+  const [recommendedTracks, setRecommendedTracks] = useState([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -99,6 +103,106 @@ function App() {
     }
   };
 
+  // Add this function to your component
+  const fetchRecommendedTracks = async () => {
+    if (isLoadingRecommendations) return;
+
+    try {
+      setIsLoadingRecommendations(true);
+
+      // Option 1: If you have a dedicated recommendations collection
+      // const recommendationsQuery = query(
+      //   collection(db, "recommendations"),
+      //   where("userId", "==", user?.uid),
+      //   limit(10)
+      // );
+
+      // Option 2: If you want to use the tracks collection with random selection
+      // This is a simple approach - for production, you might want a more sophisticated recommendation algorithm
+      let tracksQuery;
+
+      // If user has listened to tracks before, try to get similar genres/artists
+      if (currentTrack) {
+        tracksQuery = query(
+          collection(db, "tracks"),
+          where("channelTitle", "==", currentTrack.channelTitle), // Same artist/channel
+          limit(5)
+        );
+
+        const similarArtistSnapshot = await getDocs(tracksQuery);
+        let tracks = similarArtistSnapshot.docs.map(doc => ({
+          id: doc.data().videoId || doc.id,
+          title: doc.data().title,
+          thumbnail: doc.data().thumbnail || doc.data().thumbnailUrl,
+          channelTitle: doc.data().channelTitle,
+          ...doc.data()
+        }));
+
+        // Filter out the current track
+        tracks = tracks.filter(track => track.id !== currentTrack.id);
+
+        // If we don't have enough tracks, get some random ones
+        if (tracks.length < 5) {
+          const randomQuery = query(
+            collection(db, "tracks"),
+            limit(10 - tracks.length)
+          );
+
+          const randomSnapshot = await getDocs(randomQuery);
+          const randomTracks = randomSnapshot.docs.map(doc => ({
+            id: doc.data().videoId || doc.id,
+            title: doc.data().title,
+            thumbnail: doc.data().thumbnail || doc.data().thumbnailUrl,
+            channelTitle: doc.data().channelTitle,
+            ...doc.data()
+          })).filter(track =>
+            track.id !== currentTrack.id &&
+            !tracks.some(t => t.id === track.id)
+          );
+
+          tracks = [...tracks, ...randomTracks];
+        }
+
+        setRecommendedTracks(tracks);
+      } else {
+        // If no current track, just get random tracks
+        tracksQuery = query(
+          collection(db, "tracks"),
+          limit(10)
+        );
+
+        const querySnapshot = await getDocs(tracksQuery);
+        const tracks = querySnapshot.docs.map(doc => ({
+          id: doc.data().videoId || doc.id,
+          title: doc.data().title,
+          thumbnail: doc.data().thumbnail || doc.data().thumbnailUrl,
+          channelTitle: doc.data().channelTitle,
+          ...doc.data()
+        }));
+
+        setRecommendedTracks(tracks);
+      }
+
+    } catch (error) {
+      console.error("Error fetching recommended tracks:", error);
+      // If there's an error, try to use search results as fallback
+      if (searchResults.length > 0) {
+        setRecommendedTracks(searchResults.filter(result =>
+          !currentTrack || result.id !== currentTrack.id
+        ));
+      }
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
+
+  // Add this useEffect to load recommendations when needed
+  useEffect(() => {
+    if (user && (!recommendedTracks.length || recommendedTracks.length < 3)) {
+      fetchRecommendedTracks();
+    }
+  }, [user, currentTrack]);
+
   // Add this handler function
   const handleRemoveFromQueue = (indexToRemove) => {
     setQueue(prevQueue => prevQueue.filter((_, index) => index !== indexToRemove));
@@ -123,7 +227,6 @@ function App() {
     }
   }, [currentTrack]);
 
-  // Enhanced player state handler with stable updates
   const handlePlayerStateChange = (event) => {
     if (event.data === 1) { // Playing
       setDuration(Math.floor(event.target.getDuration()));
@@ -161,6 +264,29 @@ function App() {
           description: `${nextTrack.title}`,
           duration: 3000,
         });
+      } else if (recommendedTracks.length > 0) {
+        // Play a random recommended track when queue is empty
+        const randomIndex = Math.floor(Math.random() * recommendedTracks.length);
+        const randomTrack = recommendedTracks[randomIndex];
+
+        // Remove the selected track from recommendations to avoid immediate repeats
+        const updatedRecommendations = [...recommendedTracks];
+        updatedRecommendations.splice(randomIndex, 1);
+        setRecommendedTracks(updatedRecommendations);
+
+        setCurrentTrack(randomTrack);
+        setIsPlaying(true);
+
+        toast({
+          title: "Playing Recommended Track",
+          description: `${randomTrack.title}`,
+          duration: 3000,
+        });
+
+        // Fetch more recommendations in the background
+        if (updatedRecommendations.length < 3) {
+          fetchRecommendedTracks();
+        }
       } else {
         const audio = new Audio(endSound);
         audio.play();
@@ -173,6 +299,9 @@ function App() {
           description: "No more tracks in queue",
           duration: 3000,
         });
+
+        // Try to fetch more recommendations for next time
+        fetchRecommendedTracks();
       }
     }
   };
@@ -269,6 +398,25 @@ function App() {
         description: `${nextTrack.title}`,
         duration: 3000,
       });
+    } else if (recommendedTracks.length > 0) {
+      // Play a random recommended track when queue is empty
+      const randomIndex = Math.floor(Math.random() * recommendedTracks.length);
+      const randomTrack = recommendedTracks[randomIndex];
+
+      // Remove the selected track from recommendations
+      const updatedRecommendations = [...recommendedTracks];
+      updatedRecommendations.splice(randomIndex, 1);
+      setRecommendedTracks(updatedRecommendations);
+
+      setCurrentTrack(randomTrack);
+      setIsPlaying(true);
+      setHasPlayedEndSound(false);
+
+      toast({
+        title: "Playing Recommended Track",
+        description: `${randomTrack.title}`,
+        duration: 3000,
+      });
     } else {
       if (!hasPlayedEndSound) {
         const audio = new Audio(endSound);
@@ -278,9 +426,12 @@ function App() {
         setIsPlaying(false);
         toast({
           title: "Queue Finished",
-          description: "No more tracks in queue",
+          description: "No more tracks available",
           duration: 3000,
         });
+
+        // Try to fetch more recommendations
+        fetchRecommendedTracks();
       }
     }
   };
@@ -402,6 +553,10 @@ function App() {
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
 
+          {/* Legal pages - accessible to everyone */}
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          
           {/* Add the shared post route here */}
           <Route path="/shared/:postId" element={<SharedPost />} />
 
@@ -733,12 +888,80 @@ function App() {
                                 </div>
                               ))
                             ) : (
-                              <div className={cn(
-                                "text-center text-muted-foreground",
-                                isMobileS ? "p-3 text-xs" : "p-4 text-sm"
-                              )}>
-                                Queue is empty
-                              </div>
+                              <>
+                                {recommendedTracks.length > 0 ? (
+                                  <div>
+                                    <div className={cn(
+                                      "border-b flex items-center justify-between",
+                                      isMobileS ? "p-2" : "p-3"
+                                    )}>
+                                      <p className={cn(
+                                        "font-medium",
+                                        isMobileS ? "text-xs" : "text-sm"
+                                      )}>
+                                        Recommended Tracks
+                                      </p>
+                                    </div>
+                                    {recommendedTracks.slice(0, 5).map((track, index) => (
+                                      <div
+                                        key={track.id}
+                                        className={cn(
+                                          "flex items-center hover:bg-accent transition-colors",
+                                          isMobileS ? "p-2 space-x-2" : "p-3 space-x-3"
+                                        )}
+                                      >
+                                        <span className={cn(
+                                          "text-muted-foreground w-4 flex-shrink-0",
+                                          isMobileS ? "text-xs" : "text-sm"
+                                        )}>•</span>
+                                        <img
+                                          src={track.thumbnail}
+                                          alt={track.title}
+                                          className={cn(
+                                            "rounded object-cover flex-shrink-0",
+                                            isMobileS ? "w-8 h-8" : "w-10 h-10"
+                                          )}
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                          <p className={cn(
+                                            "font-medium truncate",
+                                            isMobileS ? "text-xs" : "text-sm"
+                                          )}>{track.title}</p>
+                                          <p className="text-xs text-muted-foreground truncate">{track.channelTitle}</p>
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className={isMobileS ? "h-6 w-6" : "h-8 w-8"}
+                                          onClick={() => {
+                                            setCurrentTrack(track);
+                                            setIsPlaying(true);
+                                            // Remove this track from recommendations
+                                            setRecommendedTracks(prev => prev.filter(t => t.id !== track.id));
+                                          }}
+                                        >
+                                          <Play className={isMobileS ? "h-3 w-3" : "h-4 w-4"} />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                    {recommendedTracks.length > 5 && (
+                                      <p className={cn(
+                                        "text-center text-muted-foreground py-2",
+                                        isMobileS ? "text-xs" : "text-sm"
+                                      )}>
+                                        +{recommendedTracks.length - 5} more recommendations
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className={cn(
+                                    "text-center text-muted-foreground",
+                                    isMobileS ? "p-3 text-xs" : "p-4 text-sm"
+                                  )}>
+                                    Queue is empty
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         </PopoverContent>
@@ -909,11 +1132,118 @@ function App() {
                                   </div>
                                 ))
                               ) : (
-                                <div className="p-4 text-center text-sm text-muted-foreground">
-                                  Queue is empty
-                                </div>
+                                <>
+                                  {recommendedTracks.length > 0 ? (
+                                    <div>
+                                      <div className="p-3 border-b">
+                                        <p className="text-sm font-medium">Recommended Tracks</p>
+                                        <p className="text-xs text-muted-foreground">Will play automatically when queue ends</p>
+                                      </div>
+                                      {recommendedTracks.slice(0, 5).map((track, index) => (
+                                        <div
+                                          key={track.id}
+                                          className="flex items-center space-x-3 p-3 hover:bg-accent transition-colors"
+                                        >
+                                          <span className="text-sm text-muted-foreground w-5">•</span>
+                                          <img
+                                            src={track.thumbnail}
+                                            alt={track.title}
+                                            className="w-10 h-10 rounded object-cover"
+                                          />
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium truncate">{track.title}</p>
+                                            <p className="text-xs text-muted-foreground">{track.channelTitle}</p>
+                                          </div>
+                                          <div className="flex items-center">
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              onClick={() => {
+                                                setCurrentTrack(track);
+                                                setIsPlaying(true);
+                                                // Remove this track from recommendations
+                                                setRecommendedTracks(prev => prev.filter(t => t.id !== track.id));
+                                              }}
+                                            >
+                                              <Play className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              onClick={() => {
+                                                handleAddToQueue(track);
+                                                // Remove from recommendations to avoid duplicates
+                                                setRecommendedTracks(prev => prev.filter(t => t.id !== track.id));
+                                              }}
+                                              className="text-primary hover:text-primary"
+                                            >
+                                              <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                              >
+                                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                              </svg>
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                      {recommendedTracks.length > 5 && (
+                                        <p className="text-xs text-center text-muted-foreground py-2">
+                                          +{recommendedTracks.length - 5} more recommendations
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="p-4 text-center text-sm text-muted-foreground">
+                                      Queue is empty
+                                      {isLoadingRecommendations && (
+                                        <div className="mt-2 flex justify-center">
+                                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </div>
+                            {/* Add a refresh recommendations button at the bottom */}
+                            {recommendedTracks.length > 0 && (
+                              <div className="p-2 border-t flex justify-center">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-xs text-muted-foreground hover:text-foreground"
+                                  onClick={() => {
+                                    setRecommendedTracks([]);
+                                    fetchRecommendedTracks();
+                                  }}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="mr-1"
+                                  >
+                                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+                                  </svg>
+                                  Refresh Recommendations
+                                </Button>
+                              </div>
+                            )}
                           </PopoverContent>
                         </Popover>
                       </div>

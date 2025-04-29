@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { auth, db } from '../../config/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from 'lucide-react';
+import { Loader2, Music, Lock, ChevronRight } from 'lucide-react';
 import { useMediaQuery } from 'react-responsive';
 
 const Auth = () => {
@@ -58,7 +58,7 @@ const Auth = () => {
                 });
             }
 
-            // Add the login activity notification here
+            // Add the login activity notification
             await addDoc(collection(db, "userActivities"), {
                 userId: result.user.uid,
                 userName: result.user.displayName,
@@ -75,65 +75,95 @@ const Auth = () => {
     };
 
     return (
-        <>
+        <div className="pt-20 flex items-center justify-center p-4 bg-white">
             <Card className={`
-                mx-auto shadow-2xl w-full 
-                ${isMobile ? 'h-[500px] max-w-[95%]' : isTablet ? 'h-[550px] max-w-3xl' : 'h-[600px] max-w-4xl'}
+                mx-auto w-full 
+                ${isMobile ? 'max-w-[95%]' : isTablet ? 'max-w-3xl' : 'max-w-4xl'}
                 grid ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'} 
-                overflow-hidden bg-white/5 backdrop-blur-lg mt-10
+                rounded-lg overflow-hidden
+                shadow-[0_10px_40px_rgba(0,0,0,0.05)]
+                border border-gray-100
+                bg-white
             `}>
                 {/* Left Side - Visual Section */}
-                <div className="relative tracking-tighter hidden md:block h-full">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-500 to-purple-700">
-                        <div className="absolute inset-0 bg-black/30" />
-                        <img
-                            src="/resources/background.webp"
-                            alt="Enterprise Background"
-                            className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-80"
-                        />
-                    </div>
-                    <div className="relative p-12 flex flex-col h-full justify-between text-white">
-                        <div className="flex items-center gap-3">
-                            <img
-                                src="/images/minstrel-logo.png"
-                                alt="MinstrelMuse Logo"
-                                className="w-10 h-10 rounded-xl shadow-lg"
-                            />
-                            <span className="text-2xl font-bold tracking-tight">MinstrelMuse</span>
+                <div className="relative hidden md:block h-full">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 overflow-hidden">
+                        <div className="absolute inset-0 opacity-10">
+                            <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                {[...Array(8)].map((_, i) => (
+                                    <circle
+                                        key={i}
+                                        cx={Math.random() * 100}
+                                        cy={Math.random() * 100}
+                                        r={Math.random() * 8 + 2}
+                                        fill="rgba(255,255,255,0.2)"
+                                    />
+                                ))}
+                            </svg>
                         </div>
+                    </div>
+                    <div className="relative p-10 flex flex-col h-full justify-between text-white z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg">
+                                <img
+                                    src="/images/minstrel-logo.png"
+                                    alt="MinstrelMuse Logo"
+                                    className="w-8 h-8 rounded-md"
+                                />
+                            </div>
+                            <span className="text-xl font-semibold tracking-tight">MinstrelMuse</span>
+                        </div>
+
                         <div className="space-y-6">
-                            <h3 className="text-3xl font-bold leading-tight">Discover Your Perfect <br />Music Experience</h3>
-                            <p className="text-base opacity-90 leading-relaxed">Join our community of music lovers and explore endless possibilities.</p>
+                            <div className="space-y-2">
+                                <h3 className="text-3xl font-semibold leading-tight">
+                                    Enterprise Music <br />
+                                    <span className="font-bold">
+                                        Management Platform
+                                    </span>
+                                </h3>
+                                <p className="text-sm opacity-90 leading-relaxed max-w-md">
+                                    Streamlined access to your organization's music resources, analytics, and collaboration tools.
+                                </p>
+                            </div>
+
+                            <div className="space-y-3 pt-2">
+                                {['Secure Enterprise Access', 'Centralized Management', 'Advanced Analytics'].map((feature, i) => (
+                                    <div key={i} className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">
+                                            <ChevronRight className="w-3 h-3" />
+                                        </div>
+                                        <span className="text-sm">{feature}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="pt-6 text-xs text-white/70">
+                            © {new Date().getFullYear()} MinstrelMuse. All rights reserved.
                         </div>
                     </div>
                 </div>
 
                 {/* Right Side - Auth Form */}
-                <div className={`
-        tracking-tighter flex flex-col items-center justify-center min-h-full bg-white
-        ${isMobile ? 'p-6' : isTablet ? 'p-8' : 'p-12'}
-    `}>
-                    <div className={`w-full ${isMobile ? 'max-w-[320px]' : 'max-w-md'} mx-auto backdrop-blur-sm`}>
-                        <CardHeader className={`space-y-4 px-0 text-center ${isMobile ? 'mb-6' : 'mb-10'}`}>
-                            <CardTitle className={`
-                    font-bold bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 
-                    bg-clip-text text-transparent animate-gradient
-                    ${isMobile ? 'text-3xl' : 'text-4xl'}
-                `}>
-                                Welcome Back
+                <div className="flex flex-col items-center justify-center min-h-full bg-white p-8 md:p-10">
+                    <div className="w-full max-w-md mx-auto">
+                        <CardHeader className="space-y-3 px-0 text-center mb-8">
+                            <div className="mx-auto w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+                                <Lock className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <CardTitle className="text-2xl font-semibold text-gray-900">
+                                Welcome to MinstrelMuse
                             </CardTitle>
-                            <CardDescription className={`
-                    text-gray-600/90 leading-relaxed
-                    ${isMobile ? 'text-sm' : 'text-base'}
-                `}>
-                                Continue your musical journey with one click
+                            <CardDescription className="text-gray-500 text-sm">
+                                Sign in to access your enterprise dashboard
                             </CardDescription>
                         </CardHeader>
 
-                        <CardContent className={`space-y-8 px-0`}>
+                        <CardContent className="space-y-6 px-0">
                             {error && (
-                                <Alert variant="destructive" className="animate-shake shadow-lg border-red-200">
-                                    <AlertDescription className={`font-medium ${isMobile ? 'text-sm' : 'text-base'}`}>
+                                <Alert variant="destructive" className="bg-red-50 text-red-800 border-red-100 rounded-lg">
+                                    <AlertDescription className="text-sm font-medium">
                                         {error}
                                     </AlertDescription>
                                 </Alert>
@@ -143,68 +173,55 @@ const Auth = () => {
                                 variant="outline"
                                 onClick={signInWithGoogle}
                                 disabled={isLoading}
-                                className={`
-                        w-full relative overflow-hidden group border-2 
-                        hover:border-purple-400 transition-all duration-500 
-                        shadow-lg hover:shadow-xl rounded-xl
-                        ${isMobile ? 'h-14' : 'h-16'}
-                    `}
+                                className="w-full h-12 relative border border-gray-200 hover:border-blue-400 
+                                           hover:bg-blue-50 transition-all duration-300 rounded-lg shadow-sm"
                             >
-                                <div className="absolute inset-0 w-3 bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600 transition-all duration-500 ease-out group-hover:w-full opacity-90"></div>
-                                <div className="relative flex items-center justify-center gap-4">
-                                    <div className="bg-white p-2 rounded-lg shadow-sm">
-                                        <img
-                                            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                                            alt="Google"
-                                            className={`
-                                    transform group-hover:scale-110 transition-transform duration-300
-                                    ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}
-                                `}
-                                        />
-                                    </div>
-                                    <span className={`
-                            font-semibold group-hover:text-white transition-colors duration-300
-                            ${isMobile ? 'text-base' : 'text-lg'}
-                        `}>
+                                <div className="flex items-center justify-center gap-3">
+                                    <img
+                                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                                        alt="Google"
+                                        className="w-5 h-5"
+                                    />
+                                    <span className="text-gray-700 font-medium">
                                         {isLoading ? (
-                                            <div className="flex items-center gap-3">
-                                                <Loader2 className={`animate-spin ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                                                <span>Connecting...</span>
+                                            <div className="flex items-center gap-2">
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                <span>Authenticating...</span>
                                             </div>
                                         ) : (
-                                            'Continue with Google'
+                                            'Sign in with Google'
                                         )}
                                     </span>
                                 </div>
                             </Button>
 
-                            <div className="flex items-center justify-center space-x-2 opacity-80">
-                                <div className="h-px w-12 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-                                <span className={`text-gray-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                                    Secure login powered by Google
+                            <div className="flex items-center justify-center space-x-2">
+                                <div className="h-px w-16 bg-gray-100"></div>
+                                <span className="text-xs text-gray-400">
+                                    Enterprise SSO
                                 </span>
-                                <div className="h-px w-12 bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                                <div className="h-px w-16 bg-gray-100"></div>
                             </div>
                         </CardContent>
                     </div>
 
-                    <div className="w-full pt-6 border-t border-gray-200/50 mt-auto">
-                        <div className="flex items-center justify-center space-x-3">
-                            <div className={`bg-white/80 rounded-lg shadow-sm ${isMobile ? 'p-1.5' : 'p-2'}`}>
+                    <div className="w-full pt-8 mt-auto">
+                        <div className="flex items-center justify-center space-x-2">
+                            <div className="p-1.5 bg-gray-50 rounded-md">
                                 <img
                                     src="/images/logo.png"
                                     alt="Adiklaas Logo"
-                                    className={`rounded-md ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`}
+                                    className="w-4 h-4 rounded-sm"
                                 />
                             </div>
-                            <span className={`text-gray-600 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                                Maintained by <span className="font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Adiklaas</span>
+                            <span className="text-xs text-gray-400">
+                                Maintained by <span className="font-medium text-gray-500">Adiklaas</span>
                             </span>
                         </div>
                     </div>
                 </div>
             </Card>
-        </>
+        </div>
     );
 };
 

@@ -7,7 +7,7 @@ const PrivacyPolicy = () => {
             <Card className="max-w-4xl mx-auto">
                 <CardHeader className="text-center border-b">
                     <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                        YouPiFy Privacy Policy
+                        MinstrelMuse Privacy Policy
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -16,7 +16,7 @@ const PrivacyPolicy = () => {
                             <section>
                                 <h2 className="text-2xl font-semibold mb-4">1. Information We Collect</h2>
                                 <div className="space-y-3">
-                                    <p>When you use YouPiFy, we collect:</p>
+                                    <p>When you use MinstrelMuse, we collect:</p>
                                     <ul className="list-disc pl-6 space-y-2">
                                         <li>Account information (email, name, profile picture)</li>
                                         <li>Music preferences and listening history</li>

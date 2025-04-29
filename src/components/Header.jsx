@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { LogOut, Search, Music2, User2, Menu, Mic, MicOff, Download } from 'lucide-react';
+import { LogOut, Search, Music2, User2, Shield, FileText, Menu, Mic, MicOff, Download } from 'lucide-react';
 import { auth } from '../config/firebase';
 import { useTheme } from 'next-themes';
 import { useMediaQuery } from 'react-responsive';
@@ -13,6 +13,7 @@ import { Card } from './ui/card';
 import { cn } from "@/lib/utils";
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { Separator } from '@/components/ui/separator';
 
 const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
     const isMobileS = useMediaQuery({ maxWidth: 320 });
@@ -319,6 +320,46 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                         )}
                     </div>
 
+                    {/* Legal navigation links for guest users */}
+                    {!user && !isMobileS && (
+                        <div className={cn(
+                            "flex items-center",
+                            isMobileM ? "gap-2" : "gap-4"
+                        )}>
+                            <Button 
+                                variant="ghost" 
+                                className={cn(
+                                    "text-muted-foreground hover:text-foreground transition-colors",
+                                    isMobileM ? "text-xs h-8" : "text-sm"
+                                )}
+                                onClick={() => navigate('/privacy-policy')}
+                            >
+                                <Shield className={cn(
+                                    "mr-1.5",
+                                    isMobileM ? "h-3 w-3" : "h-4 w-4"
+                                )} />
+                                Privacy Policy
+                            </Button>
+                            
+                            <Separator orientation="vertical" className="h-5" />
+                            
+                            <Button 
+                                variant="ghost" 
+                                className={cn(
+                                    "text-muted-foreground hover:text-foreground transition-colors",
+                                    isMobileM ? "text-xs h-8" : "text-sm"
+                                )}
+                                onClick={() => navigate('/terms-of-service')}
+                            >
+                                <FileText className={cn(
+                                    "mr-1.5",
+                                    isMobileM ? "h-3 w-3" : "h-4 w-4"
+                                )} />
+                                Terms of Service
+                            </Button>
+                        </div>
+                    )}
+
                     {user?.isApproved && (
                         <div ref={searchRef} className={cn(
                             "relative",
@@ -444,31 +485,44 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button
-                                            onClick={handleInstallClick}
-                                            className={cn(
-                                                useIconOnly ? "p-0" : "",
-                                                isMobileS ? "h-8 w-8" :
-                                                    isMobileM || isMobileL ? "h-9 w-9" :
-                                                        "mr-2"
-                                            )}
-                                            variant={useIconOnly ? "ghost" : "default"}
-                                            size={useIconOnly ? "icon" : "default"}
-                                        >
-                                            {useIconOnly ? (
+                                        {useIconOnly ? (
+                                            <Button
+                                                onClick={handleInstallClick}
+                                                className={cn(
+                                                    "relative overflow-hidden group p-0",
+                                                    "bg-gradient-to-r from-purple-600 to-blue-600",
+                                                    "hover:from-purple-700 hover:to-blue-700",
+                                                    "text-white shadow-lg hover:shadow-xl transition-all duration-300",
+                                                    isMobileS ? "h-8 w-8" : isMobileM || isMobileL ? "h-9 w-9" : "h-10 w-10"
+                                                )}
+                                                size="icon"
+                                            >
+                                                <span className="absolute inset-0 bg-white/20 transform scale-0 group-hover:scale-100 transition-transform duration-300 rounded-full"></span>
                                                 <Download className={cn(
-                                                    "text-primary",
-                                                    isMobileS ? "h-4 w-4" :
-                                                        isMobileM ? "h-4.5 w-4.5" :
-                                                            "h-5 w-5"
+                                                    "relative z-10",
+                                                    isMobileS ? "h-4 w-4" : isMobileM ? "h-4.5 w-4.5" : "h-5 w-5"
                                                 )} />
-                                            ) : (
-                                                "Install App"
-                                            )}
-                                        </Button>
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                onClick={handleInstallClick}
+                                                className={cn(
+                                                    "relative overflow-hidden group",
+                                                    "bg-gradient-to-r from-purple-600 to-blue-600",
+                                                    "hover:from-purple-700 hover:to-blue-700",
+                                                    "text-white shadow-lg hover:shadow-xl transition-all duration-300",
+                                                    "flex items-center gap-2 font-medium",
+                                                    "border-0 mr-2"
+                                                )}
+                                            >
+                                                <span className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+                                                <Download className="relative z-10 h-4 w-4 animate-bounce-subtle" />
+                                                <span className="relative z-10">Install App</span>
+                                            </Button>
+                                        )}
                                     </TooltipTrigger>
-                                    <TooltipContent>
-                                        {useIconOnly ? "Install App" : "Install as PWA"}
+                                    <TooltipContent side="bottom" className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0 px-3 py-2">
+                                        <p className="text-sm font-medium">{useIconOnly ? "Install MinstrelMuse App" : "Install as PWA"}</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
