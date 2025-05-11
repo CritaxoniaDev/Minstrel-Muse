@@ -7,10 +7,9 @@ import { createHtmlPlugin } from 'vite-plugin-html'
 export default defineConfig({
   plugins: [
     react(),
-    // Add HTML minification plugin
+    // HTML minification plugin
     createHtmlPlugin({
       minify: true,
-      // Advanced minification options
       minifyOptions: {
         collapseWhitespace: true,
         removeComments: true,
@@ -21,7 +20,6 @@ export default defineConfig({
         minifyCSS: true,
         minifyJS: true
       },
-      // You can inject variables into the HTML if needed
       inject: {
         data: {
           title: 'MinstrelMuse',
@@ -89,11 +87,48 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        // Simplified chunking strategy to avoid the forwardRef error
         manualChunks: (id) => {
-          // Put all node_modules in a single vendor chunk
+          // Special handling for React and related packages to prevent the forwardRef error
+          // Keep React and its ecosystem in a single chunk
+          if (id.includes('node_modules/react') || 
+              id.includes('node_modules/react-dom') || 
+              id.includes('node_modules/scheduler') ||
+              id.includes('node_modules/prop-types')) {
+            return 'vendor-react';
+          }
+          
+          // For all other node_modules, create individual chunks by package name
           if (id.includes('node_modules/')) {
-            return 'vendor';
+            // Extract the package name from the path
+            const matches = id.match(/node_modules\/(@[^/]+\/[^/]+|[^/]+)/);
+            if (matches && matches[1]) {
+              // Create a chunk name based on the package name
+              // Replace @ and / with - to create valid chunk names
+              const packageName = matches[1].replace(/^@/, '').replace(/\//g, '-');
+              return `npm-${packageName}`;
+            }
+          }
+          
+          // Group application code by directory
+          if (id.includes('/src/components/')) {
+            return 'app-components';
+          }
+          
+          if (id.includes('/src/pages/')) {
+            return 'app-pages';
+          }
+          
+          if (id.includes('/src/hooks/')) {
+            return 'app-hooks';
+          }
+          
+          if (id.includes('/src/utils/')) {
+            return 'app-utils';
+          }
+          
+          // Default chunk for other app code
+          if (id.includes('/src/')) {
+            return 'app-core';
           }
         }
       },
