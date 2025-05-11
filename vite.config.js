@@ -4,29 +4,76 @@ import path from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
 import { createHtmlPlugin } from 'vite-plugin-html'
 
+// List of packages that depend on React and should be bundled with it
+const reactDependentPackages = [
+  'react',
+  'react-dom',
+  'scheduler',
+  'prop-types',
+  'use-callback-ref',
+  'react-router',
+  'react-router-dom',
+  'react-is',
+  '@emotion',
+  'framer-motion',
+  'react-transition-group',
+  'react-responsive',
+  'react-hook-form',
+  'next-themes',
+  'lucide-react',
+  '@radix-ui',
+  'class-variance-authority',
+  'clsx',
+  'tailwind-merge',
+  'cmdk',
+  'sonner',
+  'zustand',
+  'jotai',
+  'recoil',
+  'swr',
+  'react-query',
+  'formik',
+  'react-select',
+  'react-table',
+  'react-dnd',
+  'react-beautiful-dnd',
+  'react-dropzone',
+  'react-spring',
+  'react-motion',
+  'react-virtualized',
+  'react-window',
+  'react-intersection-observer',
+  'react-use',
+  'use-',  // Prefix for many React hook libraries
+  '@floating-ui',
+  '@headlessui',
+  '@hookform',
+  '@tanstack'
+];
+
 export default defineConfig({
   plugins: [
     react(),
     // HTML minification plugin
-    createHtmlPlugin({
-      minify: true,
-      minifyOptions: {
-        collapseWhitespace: true,
-        removeComments: true,
-        removeRedundantAttributes: true,
-        removeScriptTypeAttributes: true,
-        removeStyleLinkTypeAttributes: true,
-        useShortDoctype: true,
-        minifyCSS: true,
-        minifyJS: true
-      },
-      inject: {
-        data: {
-          title: 'MinstrelMuse',
-          buildTime: new Date().toISOString(),
-        },
-      },
-    }),
+    // createHtmlPlugin({
+    //   minify: true,
+    //   minifyOptions: {
+    //     collapseWhitespace: true,
+    //     removeComments: true,
+    //     removeRedundantAttributes: true,
+    //     removeScriptTypeAttributes: true,
+    //     removeStyleLinkTypeAttributes: true,
+    //     useShortDoctype: true,
+    //     minifyCSS: true,
+    //     minifyJS: true
+    //   },
+    //   inject: {
+    //     data: {
+    //       title: 'MinstrelMuse',
+    //       buildTime: new Date().toISOString(),
+    //     },
+    //   },
+    // }),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
@@ -88,24 +135,46 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Special handling for React and related packages to prevent the forwardRef error
-          // Keep React and its ecosystem in a single chunk
-          if (id.includes('node_modules/react') || 
-              id.includes('node_modules/react-dom') || 
-              id.includes('node_modules/scheduler') ||
-              id.includes('node_modules/prop-types')) {
-            return 'vendor-react';
-          }
-          
-          // For all other node_modules, create individual chunks by package name
+          // Check if the module is from node_modules
           if (id.includes('node_modules/')) {
             // Extract the package name from the path
             const matches = id.match(/node_modules\/(@[^/]+\/[^/]+|[^/]+)/);
             if (matches && matches[1]) {
-              // Create a chunk name based on the package name
+              const packageName = matches[1];
+              
+              // Check if this package should be bundled with React
+              const shouldBundleWithReact = reactDependentPackages.some(pkg => {
+                if (pkg.endsWith('-')) {
+                  // Handle prefix matching (e.g., 'use-')
+                  return packageName.startsWith(pkg);
+                }
+                return packageName === pkg || packageName.startsWith(`${pkg}/`);
+              });
+              
+              if (shouldBundleWithReact) {
+                return 'vendor-react-ecosystem';
+              }
+              
+              // Firebase packages in their own chunk
+              if (packageName === 'firebase' || packageName.startsWith('firebase/')) {
+                return 'vendor-firebase';
+              }
+              
+              // UI/component libraries that might not directly depend on React
+              if (packageName.includes('ui') || packageName.includes('component')) {
+                return 'vendor-ui';
+              }
+              
+              // Utility libraries
+              if (packageName.includes('util') || packageName.includes('helper') || 
+                  packageName.includes('tool') || packageName.includes('lib')) {
+                return 'vendor-utils';
+              }
+              
+              // For all other packages, create individual chunks
               // Replace @ and / with - to create valid chunk names
-              const packageName = matches[1].replace(/^@/, '').replace(/\//g, '-');
-              return `npm-${packageName}`;
+              const safePackageName = packageName.replace(/^@/, '').replace(/\//g, '-');
+              return `npm-${safePackageName}`;
             }
           }
           
