@@ -321,42 +321,91 @@ const Header = ({ user, onSearchResults, isOpen, setIsOpen }) => {
                     </div>
 
                     {/* Legal navigation links for guest users */}
-                    {!user && !isMobileS && (
+                    {!user && (
                         <div className={cn(
-                            "flex items-center",
-                            isMobileM ? "gap-2" : "gap-4"
+                            "items-center",
+                            isMobileS ? "hidden" :
+                                isMobileM || isMobileL ? "flex gap-1.5" :
+                                    isMobile ? "flex gap-2" :
+                                        "flex gap-4"
                         )}>
-                            <Button 
-                                variant="ghost" 
-                                className={cn(
-                                    "text-muted-foreground hover:text-foreground transition-colors",
-                                    isMobileM ? "text-xs h-8" : "text-sm"
-                                )}
-                                onClick={() => navigate('/privacy-policy')}
-                            >
-                                <Shield className={cn(
-                                    "mr-1.5",
-                                    isMobileM ? "h-3 w-3" : "h-4 w-4"
-                                )} />
-                                Privacy Policy
-                            </Button>
-                            
-                            <Separator orientation="vertical" className="h-5" />
-                            
-                            <Button 
-                                variant="ghost" 
-                                className={cn(
-                                    "text-muted-foreground hover:text-foreground transition-colors",
-                                    isMobileM ? "text-xs h-8" : "text-sm"
-                                )}
-                                onClick={() => navigate('/terms-of-service')}
-                            >
-                                <FileText className={cn(
-                                    "mr-1.5",
-                                    isMobileM ? "h-3 w-3" : "h-4 w-4"
-                                )} />
-                                Terms of Service
-                            </Button>
+                            {/* On smaller screens, show icons only */}
+                            {(isMobileM || isMobileL) ? (
+                                <>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0"
+                                                    onClick={() => navigate('/privacy-policy')}
+                                                >
+                                                    <Shield className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="bottom">
+                                                <p>Privacy Policy</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+
+                                    <Separator orientation="vertical" className="h-4" />
+
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0"
+                                                    onClick={() => navigate('/terms-of-service')}
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="bottom">
+                                                <p>Terms of Service</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </>
+                            ) : (
+                                /* On larger screens, show text and icons */
+                                <>
+                                    <Button
+                                        variant="ghost"
+                                        className={cn(
+                                            "text-muted-foreground hover:text-foreground transition-colors",
+                                            isMobile ? "text-xs h-8 px-2" : "text-sm"
+                                        )}
+                                        onClick={() => navigate('/privacy-policy')}
+                                    >
+                                        <Shield className={cn(
+                                            "mr-1",
+                                            isMobile ? "h-3 w-3" : "h-4 w-4"
+                                        )} />
+                                        {isMobile ? "Privacy" : "Privacy Policy"}
+                                    </Button>
+
+                                    <Separator orientation="vertical" className="h-5" />
+
+                                    <Button
+                                        variant="ghost"
+                                        className={cn(
+                                            "text-muted-foreground hover:text-foreground transition-colors",
+                                            isMobile ? "text-xs h-8 px-2" : "text-sm"
+                                        )}
+                                        onClick={() => navigate('/terms-of-service')}
+                                    >
+                                        <FileText className={cn(
+                                            "mr-1",
+                                            isMobile ? "h-3 w-3" : "h-4 w-4"
+                                        )} />
+                                        {isMobile ? "Terms" : "Terms of Service"}
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     )}
 
