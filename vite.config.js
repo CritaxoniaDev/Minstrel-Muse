@@ -2,10 +2,33 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
+import { createHtmlPlugin } from 'vite-plugin-html'
 
 export default defineConfig({
   plugins: [
     react(),
+    // Add HTML minification plugin
+    createHtmlPlugin({
+      minify: true,
+      // Advanced minification options
+      minifyOptions: {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        useShortDoctype: true,
+        minifyCSS: true,
+        minifyJS: true
+      },
+      // You can inject variables into the HTML if needed
+      inject: {
+        data: {
+          title: 'MinstrelMuse',
+          buildTime: new Date().toISOString(),
+        },
+      },
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
@@ -66,23 +89,11 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        // Use a function for manualChunks instead of an object
+        // Simplified chunking strategy to avoid the forwardRef error
         manualChunks: (id) => {
-          // Group React and related packages
-          if (id.includes('node_modules/react') || 
-              id.includes('node_modules/react-dom') || 
-              id.includes('node_modules/react-router-dom')) {
-            return 'vendor-react';
-          }
-          
-          // Group Firebase packages
-          if (id.includes('node_modules/firebase')) {
-            return 'vendor-firebase';
-          }
-          
-          // Group other major dependencies
+          // Put all node_modules in a single vendor chunk
           if (id.includes('node_modules/')) {
-            return 'vendor-others';
+            return 'vendor';
           }
         }
       },
