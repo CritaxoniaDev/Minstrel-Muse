@@ -70,7 +70,7 @@ export default defineConfig(({ command }) => {
           ]
         }
       }),
-      // Custom plugin to inline CSS
+      // Custom plugin to inline CSS with minification
       {
         name: 'vite-plugin-inline-css',
         apply: 'build',
@@ -87,8 +87,16 @@ export default defineConfig(({ command }) => {
             // Get the CSS content
             const cssContent = bundle[cssFile].source
             
-            // Replace the placeholder with the actual CSS content
-            return html.replace('/* CSS_PLACEHOLDER */', cssContent)
+            // Minify CSS content
+            const minifiedCss = cssContent
+              .replace(/\/\*(?:(?!\*\/)[\s\S])*\*\/|[\r\n\t]+/g, '') // Remove comments and whitespace
+              .replace(/ {2,}/g, ' ') // Remove multiple spaces
+              .replace(/([{:}])\s+/g, '$1') // Remove spaces after {, :, }
+              .replace(/\s+([{:}])/g, '$1') // Remove spaces before {, :, }
+              .replace(/;}/g, '}') // Remove trailing semicolons
+            
+            // Replace the placeholder with the minified CSS content
+            return html.replace('/* CSS_PLACEHOLDER */', minifiedCss)
           }
         },
         generateBundle(options, bundle) {
@@ -114,7 +122,8 @@ export default defineConfig(({ command }) => {
       outDir: 'dist',
       sourcemap: false,
       chunkSizeWarningLimit: 100000,
-      minify: false, // Disabled JS minification
+      // Selective minification configuration
+      minify: true, // Default is false for app code
       cssCodeSplit: false, // This ensures CSS is extracted to a single file first (which we'll then inline)
       rollupOptions: {
         output: {
@@ -141,6 +150,49 @@ export default defineConfig(({ command }) => {
           }
         },
       },
+      // Custom Rollup plugin to minify vendor and app-core chunks
+      plugins: [
+        {
+          name: 'minify-sensitive-chunks',
+          generateBundle(options, bundle) {
+            const { minify } = require('terser');
+            
+            // Process each chunk
+            Object.keys(bundle).forEach(async (fileName) => {
+              const chunk = bundle[fileName];
+              
+              // Only process JS chunks that are vendor chunks or app-core chunks
+              if (fileName.endsWith('.js') && (fileName.includes('vendor') || fileName.includes('app-core'))) {
+                try {
+                  // Minify the chunk with enhanced obfuscation for app-core
+                  const result = await minify(chunk.code, {
+                    compress: {
+                      drop_console: true,
+                      drop_debugger: true,
+                      passes: 2, // Multiple passes for better compression
+                    },
+                    mangle: {
+                      properties: fileName.includes('app-core') ? {
+                        regex: /^_|^api|Key$|Token$|Secret$/i // Target properties that might contain sensitive data
+                      } : false
+                    },
+                    format: {
+                      comments: false
+                    }
+                  });
+                  
+                  // Update the chunk with minified code
+                  if (result.code) {
+                    chunk.code = result.code;
+                  }
+                } catch (err) {
+                  console.error(`Error minifying ${fileName}:`, err);
+                }
+              }
+            });
+          }
+        }
+      ]
     }
   }
 })

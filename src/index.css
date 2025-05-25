@@ -1,6 +1,6 @@
 @font-face {
   font-family: '_OpenSans-Regular-321ds-32dsw-45dfsd';
-  src: url('/fonts/_OpenSans-Regular-321ds-32dsw-45dfsd.woff2') format('woff2');
+  src: url('/fonts/InterVariable.ttf') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -8,13 +8,13 @@
 
 @font-face {
   font-family: '_OpenSans-Bold-321ds-32dsw-45dfsd';
-  src: url('/fonts/_OpenSans-Bold-321ds-32dsw-45dfsd.woff2') format('woff2');
+  src: url('/fonts/Inter.ttc') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
-  font-family: "_OpenSans-Regular-321ds-32dsw-45dfsd", "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  letter-spacing: -0.005em;
+  font-family: "_OpenSans-Regular-321ds-32dsw-45dfsd", "__Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.0001em;
 }

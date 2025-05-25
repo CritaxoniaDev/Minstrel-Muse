@@ -212,7 +212,7 @@ const MainPage = () => {
                         <span>Enterprise-grade Music Experience</span>
                     </div>
 
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4">
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4">
                         <span className="text-black dark:text-white">Transform Your Music </span>
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
                             Experience
