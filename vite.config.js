@@ -45,106 +45,6 @@ export default defineConfig(({ command }) => {
           additionalManifestEntries: [
             { url: '/offline', revision: null }
           ],
-          runtimeCaching: [
-            // Cache Google Fonts
-            {
-              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'google-fonts-cache',
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-                },
-                cacheKeyWillBeUsed: async ({ request }) => {
-                  return `${request.url}?${Date.now()}`;
-                }
-              }
-            },
-            // Cache Google Fonts CSS
-            {
-              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'gstatic-fonts-cache',
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-                }
-              }
-            },
-            // Cache Firebase API calls with NetworkFirst strategy
-            {
-              urlPattern: /^https:\/\/.*\.googleapis\.com\/.*/i,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'firebase-api-cache',
-                networkTimeoutSeconds: 10,
-                expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60 * 60 * 24 // 1 day
-                },
-                cacheKeyWillBeUsed: async ({ request }) => {
-                  return request.url;
-                }
-              }
-            },
-            // Cache images with CacheFirst strategy
-            {
-              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'images-cache',
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-                }
-              }
-            },
-            // Cache YouTube thumbnails
-            {
-              urlPattern: /^https:\/\/i\.ytimg\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'youtube-thumbnails-cache',
-                expiration: {
-                  maxEntries: 200,
-                  maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
-                }
-              }
-            },
-            // Cache other external assets
-            {
-              urlPattern: /^https:\/\/.*\.(js|css|woff2|woff|ttf|eot)$/,
-              handler: 'StaleWhileRevalidate',
-              options: {
-                cacheName: 'external-assets-cache',
-                expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
-                }
-              }
-            },
-            // Cache navigation requests with NetworkFirst, fallback to offline page
-            {
-              urlPattern: ({ request }) => request.mode === 'navigate',
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'pages-cache',
-                networkTimeoutSeconds: 3,
-                plugins: [
-                  {
-                    cacheKeyWillBeUsed: async ({ request }) => {
-                      return `${request.url}`;
-                    },
-                    handlerDidError: async () => {
-                      return caches.match('/offline');
-                    }
-                  }
-                ]
-              }
-            }
-          ],
           // Add offline fallback
           navigateFallback: '/offline',
           navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
@@ -246,75 +146,6 @@ export default defineConfig(({ command }) => {
           })
         }
       },
-      // Custom plugin for offline handling
-      {
-        name: 'vite-plugin-offline-support',
-        apply: 'build',
-        generateBundle(options, bundle) {
-          // Add offline page to bundle if it doesn't exist
-          if (!bundle['offline.html']) {
-            this.emitFile({
-              type: 'asset',
-              fileName: 'offline.html',
-              source: `
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                  <meta charset="UTF-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <title>Offline - MinstrelMuse</title>
-                  <style>
-                    body { 
-                      font-family: system-ui, -apple-system, sans-serif; 
-                      display: flex; 
-                      align-items: center; 
-                      justify-content: center; 
-                      min-height: 100vh; 
-                      margin: 0; 
-                      background: #f5f5f5; 
-                      text-align: center;
-                    }
-                    .offline-container { 
-                      max-width: 400px; 
-                      padding: 2rem; 
-                      background: white; 
-                      border-radius: 8px; 
-                      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    }
-                    .offline-icon { 
-                      font-size: 4rem; 
-                      margin-bottom: 1rem; 
-                    }
-                    .retry-btn { 
-                      background: #007bff; 
-                      color: white; 
-                      border: none; 
-                      padding: 0.75rem 1.5rem; 
-                      border-radius: 4px; 
-                      cursor: pointer; 
-                      margin-top: 1rem;
-                    }
-                    .retry-btn:hover { 
-                      background: #0056b3; 
-                    }
-                  </style>
-                </head>
-                <body>
-                  <div class="offline-container">
-                    <div class="offline-icon">📱</div>
-                    <h1>You're Offline</h1>
-                    <p>Please check your internet connection and try again.</p>
-                    <button class="retry-btn" onclick="window.location.reload()">
-                      Try Again
-                    </button>
-                  </div>
-                </body>
-                </html>
-              `
-            });
-          }
-        }
-      }
     ],
     resolve: {
       alias: {
@@ -377,11 +208,6 @@ export default defineConfig(({ command }) => {
                       drop_console: true,
                       drop_debugger: true,
                       passes: 2, // Multiple passes for better compression
-                    },
-                    mangle: {
-                      properties: fileName.includes('app-core') ? {
-                        regex: /^_|^api|Key$|Token$|Secret$/i // Target properties that might contain sensitive data
-                      } : false
                     },
                     format: {
                       comments: false
