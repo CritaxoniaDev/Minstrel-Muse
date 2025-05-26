@@ -35,6 +35,8 @@ import NotFound from './components/Error/404';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy'
 import SharedPost from '@/components/SharedPost';
+import Offline from './components/Offline/Offline'; 
+import OfflineGuard from './components/OfflineGuard'; 
 import './App.css';
 import Lottie from 'lottie-react';
 import lazyLoadingAnimation from '/src/lottie/lazy-loading.json';
@@ -73,6 +75,26 @@ function App() {
   const [recommendedTracks, setRecommendedTracks] = useState([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [users, setUsers] = useState([]);
+  const isOnline = useOnlineStatus(); 
+
+  // Add offline status monitoring
+  useEffect(() => {
+    // Don't redirect if already on offline page or legal pages
+    const exemptPaths = ['/offline', '/privacy-policy', '/terms-of-service', '/shared'];
+    const isExemptPath = exemptPaths.some(path => location.pathname.startsWith(path));
+    
+    if (!isOnline && !isExemptPath && user) {
+      toast({
+        title: "Connection Lost",
+        description: "You've gone offline. Redirecting to offline mode...",
+        duration: 3000,
+      });
+      
+      setTimeout(() => {
+        navigate('/offline');
+      }, 1000);
+    }
+  }, [isOnline, location.pathname, navigate, toast, user]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -553,6 +575,9 @@ function App() {
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
 
+          {/* Offline route - accessible to everyone */}
+          <Route path="/offline" element={<Offline />} />
+
           {/* Legal pages - accessible to everyone */}
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
@@ -566,93 +591,128 @@ function App() {
             <Route path="*" element={<PendingApproval />} />
           ) : (
             <>
+              {/* Wrap protected routes with OfflineGuard */}
               <Route path="/dashboard" element={
-                <Dashboard
-                  user={user}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayPause={handlePlayPause}
-                  onSkipBack={handleSkipBack}
-                  onSkipForward={handleSkipForward}
-                  volume={volume}
-                  onVolumeChange={handleVolumeChange}
-                  queue={queue}
-                  currentUser={user}
-                  users={users}  // Add this line
-                  sidebarOpen={sidebarOpen}
-                  setSidebarOpen={setSidebarOpen}
-                />
+                 <OfflineGuard>
+                  <Dashboard
+                    user={user}
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                    onPlayPause={handlePlayPause}
+                    onSkipBack={handleSkipBack}
+                    onSkipForward={handleSkipForward}
+                    volume={volume}
+                    onVolumeChange={handleVolumeChange}
+                    queue={queue}
+                    currentUser={user}
+                    users={users}
+                    sidebarOpen={sidebarOpen}
+                    setSidebarOpen={setSidebarOpen}
+                  />
+                </OfflineGuard>
               } />
               <Route path="/dashboard/social" element={
-                <Social
-                  currentUser={user}
-                  currentTrack={currentTrack}
-                  isPlayerPage={isPlayerPage}
-                />
+                <OfflineGuard>
+                  <Social
+                    currentUser={user}
+                    currentTrack={currentTrack}
+                    isPlayerPage={isPlayerPage}
+                  />
+                </OfflineGuard>
               } />
               <Route path="/dashboard/video/player" element={
-                <VideoPlayer
-                  currentUser={user}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayPause={handlePlayPause}
-                  onSkipBack={handleSkipBack}
-                  onSkipForward={handleSkipForward}
-                  queue={queue}
-                  onAddToQueue={handleAddToQueue}
-                />
+                <OfflineGuard>
+                  <VideoPlayer
+                    currentUser={user}
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                    onPlayPause={handlePlayPause}
+                    onSkipBack={handleSkipBack}
+                    onSkipForward={handleSkipForward}
+                    queue={queue}
+                    onAddToQueue={handleAddToQueue}
+                  />
+                </OfflineGuard>
               } />
-              <Route path="/dashboard/profile/:userId" element={<Profile onPlayPause={handlePlayPause} />} />
-              <Route path="/dashboard/users" element={<Users />} />
-              <Route path="/dashboard/youtube-downloader" element={<YoutubeDownloader />} />
+              <Route path="/dashboard/profile/:userId" element={
+                <OfflineGuard>
+                  <Profile onPlayPause={handlePlayPause} />
+                </OfflineGuard>
+              } />
+              <Route path="/dashboard/users" element={
+                <OfflineGuard>
+                  <Users />
+                </OfflineGuard>
+              } />
+              <Route path="/dashboard/youtube-downloader" element={
+                <OfflineGuard>
+                  <YoutubeDownloader />
+                </OfflineGuard>
+              } />
               <Route path="/dashboard/search" element={
-                <SearchResults
-                  results={searchResults}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayPause={handlePlayPause}
-                  onAddToQueue={handleAddToQueue}
-                  playlists={playlists}
-                />
+                <OfflineGuard>
+                  <SearchResults
+                    results={searchResults}
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                    onPlayPause={handlePlayPause}
+                    onAddToQueue={handleAddToQueue}
+                    playlists={playlists}
+                  />
+                </OfflineGuard>
               } />
-              <Route path="/dashboard/create-post" element={<CreatePost currentUser={user} />} />
+              <Route path="/dashboard/create-post" element={
+                <OfflineGuard>
+                  <CreatePost currentUser={user} />
+                </OfflineGuard>
+              } />
               <Route path="/dashboard/player" element={
-                <FullPlayerView
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayPause={handlePlayPause}  // Changed from the arrow function to pass the full function
-                  onSkipBack={handleSkipBack}
-                  onSkipForward={handleSkipForward}
-                  currentTime={currentTime}
-                  duration={duration}
-                  formatTime={formatTime}
-                  volume={volume}
-                  onVolumeChange={handleVolumeChange}
-                  player={player}
-                  setCurrentTime={setCurrentTime}
-                  isLooping={isLooping}
-                  handleLoopToggle={handleLoopToggle}
-                  queue={queue}
-                  handleRemoveFromQueue={handleRemoveFromQueue}
-                />
+                <OfflineGuard>
+                  <FullPlayerView
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                    onPlayPause={handlePlayPause}
+                    onSkipBack={handleSkipBack}
+                    onSkipForward={handleSkipForward}
+                    currentTime={currentTime}
+                    duration={duration}
+                    formatTime={formatTime}
+                    volume={volume}
+                    onVolumeChange={handleVolumeChange}
+                    player={player}
+                    setCurrentTime={setCurrentTime}
+                    isLooping={isLooping}
+                    handleLoopToggle={handleLoopToggle}
+                    queue={queue}
+                    handleRemoveFromQueue={handleRemoveFromQueue}
+                  />
+                </OfflineGuard>
               } />
               <Route path="/dashboard/admin/users" element={
-                user?.role === 'admin' ? <UserManagement /> : <Navigate to="/dashboard" />
+                <OfflineGuard>
+                  {user?.role === 'admin' ? <UserManagement /> : <Navigate to="/dashboard" />}
+                </OfflineGuard>
               } />
               <Route path="/dashboard/admin" element={
-                user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/dashboard" />
+                <OfflineGuard>
+                  {user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/dashboard" />}
+                </OfflineGuard>
               } />
               <Route path="/dashboard/library" element={
-                <Library
-                  user={user}
-                  onPlayPause={handlePlayPause}
-                  onAddToQueue={handleAddToQueue}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                />
+                <OfflineGuard>
+                  <Library
+                    user={user}
+                    onPlayPause={handlePlayPause}
+                    onAddToQueue={handleAddToQueue}
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                  />
+                </OfflineGuard>
               } />
               <Route path="/dashboard/library/:id" element={
-                <PlaylistDetail user={user} onPlayPause={handlePlayPause} />
+                <OfflineGuard>
+                  <PlaylistDetail user={user} onPlayPause={handlePlayPause} />
+                </OfflineGuard>
               } />
             </>
           )}
