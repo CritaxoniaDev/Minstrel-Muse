@@ -35,8 +35,9 @@ import NotFound from './components/Error/404';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy'
 import SharedPost from '@/components/SharedPost';
-import Offline from './components/Offline/Offline'; 
-import OfflineGuard from './components/OfflineGuard'; 
+import Offline from './components/Offline/Offline';
+import OfflineGuard from './components/OfflineGuard';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 import './App.css';
 import Lottie from 'lottie-react';
 import lazyLoadingAnimation from '/src/lottie/lazy-loading.json';
@@ -75,21 +76,21 @@ function App() {
   const [recommendedTracks, setRecommendedTracks] = useState([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [users, setUsers] = useState([]);
-  const isOnline = useOnlineStatus(); 
+  const isOnline = useOnlineStatus();
 
   // Add offline status monitoring
   useEffect(() => {
     // Don't redirect if already on offline page or legal pages
     const exemptPaths = ['/offline', '/privacy-policy', '/terms-of-service', '/shared'];
     const isExemptPath = exemptPaths.some(path => location.pathname.startsWith(path));
-    
+
     if (!isOnline && !isExemptPath && user) {
       toast({
         title: "Connection Lost",
         description: "You've gone offline. Redirecting to offline mode...",
         duration: 3000,
       });
-      
+
       setTimeout(() => {
         navigate('/offline');
       }, 1000);
@@ -581,7 +582,7 @@ function App() {
           {/* Legal pages - accessible to everyone */}
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
-          
+
           {/* Add the shared post route here */}
           <Route path="/shared/:postId" element={<SharedPost />} />
 
@@ -593,7 +594,7 @@ function App() {
             <>
               {/* Wrap protected routes with OfflineGuard */}
               <Route path="/dashboard" element={
-                 <OfflineGuard>
+                <OfflineGuard>
                   <Dashboard
                     user={user}
                     currentTrack={currentTrack}
@@ -734,9 +735,9 @@ function App() {
                   playsinline: 1,
                   rel: 0,
                   modestbranding: 1,
-                  iv_load_policy: 3, // Add this to disable annotations
-                  hl: 'en',          // Add language
-                  host: 'https://www.youtube-nocookie.com' // Use privacy-enhanced mode
+                  iv_load_policy: 3,
+                  hl: 'en',
+                  host: 'https://www.youtube-nocookie.com'
                 },
               }}
               onReady={(event) => {
@@ -751,8 +752,10 @@ function App() {
                 "fixed bottom-0 left-0 right-0 border-t z-[50] bg-background animate-slide-up transition-[margin] duration-300 ease-in-out",
                 isMobileS || isMobileM || isMobileL ? "p-2" : "p-4",
                 isDesktop ? (isMinimized ? "ml-20" : "ml-64") : "",
-                !isDesktop && sidebarOpen ? "ml-64" : ""
+                !isDesktop && sidebarOpen ? "ml-64" : "",
+                !isOnline ? "bottom-10" : "bottom-0" // Adjust for offline indicator
               )}>
+                {/* Your existing player UI code remains the same */}
                 <div className={cn(
                   "flex mx-auto items-center",
                   isMobileS || isMobileM || isMobileL ? "max-w-full" : "max-w-7xl"
