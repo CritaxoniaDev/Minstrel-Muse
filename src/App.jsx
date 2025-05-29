@@ -36,6 +36,7 @@ import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy'
 import SharedPost from '@/components/SharedPost';
 import Offline from './components/Offline/Offline';
+import OfflineMode from './components/OfflineMode/OfflineMode';
 import OfflineGuard from './components/OfflineGuard';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import './App.css';
@@ -578,6 +579,7 @@ function App() {
 
           {/* Offline route - accessible to everyone */}
           <Route path="/offline" element={<Offline />} />
+          <Route path="/offline-mode" element={<OfflineMode />} />
 
           {/* Legal pages - accessible to everyone */}
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
