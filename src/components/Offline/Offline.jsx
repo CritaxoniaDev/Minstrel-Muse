@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, Music } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -49,6 +49,10 @@ const Offline = () => {
     }
   };
 
+  const handleOfflineMode = () => {
+    navigate('/offline-mode');
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-6">
@@ -71,7 +75,7 @@ const Offline = () => {
           <p className="text-muted-foreground">
             {isOnline 
               ? 'Great! Your internet connection has been restored.'
-              : 'It looks like you\'re not connected to the internet. Please check your connection and try again.'
+              : 'It looks like you\'re not connected to the internet. You can still enjoy music in offline mode!'
             }
           </p>
         </div>
@@ -85,17 +89,25 @@ const Offline = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <Button onClick={handleRetry} className="w-full">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
-            </Button>
+            <div className="grid grid-cols-1 gap-3">
+              <Button onClick={handleRetry} variant="outline" className="w-full">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+              
+              <Button onClick={handleOfflineMode} className="w-full">
+                <Music className="h-4 w-4 mr-2" />
+                Go to Offline Mode
+              </Button>
+            </div>
             
             <div className="text-sm text-muted-foreground space-y-2">
-              <p>While offline, you can still:</p>
+              <p>In offline mode, you can:</p>
               <ul className="list-disc list-inside space-y-1 text-left">
-                <li>View previously loaded content</li>
-                <li>Access cached playlists</li>
-                <li>Browse your library</li>
+                <li>Listen to cached music</li>
+                <li>Browse your downloaded playlists</li>
+                <li>Use the music player controls</li>
+                <li>Access your library</li>
               </ul>
             </div>
           </div>
