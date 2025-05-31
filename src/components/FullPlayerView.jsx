@@ -39,6 +39,7 @@ const FullPlayerView = ({
   const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
   const [lyricsError, setLyricsError] = useState(null);
   const [geniusData, setGeniusData] = useState(null);
+  const [videoError, setVideoError] = useState(false);
 
   // Responsive breakpoints
   const isMobileS = useMediaQuery({ maxWidth: 320 });
@@ -59,12 +60,20 @@ const FullPlayerView = ({
     return textarea.value;
   };
 
+  // Function to get video URL from YouTube video ID
+  const getVideoUrl = (videoId) => {
+    // Using a proxy service or direct YouTube embed URL
+    // Note: You might need to implement a backend proxy for CORS issues
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1`;
+  };
+
   useEffect(() => {
     if (!currentTrack) {
       navigate('/dashboard');
     } else {
       fetchRecommendations();
       fetchLyrics();
+      setVideoError(false); // Reset video error when track changes
     }
   }, [currentTrack]);
 
@@ -118,8 +127,6 @@ const FullPlayerView = ({
     }
   };
 
-  // Add this function to fetch lyrics using Genius API
-  // Replace the fetchLyrics function with this version
   const fetchLyrics = async () => {
     if (!currentTrack) return;
 
@@ -127,26 +134,83 @@ const FullPlayerView = ({
     setLyricsError(null);
 
     try {
-      // Instead of directly calling the Genius API, we'll just prepare data for a link to Genius
-      const searchQuery = encodeURIComponent(`${decodeHTMLEntities(currentTrack.title)} ${decodeHTMLEntities(currentTrack.channelTitle)}`);
-      const geniusSearchUrl = `https://genius.com/search?q=${searchQuery}`;
+      // Create a search query for Genius
+      const searchQuery = `${decodeHTMLEntities(currentTrack.title)} ${decodeHTMLEntities(currentTrack.channelTitle)}`;
 
-      // Create a simplified version of the Genius data
-      setGeniusData({
-        title: decodeHTMLEntities(currentTrack.title),
-        artist: decodeHTMLEntities(currentTrack.channelTitle),
-        imageUrl: currentTrack.thumbnail,
-        lyricsUrl: geniusSearchUrl
-      });
+      // First, try to search for the song on Genius to get the song URL
+      const geniusSearchUrl = `https://genius.com/api/search/multi?per_page=5&q=${encodeURIComponent(searchQuery)}`;
+
+      // Note: Direct Genius API calls may face CORS issues, so you might need a backend proxy
+      // For now, I'll show you how to structure it, but you may need to implement a backend endpoint
+
+      try {
+        // This would require a backend proxy due to CORS
+        const searchResponse = await fetch(`/api/genius-search?q=${encodeURIComponent(searchQuery)}`);
+        const searchData = await searchResponse.json();
+
+        if (searchData.response?.sections?.[0]?.hits?.length > 0) {
+          const firstHit = searchData.response.sections[0].hits[0];
+          if (firstHit.type === 'song') {
+            const songUrl = firstHit.result.url;
+            const songId = firstHit.result.id;
+
+            // Try to fetch lyrics preview/excerpt
+            const lyricsResponse = await fetch(`/api/genius-lyrics?id=${songId}`);
+            const lyricsData = await lyricsResponse.json();
+
+            setGeniusData({
+              title: firstHit.result.title,
+              artist: firstHit.result.primary_artist.name,
+              imageUrl: firstHit.result.song_art_image_url || currentTrack.thumbnail,
+              lyricsUrl: songUrl,
+              lyricsPreview: lyricsData.preview || null, // Only show preview/excerpt
+              hasFullLyrics: lyricsData.hasFullLyrics || false
+            });
+          }
+        } else {
+          // Fallback to search URL if no direct results
+          setGeniusData({
+            title: decodeHTMLEntities(currentTrack.title),
+            artist: decodeHTMLEntities(currentTrack.channelTitle),
+            imageUrl: currentTrack.thumbnail,
+            lyricsUrl: `https://genius.com/search?q=${encodeURIComponent(searchQuery)}`,
+            lyricsPreview: null,
+            hasFullLyrics: false
+          });
+        }
+      } catch (apiError) {
+        console.log("API search failed, using fallback method");
+
+        // Fallback: Try to construct likely Genius URL
+        const cleanTitle = decodeHTMLEntities(currentTrack.title)
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-');
+
+        const cleanArtist = decodeHTMLEntities(currentTrack.channelTitle)
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-');
+
+        const constructedUrl = `https://genius.com/${cleanArtist}-${cleanTitle}-lyrics`;
+
+        setGeniusData({
+          title: decodeHTMLEntities(currentTrack.title),
+          artist: decodeHTMLEntities(currentTrack.channelTitle),
+          imageUrl: currentTrack.thumbnail,
+          lyricsUrl: constructedUrl,
+          lyricsPreview: null,
+          hasFullLyrics: false
+        });
+      }
 
       setIsLoadingLyrics(false);
     } catch (error) {
-      console.error("Error preparing lyrics link:", error);
-      setLyricsError("Unable to prepare lyrics link");
+      console.error("Error fetching lyrics:", error);
+      setLyricsError("Unable to fetch lyrics");
       setIsLoadingLyrics(false);
     }
   };
-
 
   // Function to get volume icon based on volume level
   const getVolumeIcon = () => {
@@ -167,8 +231,12 @@ const FullPlayerView = ({
     }
   };
 
-  // Rest of your component code...
+  // Handle video error fallback
+  const handleVideoError = () => {
+    setVideoError(true);
+  };
 
+  // Rest of your component code...
 
   return (
     <div className="min-h-screen bg-background">
@@ -215,7 +283,7 @@ const FullPlayerView = ({
             isSmallMobile ? "space-y-6" : isMobile ? "space-y-8" : "space-y-10",
             "md:w-2/3 max-w-4xl"
           )}>
-            {/* Album Art with Animation */}
+            {/* Video/Album Art with Animation */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentTrack?.id}
@@ -224,17 +292,32 @@ const FullPlayerView = ({
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
                 className={cn(
-                  "w-full aspect-square relative group mx-auto border-2 border-dashed border-primary/50 rounded-xl",
+                  "w-full aspect-square relative group mx-auto border-2 border-dashed border-primary/50 rounded-xl overflow-hidden",
                   isSmallMobile ? "max-w-[200px] p-1.5" :
                     isMobile ? "max-w-[250px] p-1.5" :
                       "max-w-xs p-2"
                 )}
               >
-                <img
-                  src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/400/400"}
-                  alt={currentTrack?.title}
-                  className="w-full h-full object-cover rounded-xl shadow-xl"
-                />
+                {/* Video or fallback image */}
+                {!videoError && currentTrack?.id ? (
+                  <iframe
+                    src={getVideoUrl(currentTrack.id)}
+                    className="w-full h-full object-cover rounded-xl"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    onError={handleVideoError}
+                    style={{
+                      pointerEvents: 'none', // Prevent interaction with the video
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={currentTrack?.thumbnail || "https://picsum.photos/seed/current/400/400"}
+                    alt={currentTrack?.title}
+                    className="w-full h-full object-cover rounded-xl shadow-xl"
+                  />
+                )}
 
                 {/* Overlay with play button on hover */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex items-center justify-center">
@@ -766,7 +849,7 @@ const FullPlayerView = ({
                     {isLoadingLyrics ? (
                       <div className="flex flex-col items-center justify-center py-12">
                         <Loader2 className="h-8 w-8 animate-spin mb-4 text-primary" />
-                        <p className="text-muted-foreground">Preparing lyrics link...</p>
+                        <p className="text-muted-foreground">Fetching lyrics...</p>
                       </div>
                     ) : geniusData ? (
                       <div className="space-y-4">
@@ -782,29 +865,53 @@ const FullPlayerView = ({
                           </div>
                         </div>
 
-                        <div className="pt-4 border-t">
-                          <p className="text-sm mb-4">
-                            Find lyrics for this song on Genius, the world's biggest collection of song lyrics and musical knowledge.
-                          </p>
-
-                          <div className="flex justify-center">
-                            <Button
-                              className="bg-[#FFFF64] hover:bg-[#FFFF64]/90 text-black"
-                              onClick={() => window.open(geniusData.lyricsUrl, '_blank')}
-                            >
-                              <svg
-                                viewBox="0 0 136.55 136.55"
-                                className="h-4 w-4 mr-2"
-                              >
-                                <path
-                                  d="M106.74,60.19c-1.62,2.86-3.6,6.06-6.3,9.5-1.35,1.7-2.67,3.23-3.95,4.6a93.77,93.77,0,0,0-6.62-9.71A103.65,103.65,0,0,0,75.55,50.5h0A34.2,34.2,0,0,1,44.3,19.25a34.2,34.2,0,0,0,30.5,50.5h0c.23,0,.45,0,.68,0a34.07,34.07,0,0,0,9.93-1.5A39.66,39.66,0,0,0,98.1,59.09a45.82,45.82,0,0,0,8.64,1.1Z"
-                                  fill="currentColor"
-                                />
-                              </svg>
-                              Find Lyrics on Genius
-                            </Button>
+                        {geniusData.lyricsPreview ? (
+                          <div className="pt-4 border-t">
+                            <h5 className="text-sm font-medium mb-2">Lyrics Preview</h5>
+                            <div className="bg-muted/50 rounded-md p-3 text-sm leading-relaxed">
+                              <p className="whitespace-pre-line">{geniusData.lyricsPreview}</p>
+                              <p className="text-xs text-muted-foreground mt-2 italic">
+                                Preview only - View full lyrics on Genius
+                              </p>
+                            </div>
                           </div>
+                        ) : (
+                          <div className="pt-4 border-t">
+                            <p className="text-sm mb-4">
+                              Find complete lyrics for this song on Genius, the world's biggest collection of song lyrics and musical knowledge.
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="flex justify-center pt-2">
+                          <Button
+                            className="bg-[#FFFF64] hover:bg-[#FFFF64]/90 text-black"
+                            onClick={() => window.open(geniusData.lyricsUrl, '_blank')}
+                          >
+                            <svg
+                              viewBox="0 0 136.55 136.55"
+                              className="h-4 w-4 mr-2"
+                            >
+                              <path
+                                d="M106.74,60.19c-1.62,2.86-3.6,6.06-6.3,9.5-1.35,1.7-2.67,3.23-3.95,4.6a93.77,93.77,0,0,0-6.62-9.71A103.65,103.65,0,0,0,75.55,50.5h0A34.2,34.2,0,0,1,44.3,19.25a34.2,34.2,0,0,0,30.5,50.5h0c.23,0,.45,0,.68,0a34.07,34.07,0,0,0,9.93-1.5A39.66,39.66,0,0,0,98.1,59.09a45.82,45.82,0,0,0,8.64,1.1Z"
+                                fill="currentColor"
+                              />
+                            </svg>
+                            {geniusData.hasFullLyrics ? 'View Full Lyrics on Genius' : 'Search on Genius'}
+                          </Button>
                         </div>
+                      </div>
+                    ) : lyricsError ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p className="text-red-500">{lyricsError}</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-4"
+                          onClick={() => window.open(`https://genius.com/search?q=${encodeURIComponent(currentTrack?.title + ' ' + currentTrack?.channelTitle)}`, '_blank')}
+                        >
+                          Search on Genius
+                        </Button>
                       </div>
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
