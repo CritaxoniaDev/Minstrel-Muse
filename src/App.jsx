@@ -574,9 +574,10 @@ function App() {
         setIsLoading={setIsLoading}
       >
         <Routes>
-          <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
-          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
-
+          <OfflineGuard>
+            <Route path="/" element={user ? <Navigate to="/dashboard" /> : <MainPage />} />
+            <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
+          </OfflineGuard>
           {/* Offline route - accessible to everyone */}
           <Route path="/offline" element={<Offline />} />
           <Route path="/offline-mode" element={<OfflineMode />} />
