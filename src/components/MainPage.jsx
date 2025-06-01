@@ -398,70 +398,164 @@ const MainPage = () => {
                 </div>
             </section>
 
-            {/* CTA Section */}
-            <section className="w-full py-20 md:py-28 relative overflow-hidden">
-                <div className="absolute inset-0 -z-10">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10"></div>
-                    <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.1]"></div>
-                </div>
-                <div className="container px-4 md:px-6 mx-auto">
-                    <motion.div
-                        className="max-w-3xl mx-auto text-center"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-blue-500 to-purple-600">
-                            Ready to Transform Your Music Experience?
-                        </h2>
-                        <p className="text-xl text-muted-foreground mb-8">
-                            Join thousands of enterprises that have already elevated their audio workflow with MinstrelMuse.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Button
-                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90"
-                                size="lg"
-                                onClick={() => navigate('/dashboard')}
-                            >
-                                Get Started Now
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="lg"
-                            >
-                                Schedule a Demo
-                            </Button>
+            {/* Enterprise Footer */}
+            <footer className="w-full bg-background border-t border-border mt-auto z-10 relative">
+                <div className="container mx-auto px-4 py-16">
+                    {/* Main Footer Content */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+                        {/* Company Info */}
+                        <div className="lg:col-span-2">
+                            <div className="flex items-center mb-4">
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                                        <Music className="h-5 w-5 text-white" />
+                                    </div>
+                                    <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                                        MinstrelMuse
+                                    </span>
+                                </div>
+                            </div>
+                            <p className="text-muted-foreground mb-6 max-w-md">
+                                Enterprise-grade music platform delivering advanced analytics, security, and seamless integration for businesses and music enthusiasts worldwide.
+                            </p>
+                            <div className="flex space-x-4">
+                                <motion.div
+                                    whileHover={{ scale: 1.1, y: -2 }}
+                                    className="relative group cursor-pointer"
+                                >
+                                    <div className="absolute -inset-2 bg-red-500/10 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <Youtube className="h-6 w-6 text-red-500 relative" />
+                                </motion.div>
+                                <motion.div
+                                    whileHover={{ scale: 1.1, y: -2 }}
+                                    className="relative group cursor-pointer"
+                                >
+                                    <div className="absolute -inset-2 bg-purple-500/10 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <Headphones className="h-6 w-6 text-purple-500 relative" />
+                                </motion.div>
+                                <motion.div
+                                    whileHover={{ scale: 1.1, y: -2 }}
+                                    className="relative group cursor-pointer"
+                                >
+                                    <div className="absolute -inset-2 bg-blue-500/10 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <Music className="h-6 w-6 text-blue-500 relative" />
+                                </motion.div>
+                                <motion.div
+                                    whileHover={{ scale: 1.1, y: -2 }}
+                                    className="relative group cursor-pointer"
+                                >
+                                    <div className="absolute -inset-2 bg-green-500/10 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <Globe className="h-6 w-6 text-green-500 relative" />
+                                </motion.div>
+                            </div>
                         </div>
-                    </motion.div>
-                </div>
-            </section>
 
-            {/* Footer */}
-            <footer className="w-full py-8 border-t border-border mt-auto z-10 bg-background/50 backdrop-blur-sm relative">
-                {/* Footer decorative elements */}
-                <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.05]"></div>
-                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+                        {/* Product Links */}
+                        <div>
+                            <h3 className="font-semibold text-foreground mb-4 flex items-center">
+                                <Zap className="h-4 w-4 mr-2 text-purple-500" />
+                                Product
+                            </h3>
+                            <ul className="space-y-3">
+                                {[
+                                    'Dashboard',
+                                    'Analytics',
+                                    'Music Library',
+                                    'Playlists',
+                                    'API Access',
+                                    'Mobile App'
+                                ].map((item, i) => (
+                                    <motion.li
+                                        key={i}
+                                        whileHover={{ x: 4 }}
+                                        className="transition-colors duration-200"
+                                    >
+                                        <a href="#" className="text-muted-foreground hover:text-purple-500 text-sm">
+                                            {item}
+                                        </a>
+                                    </motion.li>
+                                ))}
+                            </ul>
+                        </div>
 
-                <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-                    <div className="flex justify-center space-x-6 mb-6">
-                        <motion.div whileHover={{ scale: 1.1, y: -2 }} className="relative">
-                            <div className="absolute -inset-1 bg-red-500/10 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <Youtube className="h-5 w-5 text-red-500 relative" />
-                        </motion.div>
-                        <motion.div whileHover={{ scale: 1.1, y: -2 }} className="relative">
-                            <div className="absolute -inset-1 bg-purple-500/10 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <Headphones className="h-5 w-5 text-purple-500 relative" />
-                        </motion.div>
-                        <motion.div whileHover={{ scale: 1.1, y: -2 }} className="relative">
-                            <div className="absolute -inset-1 bg-blue-500/10 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <Music className="h-5 w-5 text-blue-500 relative" />
-                        </motion.div>
+                        {/* Enterprise Links */}
+                        <div>
+                            <h3 className="font-semibold text-foreground mb-4 flex items-center">
+                                <Users className="h-4 w-4 mr-2 text-blue-500" />
+                                Enterprise
+                            </h3>
+                            <ul className="space-y-3">
+                                {[
+                                    'Enterprise Plans',
+                                    'Team Management',
+                                    'SSO Integration',
+                                    'Custom Analytics',
+                                    'Priority Support',
+                                    'SLA Agreements'
+                                ].map((item, i) => (
+                                    <motion.li
+                                        key={i}
+                                        whileHover={{ x: 4 }}
+                                        className="transition-colors duration-200"
+                                    >
+                                        <a href="#" className="text-muted-foreground hover:text-blue-500 text-sm">
+                                            {item}
+                                        </a>
+                                    </motion.li>
+                                ))}
+                            </ul>
+                        </div>
                     </div>
-                    <p className="font-medium">© {new Date().getFullYear()} MinstrelMuse. All rights reserved.</p>
-                    <p className="mt-2 max-w-lg mx-auto">
-                        This application is not affiliated with YouTube or Google. All YouTube content is subject to YouTube's Terms of Service.
-                    </p>
+
+                    {/* Newsletter Subscription */}
+                    <div className="border-t border-border pt-8 mb-8">
+                        <div className="max-w-md mx-auto text-center">
+                            <h3 className="font-semibold text-foreground mb-2">Stay Updated</h3>
+                            <p className="text-muted-foreground text-sm mb-4">
+                                Get the latest updates on new features and enterprise solutions.
+                            </p>
+                            <div className="flex gap-2">
+                                <input
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    className="flex-1 px-3 py-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                                <Button
+                                    size="sm"
+                                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90"
+                                >
+                                    Subscribe
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Footer */}
+                    <div className="border-t border-border pt-8">
+                        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-muted-foreground">
+                                <p className="font-medium">
+                                    © {new Date().getFullYear()} MinstrelMuse. All rights reserved.
+                                </p>
+                                <div className="flex items-center space-x-4">
+                                    <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+                                    <span>•</span>
+                                    <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+                                    <span>•</span>
+                                    <a href="#" className="hover:text-foreground transition-colors">Cookies</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Disclaimer */}
+                        <div className="mt-6 pt-6 border-t border-border">
+                            <p className="text-xs text-muted-foreground text-center max-w-4xl mx-auto leading-relaxed">
+                                This application is not affiliated with YouTube or Google. All YouTube content is subject to YouTube's Terms of Service.
+                                MinstrelMuse provides enterprise-grade tools for music discovery and analytics while respecting all applicable copyright laws and platform policies.
+                                Enterprise features include advanced security, compliance tools, and dedicated support for business customers.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </footer>
         </div>
