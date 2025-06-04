@@ -693,12 +693,18 @@ function App() {
               } />
               <Route path="/dashboard/admin/users" element={
                 <OfflineGuard>
-                  {user?.role === 'admin' ? <UserManagement /> : <Navigate to="/dashboard" />}
+                  {(user?.role === 'admin' || user?.role === 'owner') ?
+                    <UserManagement currentUser={user} /> :
+                    <Navigate to="/dashboard" />
+                  }
                 </OfflineGuard>
               } />
               <Route path="/dashboard/admin" element={
                 <OfflineGuard>
-                  {user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/dashboard" />}
+                  {(user?.role === 'admin' || user?.role === 'owner') ?
+                    <AdminDashboard currentUser={user} /> :
+                    <Navigate to="/dashboard" />
+                  }
                 </OfflineGuard>
               } />
               <Route path="/dashboard/library" element={
