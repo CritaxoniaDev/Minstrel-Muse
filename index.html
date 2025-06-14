@@ -2,29 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="MinstrelMuse">
-    <link rel="apple-touch-icon" href="/pwa-192x192.png">
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="MinstrelMuse - Your Social Music Discovery Platform" />
-    <meta name="theme-color" content="#000000" />
     <meta name="keywords" content="music, social, discovery, streaming, playlists" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="author" content="MinstrelMuse" />
+    
+    <!-- PWA Configuration -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="MinstrelMuse" />
+    
+    <!-- Icons and Manifest -->
+    <link rel="icon" type="image/png" href="/images/minstrel-logo.png" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+    <link rel="apple-touch-icon" href="/images/minstrel-logo.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="MinstrelMuse" />
     <meta property="og:description" content="Connect and discover music with friends" />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/images/minstrel-logo.png" />
+    <meta property="og:url" content="https://yourdomain.com" />
+    <meta property="og:site_name" content="MinstrelMuse" />
+    
+    <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="icon" type="image/png" href="/images/minstrel-logo.png" />
-    <link rel="apple-touch-icon" href="/images/minstrel-logo.png" />
-    <link rel="manifest" href="/manifest.json" />
-    <title>MinstrelMuse</title>
-    <base href="/" />
-    <script type="module" src="/src/main.jsx"></script>
+    <meta name="twitter:title" content="MinstrelMuse" />
+    <meta name="twitter:description" content="Connect and discover music with friends" />
+    <meta name="twitter:image" content="/images/minstrel-logo.png" />
+    
+    <!-- Performance Optimizations -->
     <link rel="preload" href="/src/index.css" as="style" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="/src/index.css" />
+    
+    <!-- Base URL -->
+    <base href="/" />
+    
+    <!-- Page Title -->
+    <title>MinstrelMuse - Your Social Music Discovery Platform</title>
 </head>
 <body>
+    <noscript>
+        <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+            <h1>JavaScript Required</h1>
+            <p>MinstrelMuse requires JavaScript to function properly. Please enable JavaScript in your browser settings.</p>
+        </div>
+    </noscript>
+    
     <div id="root"></div>
+    
+    <!-- Main Application Script -->
+    <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
