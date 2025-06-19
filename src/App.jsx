@@ -253,25 +253,73 @@ function App() {
 
   const handlePlayerStateChange = (event) => {
     if (event.data === 1) { // Playing
-      setDuration(Math.floor(event.target.getDuration()));
+      const videoDuration = event.target.getDuration();
+
+      // Only update duration if it's valid
+      if (videoDuration && isFinite(videoDuration) && videoDuration > 0) {
+        setDuration(Math.floor(videoDuration));
+      }
+
       setHasPlayedEndSound(false);
 
-      const interval = setInterval(() => {
-        const time = Math.floor(event.target.getCurrentTime());
-        const totalDuration = Math.floor(event.target.getDuration());
+      // Clear any existing interval
+      if (timeUpdateInterval) {
+        clearInterval(timeUpdateInterval);
+      }
 
-        setCurrentTime(prev => {
-          if (Math.abs(prev - time) >= 1) {
-            return time;
+      const interval = setInterval(() => {
+        try {
+          const currentVideoTime = event.target.getCurrentTime();
+          const totalDuration = event.target.getDuration();
+
+          // Only update if we have valid values
+          if (
+            currentVideoTime !== undefined &&
+            isFinite(currentVideoTime) &&
+            currentVideoTime >= 0 &&
+            totalDuration &&
+            isFinite(totalDuration) &&
+            totalDuration > 0
+          ) {
+            const time = Math.floor(currentVideoTime);
+            const duration = Math.floor(totalDuration);
+
+            // Prevent time from exceeding duration
+            const clampedTime = Math.min(time, duration);
+
+            setCurrentTime(prev => {
+              // Only update if there's a meaningful change (reduces unnecessary re-renders)
+              if (Math.abs(prev - clampedTime) >= 1) {
+                return clampedTime;
+              }
+              return prev;
+            });
+
+            // Update duration if it changed
+            setDuration(prev => prev !== duration ? duration : prev);
           }
-          return prev;
-        });
-      }, 250);
+        } catch (error) {
+          console.warn('Error updating time:', error);
+        }
+      }, 500); // Reduced frequency to 500ms for better performance
 
       setTimeUpdateInterval(interval);
+    } else {
+      // Clear interval when not playing
+      if (timeUpdateInterval) {
+        clearInterval(timeUpdateInterval);
+        setTimeUpdateInterval(null);
+      }
     }
 
+    // Handle ended state
     if (event.data === 0) { // Ended
+      // Clear the interval
+      if (timeUpdateInterval) {
+        clearInterval(timeUpdateInterval);
+        setTimeUpdateInterval(null);
+      }
+
       if (isLooping) {
         event.target.seekTo(0);
         event.target.playVideo();
@@ -331,18 +379,128 @@ function App() {
   };
 
   // Stable time formatting with fixed decimal places
+  // Enhanced time formatting with better error handling and accuracy
   const formatTime = (seconds) => {
-    if (!seconds) return "0:00";
+    // Handle invalid inputs
+    if (!seconds || isNaN(seconds) || seconds < 0) return "0:00";
 
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
+    // Ensure we're working with a finite number
+    const totalSeconds = Math.floor(Math.abs(seconds));
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const remainingSeconds = totalSeconds % 60;
 
     if (hours > 0) {
       return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     }
 
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  // Enhanced progress calculation with safety checks
+  const getProgressPercentage = (current, total) => {
+    if (!current || !total || isNaN(current) || isNaN(total) || total <= 0) {
+      return 0;
+    }
+
+    const percentage = Math.min(Math.max((current / total) * 100, 0), 100);
+    return isFinite(percentage) ? percentage : 0;
+  };
+
+  // Function to handle seeking to specific time
+  const handleSeekTo = (targetTime) => {
+    const time = Math.max(0, Math.min(targetTime, duration || 0));
+    if (isFinite(time) && player && typeof player.seekTo === 'function') {
+      try {
+        setCurrentTime(time);
+        player.seekTo(time, true); // true for allowSeekAhead
+
+        // Provide user feedback
+        // toast({
+        //   title: "Seeking",
+        //   description: `Jumped to ${formatTime(time)}`,
+        //   duration: 1500,
+        // });
+      } catch (error) {
+        console.warn('Seek operation failed:', error);
+        toast({
+          title: "Seek Failed",
+          description: "Unable to seek to that position",
+          variant: "destructive",
+          duration: 2000,
+        });
+      }
+    }
+  };
+
+  // Function to handle progress bar clicks
+  const handleProgressBarClick = (e) => {
+    if (!duration || duration <= 0) return;
+
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const progressBarWidth = rect.width;
+
+    if (progressBarWidth > 0) {
+      const clickPercentage = Math.max(0, Math.min(1, clickX / progressBarWidth));
+      const targetTime = clickPercentage * duration;
+      handleSeekTo(targetTime);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeUpdateInterval) {
+        clearInterval(timeUpdateInterval);
+      }
+    };
+  }, [timeUpdateInterval]);
+
+  useEffect(() => {
+    // Clear interval when changing tracks
+    if (timeUpdateInterval) {
+      clearInterval(timeUpdateInterval);
+      setTimeUpdateInterval(null);
+    }
+
+    if (player && currentTrack) {
+      try {
+        player.loadVideoById(currentTrack.id);
+        player.setVolume(Math.max(0, Math.min(100, volume || 75)));
+        setCurrentTime(0);
+        setDuration(0);
+      } catch (error) {
+        console.warn('Error loading video:', error);
+      }
+    }
+  }, [currentTrack, player]);
+
+  const parseTimeInput = (timeString) => {
+    if (!timeString || typeof timeString !== 'string') return null;
+
+    // Remove any whitespace
+    const cleanTime = timeString.trim();
+
+    // Match MM:SS or HH:MM:SS format
+    const timeRegex = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{2})$/;
+    const match = cleanTime.match(timeRegex);
+
+    if (!match) return null;
+
+    const hours = parseInt(match[1] || '0', 10);
+    const minutes = parseInt(match[2], 10);
+    const seconds = parseInt(match[3], 10);
+
+    // Validate ranges
+    if (minutes >= 60 || seconds >= 60) return null;
+    if (hours < 0 || minutes < 0 || seconds < 0) return null;
+
+    // Convert to total seconds
+    const totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+
+    return totalSeconds;
   };
 
   const handleAddToQueue = (video) => {
@@ -1081,26 +1239,155 @@ function App() {
                     <>
                       <div className="flex flex-col items-center w-1/2 px-4">
                         <div className="w-full flex items-center space-x-2 text-xs text-muted-foreground">
-                          <span>{formatTime(currentTime)}</span>
-                          <div className="relative flex-1 h-1 bg-secondary rounded-full overflow-hidden group">
+                          {/* Current time - clickable for manual input */}
+                          <button
+                            className="min-w-[35px] text-right hover:text-foreground transition-colors duration-200 cursor-pointer"
+                            onClick={() => {
+                              const userInput = prompt(
+                                `Enter timestamp (current: ${formatTime(currentTime)})\nFormats: MM:SS or HH:MM:SS`,
+                                formatTime(currentTime)
+                              );
+
+                              if (userInput) {
+                                const parsedTime = parseTimeInput(userInput);
+                                if (parsedTime !== null && parsedTime <= (duration || 0)) {
+                                  handleSeekTo(parsedTime);
+                                } else {
+                                  toast({
+                                    title: "Invalid Timestamp",
+                                    description: "Please enter a valid time format (MM:SS or HH:MM:SS)",
+                                    variant: "destructive",
+                                    duration: 3000,
+                                  });
+                                }
+                              }
+                            }}
+                            title="Click to enter specific timestamp"
+                          >
+                            {formatTime(currentTime)}
+                          </button>
+
+                          {/* Enhanced progress bar with click-to-seek */}
+                          <div
+                            className="relative flex-1 h-2 bg-secondary rounded-full overflow-hidden group cursor-pointer"
+                            onClick={handleProgressBarClick}
+                            onMouseMove={(e) => {
+                              // Show preview time on hover
+                              if (!duration || duration <= 0) return;
+
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const hoverX = e.clientX - rect.left;
+                              const progressBarWidth = rect.width;
+
+                              if (progressBarWidth > 0) {
+                                const hoverPercentage = Math.max(0, Math.min(1, hoverX / progressBarWidth));
+                                const hoverTime = hoverPercentage * duration;
+
+                                // Update tooltip position and content
+                                const tooltip = e.currentTarget.querySelector('.time-tooltip');
+                                if (tooltip) {
+                                  tooltip.style.left = `${Math.max(0, Math.min(100, hoverPercentage * 100))}%`;
+                                  tooltip.textContent = formatTime(hoverTime);
+                                  tooltip.style.opacity = '1';
+                                }
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              // Hide tooltip
+                              const tooltip = e.currentTarget.querySelector('.time-tooltip');
+                              if (tooltip) {
+                                tooltip.style.opacity = '0';
+                              }
+                            }}
+                            title="Click to seek to position"
+                          >
+                            {/* Progress bar fill */}
                             <div
-                              className="absolute h-full bg-primary rounded-full transition-all"
-                              style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                              className="absolute h-full bg-primary rounded-full transition-all duration-150 ease-out"
+                              style={{
+                                width: `${getProgressPercentage(currentTime, duration)}%`,
+                                willChange: 'width'
+                              }}
                             />
+
+                            {/* Hover preview line */}
+                            <div className="absolute top-0 w-0.5 h-full bg-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+                              style={{ left: '0%' }} />
+
+                            {/* Time tooltip on hover */}
+                            <div className="time-tooltip absolute -top-8 transform -translate-x-1/2 bg-popover text-popover-foreground px-2 py-1 rounded text-xs opacity-0 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 border shadow-md">
+                              0:00
+                            </div>
+
+                            {/* Invisible range input for keyboard navigation and dragging */}
                             <input
                               type="range"
                               min={0}
-                              max={duration || 100}
-                              value={currentTime || 0}
+                              max={Math.max(duration || 0, 1)} // Prevent division by zero
+                              value={Math.min(currentTime || 0, duration || 0)} // Ensure value doesn't exceed max
+                              step={1}
                               onChange={(e) => {
-                                const time = parseFloat(e.target.value);
-                                setCurrentTime(time);
-                                player?.seekTo(time);
+                                const time = Math.max(0, Math.min(parseFloat(e.target.value) || 0, duration || 0));
+                                if (isFinite(time) && player && typeof player.seekTo === 'function') {
+                                  try {
+                                    setCurrentTime(time);
+                                    player.seekTo(time, true); // true for allowSeekAhead
+                                  } catch (error) {
+                                    console.warn('Seek operation failed:', error);
+                                  }
+                                }
                               }}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              onInput={(e) => {
+                                // Provide immediate visual feedback during dragging
+                                const time = Math.max(0, Math.min(parseFloat(e.target.value) || 0, duration || 0));
+                                if (isFinite(time)) {
+                                  setCurrentTime(time);
+                                }
+                              }}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none bg-transparent"
+                              style={{
+                                background: 'transparent',
+                                outline: 'none'
+                              }}
+                              aria-label="Seek to position"
                             />
+
+                            {/* Hover indicator */}
+                            <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-primary/10" />
                           </div>
-                          <span>{formatTime(duration)}</span>
+
+                          {/* Total duration - clickable for manual input */}
+                          <button
+                            className="min-w-[35px] text-left hover:text-foreground transition-colors duration-200 cursor-pointer"
+                            onClick={() => {
+                              const userInput = prompt(
+                                `Current duration: ${formatTime(duration)}\nEnter new duration (for testing purposes)\nFormats: MM:SS or HH:MM:SS`,
+                                formatTime(duration)
+                              );
+
+                              if (userInput) {
+                                const parsedTime = parseTimeInput(userInput);
+                                if (parsedTime !== null && parsedTime > 0) {
+                                  setDuration(parsedTime);
+                                  toast({
+                                    title: "Duration Updated",
+                                    description: `Set to ${formatTime(parsedTime)}`,
+                                    duration: 2000,
+                                  });
+                                } else {
+                                  toast({
+                                    title: "Invalid Duration",
+                                    description: "Please enter a valid time format (MM:SS or HH:MM:SS)",
+                                    variant: "destructive",
+                                    duration: 3000,
+                                  });
+                                }
+                              }
+                            }}
+                            title="Click to manually set duration (testing)"
+                          >
+                            {formatTime(duration)}
+                          </button>
                         </div>
                       </div>
 
