@@ -7,7 +7,7 @@ import { readFileSync } from 'fs'
 
 export default defineConfig(({ command }) => {
   const isProduction = command === 'build'
-  
+
   return {
     plugins: [
       react(),
@@ -117,14 +117,14 @@ export default defineConfig(({ command }) => {
           order: 'post',
           handler(html, { bundle }) {
             if (!bundle) return html
-            
+
             // Find the CSS file in the bundle
             const cssFile = Object.keys(bundle).find(file => file.endsWith('.css'))
             if (!cssFile || !bundle[cssFile]) return html
-            
+
             // Get the CSS content
             const cssContent = bundle[cssFile].source
-            
+
             // Minify CSS content
             const minifiedCss = cssContent
               .replace(/\/\*(?:(?!\*\/)[\s\S])*\*\/|[\r\n\t]+/g, '') // Remove comments and whitespace
@@ -132,7 +132,7 @@ export default defineConfig(({ command }) => {
               .replace(/([{:}])\s+/g, '$1') // Remove spaces after {, :, }
               .replace(/\s+([{:}])/g, '$1') // Remove spaces before {, :, }
               .replace(/;}/g, '}') // Remove trailing semicolons
-            
+
             // Replace the placeholder with the minified CSS content
             return html.replace('/* CSS_PLACEHOLDER */', minifiedCss)
           }
@@ -153,7 +153,7 @@ export default defineConfig(({ command }) => {
       },
     },
     server: {
-      port: 3000,
+      port: 5173,
       open: true,
     },
     build: {
@@ -171,16 +171,16 @@ export default defineConfig(({ command }) => {
             if (id.includes('node_modules')) {
               return 'vendor';
             }
-            
+
             // Application code in a few chunks
             if (id.includes('/src/components/')) {
               return 'app-components';
             }
-            
+
             if (id.includes('/src/pages/')) {
               return 'app-pages';
             }
-            
+
             // Default app chunk
             if (id.includes('/src/')) {
               return 'app-core';
@@ -192,29 +192,28 @@ export default defineConfig(({ command }) => {
       plugins: [
         {
           name: 'minify-sensitive-chunks',
-          generateBundle(options, bundle) {
+          generateBundle: async function (options, bundle) {
             const { minify } = require('terser');
-            
-            // Process each chunk
-            Object.keys(bundle).forEach(async (fileName) => {
+
+            for (const fileName of Object.keys(bundle)) {
               const chunk = bundle[fileName];
-              
-              // Only process JS chunks that are vendor chunks or app-core chunks
-              if (fileName.endsWith('.js') && (fileName.includes('vendor') || fileName.includes('app-core'))) {
+
+              if (
+                fileName.endsWith('.js') &&
+                (fileName.includes('vendor') || fileName.includes('app-core'))
+              ) {
                 try {
-                  // Minify the chunk with enhanced obfuscation for app-core
                   const result = await minify(chunk.code, {
                     compress: {
                       drop_console: true,
                       drop_debugger: true,
-                      passes: 2, // Multiple passes for better compression
+                      passes: 2,
                     },
                     format: {
-                      comments: false
-                    }
+                      comments: false,
+                    },
                   });
-                  
-                  // Update the chunk with minified code
+
                   if (result.code) {
                     chunk.code = result.code;
                   }
@@ -222,7 +221,7 @@ export default defineConfig(({ command }) => {
                   console.error(`Error minifying ${fileName}:`, err);
                 }
               }
-            });
+            }
           }
         }
       ]
